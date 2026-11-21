@@ -19,6 +19,7 @@
 #include <prism/raster/fonts.hpp>
 #include <prism/render/scene_snapshot.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <condition_variable>
@@ -173,7 +174,6 @@ void report_stats(Handoff& h, const FrameContext& ctx)
 
 struct RunArgs {
     Handoff* h;
-    FrameSink* sink;
     TouchSource* touch;
     raster::Fonts* fonts;
     core::Size size;
@@ -228,14 +228,13 @@ void logic_main(const RunArgs& a)
     core::logic_thread.store(std::thread::id{}); // the model is the caller's again
 }
 
-void render_main(const RunArgs& a)
+// The render thread: waits for each snapshot, has `painter` draw and present it, and records the
+// frame. A painter is how a frame reaches the sink: begin() (untimed), draw(snapshot), present().
+template <class Painter>
+void render_loop(const RunArgs& a, Painter& painter)
 {
     prism::profile::name_thread("render");
     Handoff& h = *a.h;
-    const int width = int(a.size.w.raw()), height = int(a.size.h.raw());
-    // One canvas for the whole run, pointed at each frame's back buffer: it keeps its scratch
-    // storage, so drawing does not allocate after the first frame.
-    raster::Canvas canvas{a.sink->back(), width, height, width};
     const std::stop_token stop = a.stop.get_token();
     for (;;) {
         StageTimes times;
@@ -248,20 +247,18 @@ void render_main(const RunArgs& a)
             times.update = h.pending_update_time;
             times.snapshot = h.pending_build_time;
         }
-        const SceneSnapshot* snap = &h.slots[std::size_t(h.drawing)];
-        canvas.retarget(a.sink->back());
+        const SceneSnapshot& snap = h.slots[std::size_t(h.drawing)];
+        painter.begin();
         auto start = Clock::now();
         {
             PRISM_PROFILE_SCOPE("draw"); // the clear is part of drawing the frame, as the stats count it
-            if (!a.sink->clear(raster::argb(snap->window.background)))
-                canvas.clear(snap->window.background); // clearing is the caller's job, as with SDL
-            raster::draw(canvas, *snap, *a.fonts);
+            painter.draw(snap);
         }
         times.draw = since(start);
         start = Clock::now();
         {
             PRISM_PROFILE_SCOPE("present");
-            a.sink->present();
+            painter.present();
         }
         times.present = since(start);
         {
@@ -274,19 +271,87 @@ void render_main(const RunArgs& a)
     }
 }
 
+// A whole frame into the FrameSink's back buffer. One canvas for the whole run, pointed at each
+// frame's back buffer: it keeps its scratch storage, so drawing does not allocate after the
+// first frame.
+struct FramePainter {
+    FrameSink& sink;
+    const raster::Fonts& fonts;
+    raster::Canvas canvas;
+
+    void begin() { canvas.retarget(sink.back()); }
+    void draw(const SceneSnapshot& snap)
+    {
+        if (!sink.clear(raster::argb(snap.window.background)))
+            canvas.clear(snap.window.background); // clearing is the caller's job, as with SDL
+        raster::draw(canvas, snap, fonts);
+    }
+    void present() { sink.present(); }
+};
+
+// A frame as bands of `rows` rows, alternating between the sink's two band buffers. One canvas,
+// pointed at each band: band(index) is asked for before every band, as it is where the sink
+// waits for that buffer's last copy to end.
+// simplify: the last band's canvas keeps `rows` rows, so the rows past the frame's bottom are
+// cleared and drawn, never flushed. Upgrade if a frame height is far from a multiple of the
+// band height: a canvas retarget that also takes the band's height.
+template <class P>
+struct BandPainter {
+    BandSink<P>& sink;
+    const raster::Fonts& fonts;
+    int height, rows;
+    raster::BasicCanvas<P> canvas;
+
+    void begin() {}
+    void draw(const SceneSnapshot& snap)
+    {
+        for (int k = 0; k * rows < height; ++k) {
+            const int index = k % 2, first_row = k * rows;
+            canvas.retarget(sink.band(index), first_row);
+            canvas.clear(snap.window.background);
+            raster::draw_band(canvas, snap, fonts);
+            sink.flush(index, first_row, std::min(rows, height - first_row));
+        }
+    }
+    void present() { sink.present(); }
+};
+
+void render_main(const RunArgs& a, FrameSink& sink)
+{
+    const int width = int(a.size.w.raw()), height = int(a.size.h.raw());
+    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}};
+    render_loop(a, painter);
+}
+
+template <class P>
+void render_main(const RunArgs& a, BandSink<P>& sink)
+{
+    const int width = int(a.size.w.raw()), height = int(a.size.h.raw()), rows = sink.band_height();
+    BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}};
+    render_loop(a, painter);
+}
+
+template <class Sink>
+struct RenderArgs {
+    const RunArgs* run;
+    Sink* sink;
+};
+
 void* logic_entry(void* p)
 {
     logic_main(*static_cast<const RunArgs*>(p));
     return nullptr;
 }
 
+template <class Sink>
 void* render_entry(void* p)
 {
-    render_main(*static_cast<const RunArgs*>(p));
+    const auto& r = *static_cast<const RenderArgs<Sink>*>(p);
+    render_main(*r.run, *r.sink);
     return nullptr;
 }
 
-std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std::size_t stack_bytes,
+std::optional<pthread_t> start_thread(void* (*entry)(void*), void* args, std::size_t stack_bytes,
                                       const FrameOptions& options, ThreadRole role)
 {
     if (options.before_thread_start)
@@ -299,11 +364,36 @@ std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std:
         pthread_attr_init(&attr);
     }
     pthread_t thread;
-    const int rc = pthread_create(&thread, &attr, entry, &args);
+    const int rc = pthread_create(&thread, &attr, entry, args);
     pthread_attr_destroy(&attr);
     if (rc != 0)
         return std::nullopt;
     return thread;
+}
+
+template <class Sink>
+void run(Sink& sink, TouchSource& touch, TreeFactory make_tree, std::function<void(FrameContext&)> setup,
+         const FrameOptions& options)
+{
+    // raster::Fonts is the shared text measurer: measure() runs on the logic thread, glyph
+    // rasterization on the render thread; the faces are immutable and the glyph cache is
+    // mutex-guarded (raster/fonts.hpp).
+    raster::Fonts fonts;
+    auto h = std::make_unique<Handoff>(); // the snapshot slots are large for a task stack
+    RunArgs args{h.get(), &touch, &fonts, sink.size(), {}, &make_tree, &setup};
+    RenderArgs<Sink> render_args{&args, &sink};
+
+    // pthreads, not std::thread: the stack sizes matter on an RTOS, whose default is small.
+    const auto logic = start_thread(logic_entry, &args, kLogicStackBytes, options, ThreadRole::logic);
+    if (!logic)
+        return; // no memory for the thread
+    const auto render =
+        start_thread(render_entry<Sink>, &render_args, kRenderStackBytes, options, ThreadRole::render);
+    if (!render)
+        args.stop.request_stop();
+    pthread_join(*logic, nullptr);
+    if (render)
+        pthread_join(*render, nullptr);
 }
 
 } // namespace
@@ -311,23 +401,19 @@ std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std:
 void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,
                 std::function<void(FrameContext&)> setup, const FrameOptions& options)
 {
-    // raster::Fonts is the shared text measurer: measure() runs on the logic thread, glyph
-    // rasterization on the render thread; the faces are immutable and the glyph cache is
-    // mutex-guarded (raster/fonts.hpp).
-    raster::Fonts fonts;
-    auto h = std::make_unique<Handoff>(); // the snapshot slots are large for a task stack
-    RunArgs args{h.get(), &sink, &touch, &fonts, sink.size(), {}, &make_tree, &setup};
+    run(sink, touch, std::move(make_tree), std::move(setup), options);
+}
 
-    // pthreads, not std::thread: the stack sizes matter on an RTOS, whose default is small.
-    const auto logic = start_thread(logic_entry, args, kLogicStackBytes, options, ThreadRole::logic);
-    if (!logic)
-        return; // no memory for the thread
-    const auto render = start_thread(render_entry, args, kRenderStackBytes, options, ThreadRole::render);
-    if (!render)
-        args.stop.request_stop();
-    pthread_join(*logic, nullptr);
-    if (render)
-        pthread_join(*render, nullptr);
+void run_frames(BandSink<raster::Rgb565>& sink, TouchSource& touch, TreeFactory make_tree,
+                std::function<void(FrameContext&)> setup, const FrameOptions& options)
+{
+    run(sink, touch, std::move(make_tree), std::move(setup), options);
+}
+
+void run_frames(BandSink<raster::Argb8888>& sink, TouchSource& touch, TreeFactory make_tree,
+                std::function<void(FrameContext&)> setup, const FrameOptions& options)
+{
+    run(sink, touch, std::move(make_tree), std::move(setup), options);
 }
 
 } // namespace prism::platform

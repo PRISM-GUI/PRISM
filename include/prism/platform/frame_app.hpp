@@ -81,6 +81,13 @@ inline void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tre
     run_frames(sink, touch, std::move(make_tree), std::move(setup), FrameOptions{});
 }
 
+// A band target: the render thread draws each frame band by band into the sink's two band
+// buffers, flushing each, then presents. The last band holds the rows that remain.
+void run_frames(BandSink<raster::Rgb565>& sink, TouchSource& touch, TreeFactory make_tree,
+                std::function<void(FrameContext&)> setup, const FrameOptions& options = {});
+void run_frames(BandSink<raster::Argb8888>& sink, TouchSource& touch, TreeFactory make_tree,
+                std::function<void(FrameContext&)> setup, const FrameOptions& options = {});
+
 // The model must outlive the call; while it runs, only the logic thread may change it.
 template <class Model>
 void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
@@ -95,6 +102,14 @@ void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
                std::function<void(FrameContext&)> setup = {})
 {
     frame_app(sink, touch, model, std::move(setup), FrameOptions{});
+}
+
+template <class P, class Model>
+void frame_app(BandSink<P>& sink, TouchSource& touch, Model& model,
+               std::function<void(FrameContext&)> setup = {}, const FrameOptions& options = {})
+{
+    run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
+               std::move(setup), options);
 }
 
 } // namespace prism::platform

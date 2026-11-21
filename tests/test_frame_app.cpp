@@ -14,10 +14,15 @@
 #include <prism/core/field.hpp>
 #include <prism/raster/fonts.hpp>
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <cctype>
 #include <chrono>
+#include <condition_variable>
 #include <cstdint>
+#include <cstdlib>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
@@ -41,7 +46,7 @@ using prism::platform::FrameContext;
 
 namespace {
 
-constexpr int W = 120, H = 80;
+constexpr int W = 120, H = 100;
 
 struct Counter {
     Field<prism::ui::Button> plus{{"+1"}};
@@ -80,6 +85,108 @@ struct ClearingSink final : prism::platform::FrameSink {
     void present() override { ++presents; }
     Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
 };
+
+constexpr int kBandRows = 48; // 100 rows: two full bands and a 4-row one
+
+// Two band buffers; flush copies a band into a whole frame, which the test reads after the run.
+template <class P>
+struct MemoryBandSink final : prism::platform::BandSink<P> {
+    using pixel = typename P::storage;
+    std::array<std::vector<pixel>, 2> bands{std::vector<pixel>(std::size_t(W) * kBandRows),
+                                            std::vector<pixel>(std::size_t(W) * kBandRows)};
+    std::vector<pixel> frame = std::vector<pixel>(std::size_t(W) * H);
+    std::atomic<int> presents{0};
+
+    int band_height() const override { return kBandRows; }
+    std::span<pixel> band(int index) override { return bands[std::size_t(index)]; }
+    void flush(int index, int first_row, int rows) override
+    {
+        std::copy_n(bands[std::size_t(index)].begin(), std::size_t(W) * rows,
+                    frame.begin() + std::ptrdiff_t(first_row) * W);
+    }
+    void present() override { ++presents; }
+    Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
+};
+
+// A band sink whose copy takes 5 ms on a helper thread, as a DMA transfer does. band() waits for
+// it. A runtime that keeps a band's span across flushes shows two ways: it flushes a buffer it
+// did not ask band() for since that buffer's last flush, and, if it draws while the copy runs,
+// the band no longer holds at the copy's end what it held at flush. Each counts a violation.
+struct SlowCopyBandSink final : prism::platform::BandSink<prism::raster::Argb8888> {
+    std::array<std::vector<std::uint32_t>, 2> bands{std::vector<std::uint32_t>(std::size_t(W) * kBandRows),
+                                                    std::vector<std::uint32_t>(std::size_t(W) * kBandRows)};
+    std::array<std::vector<std::uint32_t>, 2> at_flush;
+    std::array<bool, 2> busy{};
+    std::array<bool, 2> handed_out{};
+    std::mutex mu;
+    std::condition_variable cv;
+    std::atomic<int> flushes{0};
+    std::atomic<int> violations{0};
+    std::vector<std::jthread> copies; // last: joined before the buffers and the mutex go
+
+    int band_height() const override { return kBandRows; }
+    std::span<std::uint32_t> band(int index) override
+    {
+        std::unique_lock lock{mu};
+        cv.wait(lock, [&] { return !busy[std::size_t(index)]; });
+        handed_out[std::size_t(index)] = true;
+        return bands[std::size_t(index)];
+    }
+    void flush(int index, int, int) override
+    {
+        const auto i = std::size_t(index);
+        {
+            std::lock_guard lock{mu};
+            if (!handed_out[i])
+                ++violations;
+            handed_out[i] = false;
+            busy[i] = true;
+            at_flush[i] = bands[i];
+        }
+        ++flushes;
+        copies.emplace_back([this, i] {
+            std::this_thread::sleep_for(5ms);
+            std::lock_guard lock{mu};
+            if (bands[i] != at_flush[i])
+                ++violations;
+            busy[i] = false;
+            cv.notify_all();
+        });
+    }
+    void present() override {}
+    Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
+};
+
+struct NoTouch final : prism::platform::TouchSource {
+    std::optional<Point> read() override { return std::nullopt; }
+};
+
+// Runs the counter on `sink` until its first frame is presented.
+template <class Sink>
+void run_one_frame(Sink& sink)
+{
+    Counter model;
+    NoTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.presents >= 1)
+                ctx.quit();
+        });
+    });
+}
+
+std::uint16_t to_rgb565(std::uint32_t argb)
+{
+    return prism::raster::Rgb565::pack(Color::rgba(std::uint8_t(argb >> 16), std::uint8_t(argb >> 8),
+                                                   std::uint8_t(argb)));
+}
+
+// Every RGB565 channel within one unit.
+bool near_565(std::uint16_t a, std::uint16_t b)
+{
+    const auto close = [](int x, int y) { return std::abs(x - y) <= 1; };
+    return close(a >> 11, b >> 11) && close((a >> 5) & 0x3F, (b >> 5) & 0x3F) && close(a & 0x1F, b & 0x1F);
+}
 
 // No finger, or a tap at `at`: held for a few polls once the first frame is on screen (the
 // runtime hit-tests against the shown frame, set just after the first present), then lifted.
@@ -238,6 +345,50 @@ TEST_CASE("the timing line reaches on_stats")
     REQUIRE_FALSE(line.empty());
     CHECK(std::isdigit(static_cast<unsigned char>(line.front())));
     CHECK(line.find("fps") != std::string::npos);
+}
+
+TEST_CASE("a band sink's frame equals a frame sink's frame")
+{
+    MemorySink whole;
+    run_one_frame(whole);
+    REQUIRE(whole.presents >= 1);
+
+    SUBCASE("ARGB8888")
+    {
+        MemoryBandSink<prism::raster::Argb8888> banded;
+        run_one_frame(banded);
+        REQUIRE(banded.presents >= 1);
+        CHECK(banded.frame == whole.pixels);
+    }
+    SUBCASE("RGB565: the ARGB frame packed, within a unit (glyph edges blend on a 565 background)")
+    {
+        MemoryBandSink<prism::raster::Rgb565> banded;
+        run_one_frame(banded);
+        REQUIRE(banded.presents >= 1);
+        int far = 0;
+        for (std::size_t i = 0; i < whole.pixels.size(); ++i)
+            far += !near_565(banded.frame[i], to_rgb565(whole.pixels[i]));
+        CHECK(far == 0);
+        CHECK(banded.frame.front() == to_rgb565(whole.pixels.front()));
+    }
+}
+
+TEST_CASE("the runtime never draws into a band whose copy is in flight")
+{
+    Counter model;
+    SlowCopyBandSink sink;
+    NoTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.flushes >= 21)
+                ctx.quit();
+            else
+                model.count.set(model.count.get() + 1); // a new frame each loop: its bands differ
+        });
+    });
+    sink.copies.clear(); // the last copies finish, and check, before the counts are read
+    CHECK(sink.flushes >= 21);
+    CHECK(sink.violations == 0);
 }
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
