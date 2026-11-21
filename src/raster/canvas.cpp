@@ -28,6 +28,21 @@ void require_span(std::size_t size, int stride, int height) {
     std::abort();
 }
 
+// The hairline samples i in [0, n] (at t = i / n) whose row y0 + dy * t can round into rows
+// [r0, r1), widened by a sample and a row: a band then walks only its part of a long line, and
+// blend_pixel still clips every sample, so the pixels are those of the whole walk.
+std::pair<int, int> samples_in_rows(float y0, float dy, int n, int r0, int r1) {
+    if (dy == 0.f) {
+        const long row = std::lround(y0);
+        return row >= r0 && row < r1 ? std::pair{0, n} : std::pair{0, -1};
+    }
+    const float ta = std::clamp((float(r0) - 1.f - y0) / dy, 0.f, 1.f);
+    const float tb = std::clamp((float(r1) + 1.f - y0) / dy, 0.f, 1.f);
+    const float fn = float(n);
+    return {std::max(0, int(std::floor(std::min(ta, tb) * fn)) - 1),
+            std::min(n, int(std::ceil(std::max(ta, tb) * fn)) + 1)};
+}
+
 } // namespace
 
 template <class P>
@@ -215,7 +230,8 @@ void BasicCanvas<P>::line(Point from, Point to, Color c, float thickness) {
         // Hairline: set the pixel under each half-pixel sample along the segment (the SDL backend
         // uses SDL_RenderLine for these; this is its integer twin).
         const int n = std::max(1, static_cast<int>(std::ceil(len * 2.f)));
-        for (int i = 0; i <= n; ++i) {
+        const auto [i0, i1] = samples_in_rows(from.y.raw(), dy, n, clip_.y0, clip_.y1);
+        for (int i = i0; i <= i1; ++i) {
             const float t = static_cast<float>(i) / static_cast<float>(n);
             blend_pixel(static_cast<int>(std::lround(from.x.raw() + dx * t)),
                         static_cast<int>(std::lround(from.y.raw() + dy * t)), c);

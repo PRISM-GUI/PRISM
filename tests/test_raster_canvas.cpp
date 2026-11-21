@@ -10,6 +10,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <span>
 #include <vector>
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
@@ -149,6 +150,19 @@ const prism::raster::Fonts& test_fonts() {
     return fonts;
 }
 
+// A band walks only the samples of a hairline that can reach its rows: lines that are steep,
+// shallow, drawn upwards, on a band edge (row 47.5 rounds to 48), or running off the frame.
+template <class P>
+void draw_hairlines(prism::raster::BasicCanvas<P>& c) {
+    const Color ink = Color::rgba(250, 250, 250);
+    c.line(pt(3, 2), pt(9, 97), ink, 1.f);
+    c.line(pt(1, 44.3f), pt(118, 52.7f), ink, 1.f);
+    c.line(pt(117, 95.5f), pt(20, 3.5f), ink, 1.f);
+    c.line(pt(0, 47.5f), pt(119, 47.5f), ink, 1.f);
+    c.line(pt(50, -30), pt(65, 140), ink, 1.f);
+    c.line(pt(100, 47.4f), pt(101, 48.6f), ink, 1.f);
+}
+
 template <class P>
 void draw_scene(prism::raster::BasicCanvas<P>& c) {
     const std::vector<std::uint8_t> rgba = {
@@ -160,6 +174,7 @@ void draw_scene(prism::raster::BasicCanvas<P>& c) {
     c.text(test_fonts(), "Band edge Wg", pt(4, 40), 16.f, Color::rgba(255, 255, 255), 0.f,
            prism::render::TextAnchor::TopLeft, prism::render::FontStyle{});
     c.line(pt(5, 10), pt(110, 90), Color::rgba(255, 0, 0, 180), 4.f);
+    draw_hairlines(c);
     c.rounded_rect(rect(10, 40, 100, 20), Color::rgba(0, 200, 0, 140), 8.f, 0.f);
     c.rounded_rect(rect(12, 30, 90, 40), Color::rgba(0, 0, 250), 6.f, 3.f);
     const Point poly[5] = {pt(70, 20), pt(115, 45), pt(100, 80), pt(60, 75), pt(55, 50)};
@@ -191,7 +206,35 @@ void check_bands_equal_whole() {
     CHECK(differing == 0);
 }
 
+// Hairlines with fractional ends at every angle, from a centre off the pixel grid.
+void draw_fan(prism::raster::Canvas& c) {
+    c.clear(Color::rgba(0, 0, 0));
+    for (int k = 0; k < 64; ++k) {
+        const float a = float(k) * 0.0981748f;   // 2 pi / 64
+        c.line(pt(40.3f, 30.7f), pt(40.3f + 37.1f * std::cos(a), 30.7f + 33.9f * std::sin(a)),
+               Color::rgba(255, 255, 255), 1.f);
+    }
+}
+
 } // namespace
+
+TEST_CASE("hairlines drawn in bands of 1 to 7 rows equal the frame drawn whole") {
+    constexpr int w = 80, h = 64;
+    std::vector<std::uint32_t> whole(w * h);
+    prism::raster::Canvas full{whole, w, h, w};
+    draw_fan(full);
+    for (int rows = 1; rows <= 7; ++rows) {
+        std::vector<std::uint32_t> banded(w * h);
+        for (int first = 0; first < h; first += rows) {
+            const int n = std::min(rows, h - first);
+            prism::raster::Canvas band{std::span(banded).subspan(std::size_t(first) * w, std::size_t(n) * w),
+                                       w, n, w, first};
+            draw_fan(band);
+        }
+        INFO("bands of ", rows, " rows");
+        CHECK(whole == banded);
+    }
+}
 
 TEST_CASE("a frame drawn in bands equals the frame drawn whole") {
     SUBCASE("Argb8888") { check_bands_equal_whole<prism::raster::Argb8888>(); }
