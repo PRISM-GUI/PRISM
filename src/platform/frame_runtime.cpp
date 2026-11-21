@@ -286,8 +286,11 @@ void* render_entry(void* p)
     return nullptr;
 }
 
-std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std::size_t stack_bytes)
+std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std::size_t stack_bytes,
+                                      const FrameOptions& options, ThreadRole role)
 {
+    if (options.before_thread_start)
+        options.before_thread_start(role);
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     // A refused size is not fatal: start over from the default attributes and keep going.
@@ -306,7 +309,7 @@ std::optional<pthread_t> start_thread(void* (*entry)(void*), RunArgs& args, std:
 } // namespace
 
 void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,
-                std::function<void(FrameContext&)> setup)
+                std::function<void(FrameContext&)> setup, const FrameOptions& options)
 {
     // raster::Fonts is the shared text measurer: measure() runs on the logic thread, glyph
     // rasterization on the render thread; the faces are immutable and the glyph cache is
@@ -316,10 +319,10 @@ void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,
     RunArgs args{h.get(), &sink, &touch, &fonts, sink.size(), {}, &make_tree, &setup};
 
     // pthreads, not std::thread: the stack sizes matter on an RTOS, whose default is small.
-    const auto logic = start_thread(logic_entry, args, kLogicStackBytes);
+    const auto logic = start_thread(logic_entry, args, kLogicStackBytes, options, ThreadRole::logic);
     if (!logic)
         return; // no memory for the thread
-    const auto render = start_thread(render_entry, args, kRenderStackBytes);
+    const auto render = start_thread(render_entry, args, kRenderStackBytes, options, ThreadRole::render);
     if (!render)
         args.stop.request_stop();
     pthread_join(*logic, nullptr);

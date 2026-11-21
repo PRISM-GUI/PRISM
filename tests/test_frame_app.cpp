@@ -130,6 +130,25 @@ TEST_CASE("frame_app presents a first frame and returns after quit")
     CHECK(sink.presents >= 1);
 }
 
+TEST_CASE("before_thread_start runs on the caller, for logic then render, before each starts")
+{
+    Counter model;
+    MemorySink sink;
+    ScriptedTouch touch;
+    std::vector<prism::platform::ThreadRole> roles;
+    const auto caller = std::this_thread::get_id();
+    bool on_caller = true;
+    prism::platform::FrameOptions options{.before_thread_start = [&](prism::platform::ThreadRole r) {
+        roles.push_back(r);
+        on_caller = on_caller && std::this_thread::get_id() == caller;
+    }};
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] { if (sink.presents >= 1) ctx.quit(); });
+    }, options);
+    CHECK(on_caller);
+    CHECK(roles == std::vector{prism::platform::ThreadRole::logic, prism::platform::ThreadRole::render});
+}
+
 TEST_CASE("a sink that clears its own frame is asked to, and the CPU does not clear it")
 {
     Counter model;

@@ -64,16 +64,37 @@ private:
 // Makes the app's WidgetTree; called on the logic thread, which then owns the tree and model.
 using TreeFactory = std::function<std::unique_ptr<app::WidgetTree>()>;
 
+enum class ThreadRole { logic, render };
+
+struct FrameOptions {
+    // Called on the caller's thread right before each runtime thread is created: a port sets its
+    // thread-creation attributes there (ESP-IDF: esp_pthread_set_cfg's core).
+    std::function<void(ThreadRole)> before_thread_start;
+};
+
 void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,
-                std::function<void(FrameContext&)> setup = {});
+                std::function<void(FrameContext&)> setup, const FrameOptions& options);
+
+inline void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,
+                       std::function<void(FrameContext&)> setup = {})
+{
+    run_frames(sink, touch, std::move(make_tree), std::move(setup), FrameOptions{});
+}
 
 // The model must outlive the call; while it runs, only the logic thread may change it.
 template <class Model>
 void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
-               std::function<void(FrameContext&)> setup = {})
+               std::function<void(FrameContext&)> setup, const FrameOptions& options)
 {
     run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
-               std::move(setup));
+               std::move(setup), options);
+}
+
+template <class Model>
+void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
+               std::function<void(FrameContext&)> setup = {})
+{
+    frame_app(sink, touch, model, std::move(setup), FrameOptions{});
 }
 
 } // namespace prism::platform

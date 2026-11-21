@@ -80,10 +80,11 @@ until measured.
 
 ### 3. Core roles
 
-ESP-IDF pins a thread only when it is created. *Our call:* a runtime option names the core of each
-thread the runtime creates (`frame_app` options: `logic_core`, `render_core`, default: no pin).
-The ESP32 port pins the render thread to the SIMD core and the logic thread to the other. On
-POSIX and the STM32, the option does nothing.
+ESP-IDF pins a thread only when it is created. PRISM cannot pin portably, so it does not name a
+core. *Our call:* `FrameOptions::before_thread_start(ThreadRole)` runs on the caller's thread right
+before the runtime creates each thread (logic, then render). A port sets its creation attributes
+there: ESP-IDF pins through `esp_pthread_set_cfg`, Linux could through affinity. The ESP32 port
+pins the render thread to the SIMD core and the logic thread to the other. By default nothing runs.
 
 Both cores drawing (bands split between two render workers) is a later step. In the scope, the
 logic thread uses most of the second core today. Making the plot cheaper (section 4) comes first.
