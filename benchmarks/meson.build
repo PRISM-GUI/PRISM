@@ -20,3 +20,7 @@ executable('bench_text_scale', 'text_scale.cpp',
 executable('bench_node_board_scale', 'node_board_scale.cpp',
   dependencies : [prism_core_dep, fmt_dep],
 )
+
+executable('bench_scope_frame', 'scope_frame.cpp',
+  dependencies : [prism_embedded_apps_dep, prism_raster_dep, fmt_dep],
+)
