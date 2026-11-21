@@ -2,9 +2,11 @@
 #include <doctest.h>
 
 #include <prism/raster/canvas.hpp>
+#include <prism/raster/fonts.hpp>
 
 #include <prism/render/draw_list.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -136,6 +138,77 @@ TEST_CASE("image scaled 2x maps texels (nearest neighbour)") {
     CHECK(fb.at(0, 2) == 0xFF0000FFu);
     CHECK(fb.at(3, 3) == 0xFFFFFF00u);
     CHECK_FALSE(fb.touched(4, 0));   // outside the dest rect
+}
+
+namespace {
+
+constexpr int kFrameW = 120, kFrameH = 100, kBandH = 48;
+
+const prism::raster::Fonts& test_fonts() {
+    static const prism::raster::Fonts fonts;
+    return fonts;
+}
+
+template <class P>
+void draw_scene(prism::raster::BasicCanvas<P>& c) {
+    const std::vector<std::uint8_t> rgba = {
+        255, 0, 0, 255,   0, 255, 0, 200,
+        0, 0, 255, 255,   255, 255, 0, 128,
+    };
+    static const auto img = Image::from_rgba(2, 2, rgba);
+    c.clear(Color::rgba(20, 30, 40));
+    c.text(test_fonts(), "Band edge Wg", pt(4, 40), 16.f, Color::rgba(255, 255, 255), 0.f,
+           prism::render::TextAnchor::TopLeft, prism::render::FontStyle{});
+    c.line(pt(5, 10), pt(110, 90), Color::rgba(255, 0, 0, 180), 4.f);
+    c.rounded_rect(rect(10, 40, 100, 20), Color::rgba(0, 200, 0, 140), 8.f, 0.f);
+    c.rounded_rect(rect(12, 30, 90, 40), Color::rgba(0, 0, 250), 6.f, 3.f);
+    const Point poly[5] = {pt(70, 20), pt(115, 45), pt(100, 80), pt(60, 75), pt(55, 50)};
+    c.filled_polygon(poly, Color::rgba(200, 100, 0, 120));
+    c.circle(pt(60, 49), 12.f, Color::rgba(250, 250, 0, 200), 0.f);
+    c.circle(pt(30, 70), 9.f, Color::rgba(0, 250, 250), 2.f);
+    c.image(**img, rect(80.5f, 44.3f, 13.f, 11.f), 230, Color::rgba(255, 255, 255));
+    c.push_clip(rect(40, 45.5f, 50, 10));
+    c.fill_rect(rect(0, 0, 120, 100), Color::rgba(255, 0, 255, 90));
+    c.pop_clip();
+}
+
+template <class P>
+void check_bands_equal_whole() {
+    using pixel = typename P::storage;
+    std::vector<pixel> whole(kFrameW * kFrameH), banded(kFrameW * kFrameH);
+    prism::raster::BasicCanvas<P> full{whole, kFrameW, kFrameH, kFrameW};
+    draw_scene(full);
+    for (int first = 0; first < kFrameH; first += kBandH) {
+        const int h = std::min(kBandH, kFrameH - first);
+        std::vector<pixel> band(static_cast<std::size_t>(kFrameW) * h);
+        prism::raster::BasicCanvas<P> c{band, kFrameW, h, kFrameW, first};
+        draw_scene(c);
+        std::ranges::copy(band, banded.begin() + static_cast<std::ptrdiff_t>(first) * kFrameW);
+    }
+    int differing = 0;
+    for (std::size_t i = 0; i < whole.size(); ++i)
+        if (whole[i] != banded[i]) ++differing;
+    CHECK(differing == 0);
+}
+
+} // namespace
+
+TEST_CASE("a frame drawn in bands equals the frame drawn whole") {
+    SUBCASE("Argb8888") { check_bands_equal_whole<prism::raster::Argb8888>(); }
+    SUBCASE("Rgb565") { check_bands_equal_whole<prism::raster::Rgb565>(); }
+}
+
+TEST_CASE("a band canvas clips to its rows and retargets to the next band") {
+    std::array<std::uint32_t, 8 * 4> band{};
+    prism::raster::Canvas c{band, 8, 4, 8, 10};
+    CHECK(c.clip().origin.y.raw() == 10.f);
+    CHECK(c.clip().extent.h.raw() == 4.f);
+    c.clear(Color::rgba(0, 0, 0));
+    c.fill_rect(rect(0, 0, 8, 11), Color::rgba(255, 255, 255));   // frame rows 0-10: only row 10 here
+    CHECK(band[0] == 0xFFFFFFFFu);
+    CHECK(band[8] == kCleared);
+    c.retarget(band, 14);
+    CHECK(c.clip().origin.y.raw() == 14.f);
 }
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)

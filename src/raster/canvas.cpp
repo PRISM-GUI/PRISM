@@ -31,17 +31,28 @@ void require_span(std::size_t size, int stride, int height) {
 } // namespace
 
 template <class P>
-BasicCanvas<P>::BasicCanvas(std::span<pixel> pixels, int width, int height, int stride)
-    : pixels_(pixels), width_(width), height_(height), stride_(stride) {
+BasicCanvas<P>::BasicCanvas(std::span<pixel> pixels, int width, int height, int stride, int first_row)
+    : pixels_(pixels), width_(width), height_(height), stride_(stride), first_row_(first_row) {
     require_span(pixels.size(), stride, height);
     reset_clip();
 }
 
 template <class P>
-void BasicCanvas<P>::retarget(std::span<pixel> pixels) {
+void BasicCanvas<P>::retarget(std::span<pixel> pixels, int first_row) {
     require_span(pixels.size(), stride_, height_);
     pixels_ = pixels;
+    first_row_ = first_row;
     reset_clip();
+}
+
+template <class P>
+typename BasicCanvas<P>::pixel* BasicCanvas<P>::row(int y) const {
+    return pixels_.data() + static_cast<std::size_t>(y - first_row_) * stride_;
+}
+
+template <class P>
+std::pair<int, int> BasicCanvas<P>::clip_rows(int y0, int y1) const {
+    return {std::max(y0, clip_.y0), std::min(y1, clip_.y1)};
 }
 
 template <class P>
@@ -50,8 +61,8 @@ typename BasicCanvas<P>::Clip BasicCanvas<P>::clip_of(Rect r) const {
     int y0 = static_cast<int>(std::floor(r.origin.y.raw()));
     int x1 = static_cast<int>(std::ceil(r.origin.x.raw() + r.extent.w.raw()));
     int y1 = static_cast<int>(std::ceil(r.origin.y.raw() + r.extent.h.raw()));
-    x0 = std::max(x0, 0);  y0 = std::max(y0, 0);
-    x1 = std::min(x1, width_);  y1 = std::min(y1, height_);
+    x0 = std::max(x0, 0);  y0 = std::max(y0, first_row_);
+    x1 = std::min(x1, width_);  y1 = std::min(y1, first_row_ + height_);
     if (x0 > x1) x0 = x1;
     if (y0 > y1) y0 = y1;
     return {x0, y0, x1, y1};
@@ -59,7 +70,7 @@ typename BasicCanvas<P>::Clip BasicCanvas<P>::clip_of(Rect r) const {
 
 template <class P>
 void BasicCanvas<P>::reset_clip() {
-    clip_ = {0, 0, width_, height_};
+    clip_ = {0, first_row_, width_, first_row_ + height_};
     clip_stack_.clear();
 }
 
@@ -97,9 +108,8 @@ void BasicCanvas<P>::clear(Color c) {
     // Writes the pixel as-is (no blending): the framebuffer is fully repainted each frame, and a
     // translucent clear over the previous frame is not a case the board needs.
     const pixel packed = P::pack(c);
-    for (int y = 0; y < height_; ++y)
-        for (int x = 0; x < width_; ++x)
-            pixels_[static_cast<std::size_t>(y) * stride_ + x] = packed;
+    for (int y = first_row_; y < first_row_ + height_; ++y)
+        std::fill_n(row(y), width_, packed);
 }
 
 template <class P>
@@ -108,12 +118,12 @@ void BasicCanvas<P>::fill_span(int y, int xa, int xb, Color c) {
     xa = std::max(xa, clip_.x0);
     xb = std::min(xb, clip_.x1);
     if (xa >= xb) return;
-    pixel* row = pixels_.data() + static_cast<std::size_t>(y) * stride_;
+    pixel* px = row(y);
     if (c.a == 255) {
         const pixel p = P::pack(c);
-        for (int x = xa; x < xb; ++x) row[x] = p;
+        for (int x = xa; x < xb; ++x) px[x] = p;
     } else {
-        for (int x = xa; x < xb; ++x) row[x] = P::over(row[x], c);
+        for (int x = xa; x < xb; ++x) px[x] = P::over(px[x], c);
     }
 }
 
@@ -124,8 +134,7 @@ void BasicCanvas<P>::fill_xspan(int y, float xa, float xb, Color c) {
 
 template <class P>
 void BasicCanvas<P>::fill_rect(Rect r, Color c) {
-    const int y0 = span_begin(r.origin.y.raw());
-    const int y1 = span_end(r.origin.y.raw() + r.extent.h.raw());
+    const auto [y0, y1] = clip_rows(span_begin(r.origin.y.raw()), span_end(r.origin.y.raw() + r.extent.h.raw()));
     for (int y = y0; y < y1; ++y)
         fill_xspan(y, r.origin.x.raw(), r.origin.x.raw() + r.extent.w.raw(), c);
 }
@@ -172,8 +181,7 @@ void BasicCanvas<P>::rounded_rect(Rect r, Color c, float radius, float thickness
         return;
     }
     if (thickness <= 0.f) {
-        const int y0 = span_begin(r.origin.y.raw());
-        const int y1 = span_end(r.origin.y.raw() + h);
+        const auto [y0, y1] = clip_rows(span_begin(r.origin.y.raw()), span_end(r.origin.y.raw() + h));
         for (int y = y0; y < y1; ++y)
             if (auto s = rounded_span(y, r, radius)) fill_xspan(y, s->first, s->second, c);
         return;
@@ -184,8 +192,8 @@ void BasicCanvas<P>::rounded_rect(Rect r, Color c, float radius, float thickness
     const float x0 = r.origin.x.raw(), y0 = r.origin.y.raw();
     const Rect outer{Point{X{x0 - t2}, Y{y0 - t2}}, Size{Width{w + 2.f * t2}, Height{h + 2.f * t2}}};
     const Rect inner{Point{X{x0 + t2}, Y{y0 + t2}}, Size{Width{std::max(0.f, w - 2.f * t2)}, Height{std::max(0.f, h - 2.f * t2)}}};
-    const int y0i = span_begin(outer.origin.y.raw());
-    const int y1i = span_end(outer.origin.y.raw() + outer.extent.h.raw());
+    const auto [y0i, y1i] = clip_rows(span_begin(outer.origin.y.raw()),
+                                      span_end(outer.origin.y.raw() + outer.extent.h.raw()));
     for (int y = y0i; y < y1i; ++y) {
         auto so = rounded_span(y, outer, radius + t2);
         if (!so) continue;
@@ -239,7 +247,7 @@ void BasicCanvas<P>::circle(Point center, float radius, Color c, float thickness
     const float cx = center.x.raw(), cy = center.y.raw();
     if (thickness <= 0.f) {
         const float r2 = radius * radius;
-        const int y0 = span_begin(cy - radius), y1 = span_end(cy + radius);
+        const auto [y0, y1] = clip_rows(span_begin(cy - radius), span_end(cy + radius));
         for (int y = y0; y < y1; ++y) {
             const float d = static_cast<float>(y) + 0.5f - cy;
             if (std::abs(d) > radius) continue;
@@ -251,7 +259,7 @@ void BasicCanvas<P>::circle(Point center, float radius, Color c, float thickness
     // Stroke: an annulus around the nominal circle, |dist - radius| <= thickness/2 (the SDL
     // backend strokes the same outline through a mesh).
     const float ro = radius + thickness / 2.f, ri = std::max(0.f, radius - thickness / 2.f);
-    const int y0 = span_begin(cy - ro), y1 = span_end(cy + ro);
+    const auto [y0, y1] = clip_rows(span_begin(cy - ro), span_end(cy + ro));
     for (int y = y0; y < y1; ++y) {
         const float d = static_cast<float>(y) + 0.5f - cy;
         if (std::abs(d) > ro) continue;
@@ -277,7 +285,7 @@ void BasicCanvas<P>::filled_polygon(std::span<const Point> pts, Color c) {
     }
     std::vector<float>& xs = crossings_;
     xs.reserve(n); // a row crosses at most n edges: no growth inside the row loop
-    const int y0 = span_begin(min_y), y1 = span_end(max_y);
+    const auto [y0, y1] = clip_rows(span_begin(min_y), span_end(max_y));
     for (int y = y0; y < y1; ++y) {
         const float yc = static_cast<float>(y) + 0.5f;
         xs.clear();
@@ -302,8 +310,8 @@ void BasicCanvas<P>::image(const Image& img, Rect dest, std::uint8_t alpha, Colo
     if (dw <= 0.f || dh <= 0.f) return;
     const int iw = img.width(), ih = img.height();
     const std::span<const std::uint8_t> px = img.pixels();
-    const int x0 = span_begin(dx0), x1 = span_end(dx0 + dw);
-    const int y0 = span_begin(dy0), y1 = span_end(dy0 + dh);
+    const int x0 = std::max(span_begin(dx0), clip_.x0), x1 = std::min(span_end(dx0 + dw), clip_.x1);
+    const auto [y0, y1] = clip_rows(span_begin(dy0), span_end(dy0 + dh));
     for (int y = y0; y < y1; ++y) {
         const float v = (static_cast<float>(y) + 0.5f - dy0) / dh;
         const int sy = std::clamp(static_cast<int>(v * ih), 0, ih - 1);
@@ -358,13 +366,14 @@ void BasicCanvas<P>::text(const Fonts& fonts, std::string_view utf8, Point origi
 template <class P>
 void BasicCanvas<P>::blend_pixel(int x, int y, Color c) {
     if (x < clip_.x0 || x >= clip_.x1 || y < clip_.y0 || y >= clip_.y1) return;
-    pixel& px = pixels_[static_cast<std::size_t>(y) * stride_ + x];
+    pixel& px = row(y)[x];
     px = P::over(px, c);
 }
 
 template <class P>
 void BasicCanvas<P>::blend_bitmap(int x, int y, int w, int h, const std::uint8_t* coverage, Color c) {
-    for (int j = 0; j < h; ++j) {
+    const auto [j0, j1] = clip_rows(y, y + h);
+    for (int j = j0 - y; j < j1 - y; ++j) {
         for (int i = 0; i < w; ++i) {
             const int a = (static_cast<int>(c.a) * coverage[static_cast<std::size_t>(j) * w + i] + 127) / 255;
             if (a == 0) continue;
