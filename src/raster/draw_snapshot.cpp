@@ -35,8 +35,10 @@ void draw_list(Canvas& canvas, const DrawList& dl, const Fonts& fonts) {
             } else if constexpr (std::is_same_v<K, RoundedRect>) {
                 canvas.rounded_rect(c.rect, c.color, c.radius, c.thickness);
             } else if constexpr (std::is_same_v<K, Line>) {
+                PRISM_PROFILE_SCOPE("line");
                 canvas.line(c.from, c.to, c.color, c.thickness);
             } else if constexpr (std::is_same_v<K, Polyline>) {
+                PRISM_PROFILE_SCOPE("polyline");
                 canvas.polyline(c.points, c.color, c.thickness);
             } else if constexpr (std::is_same_v<K, Circle>) {
                 canvas.circle(c.center, c.radius, c.color, c.thickness);

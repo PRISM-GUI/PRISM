@@ -4,8 +4,10 @@
 #include <prism/input/input_event.hpp>
 #include <prism/ui/widget_node.hpp>
 #include <prism/widgets/plot_render.hpp>
+#include <prism/profile/profile.hpp>
 #include <prism/app/widget_tree.hpp>
 #include <functional>
+#include <utility>
 #include <vector>
 #include <span>
 #include <memory>
@@ -214,12 +216,16 @@ void render_plot_panel(DrawList& dl, Rect bounds, const WidgetNode& node,
                        uint32_t data_revision = 0,
                        std::span<SeriesDrawCache> draw_caches = {})
 {
+    PRISM_PROFILE_SCOPE("plot");
     auto& t = *node.theme;
-    auto map = compute_mapping(bounds, x_range, y_range, view, series, draw_x_axis, t.measurer,
-                               AxisTitles{.x = !x_label.empty(), .y = !y_label.empty()});
-
+    const auto [map, ticks] = [&] {
+        PRISM_PROFILE_SCOPE("plot mapping and ticks");
+        auto m = compute_mapping(bounds, x_range, y_range, view, series, draw_x_axis, t.measurer,
+                                 AxisTitles{.x = !x_label.empty(), .y = !y_label.empty()});
+        auto tk = compute_ticks(m, t.measurer);
+        return std::pair{m, tk};
+    }();
     draw_background(dl, map.plot_area, t);
-    auto ticks = compute_ticks(map, t.measurer);
 
     // Inside clip_push, coordinates are local (origin = {0,0})
     PlotMapping local_map = map;
@@ -227,7 +233,10 @@ void render_plot_panel(DrawList& dl, Rect bounds, const WidgetNode& node,
 
     dl.clip_push(map.plot_area.origin, map.plot_area.extent);
     draw_grid_lines(dl, local_map, ticks, t);
-    draw_series(dl, local_map, series, data_revision, draw_caches);
+    {
+        PRISM_PROFILE_SCOPE("plot series");
+        draw_series(dl, local_map, series, data_revision, draw_caches);
+    }
     if constexpr (requires (C c) { c.data_y; }) {
         draw_cursor(dl, local_map, cursor.get(), t);
     } else {
@@ -241,6 +250,7 @@ void render_plot_panel(DrawList& dl, Rect bounds, const WidgetNode& node,
             draw_series_values_at_cursor(dl, local_map, series, c.data_x, t);
     }
     dl.clip_pop();
+    PRISM_PROFILE_SCOPE("plot labels");
     draw_tick_labels(dl, map, ticks, t, draw_x_axis, x_tick_format);
     draw_axes_labels(dl, map, ticks, x_label, y_label, t, draw_x_axis);
 }
@@ -448,8 +458,11 @@ struct PlotModel {
     // Canvas interface
     void canvas(DrawList& dl, Rect bounds, const WidgetNode& node)
     {
-        auto resolved = resolve_auto_fit_ranges(x_range, y_range,
-                                                std::span<const Series>(series_), autofit_cache);
+        auto resolved = [&] {
+            PRISM_PROFILE_SCOPE("plot auto-fit");
+            return resolve_auto_fit_ranges(x_range, y_range, std::span<const Series>(series_),
+                                           autofit_cache);
+        }();
         if (draw_caches_.size() != series_.size())
             draw_caches_.assign(series_.size(), SeriesDrawCache{});
         render_plot_panel(dl, bounds, node, resolved.x, resolved.y, view.get(), cursor,
