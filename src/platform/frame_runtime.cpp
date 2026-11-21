@@ -253,7 +253,8 @@ void render_main(const RunArgs& a)
         auto start = Clock::now();
         {
             PRISM_PROFILE_SCOPE("draw"); // the clear is part of drawing the frame, as the stats count it
-            canvas.clear(snap->window.background); // clearing is the caller's job, as with SDL
+            if (!a.sink->clear(raster::argb(snap->window.background)))
+                canvas.clear(snap->window.background); // clearing is the caller's job, as with SDL
             raster::draw(canvas, *snap, *a.fonts);
         }
         times.draw = since(start);

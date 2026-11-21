@@ -107,8 +107,7 @@ Rect Canvas::clip() const {
 void Canvas::clear(Color c) {
     // Writes the pixel as-is (no blending): the framebuffer is fully repainted each frame, and a
     // translucent clear over the previous frame is not a case the board needs.
-    const std::uint32_t packed = (std::uint32_t(c.a) << 24) | (std::uint32_t(c.r) << 16)
-                               | (std::uint32_t(c.g) << 8) | c.b;
+    const std::uint32_t packed = argb(c);
     for (int y = 0; y < height_; ++y)
         for (int x = 0; x < width_; ++x)
             pixels_[static_cast<std::size_t>(y) * stride_ + x] = packed;

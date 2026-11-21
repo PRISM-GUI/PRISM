@@ -34,6 +34,12 @@ using prism::core::Rect;
 using prism::render::FontStyle;
 using prism::render::TextAnchor;
 
+// A colour as the framebuffer stores it: 0xAARRGGBB.
+constexpr std::uint32_t argb(Color c)
+{
+    return (std::uint32_t(c.a) << 24) | (std::uint32_t(c.r) << 16) | (std::uint32_t(c.g) << 8) | c.b;
+}
+
 class Canvas {
 public:
     Canvas(std::span<std::uint32_t> pixels, int width, int height, int stride);

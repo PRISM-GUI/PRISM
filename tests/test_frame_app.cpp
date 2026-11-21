@@ -63,6 +63,24 @@ struct MemorySink final : prism::platform::FrameSink {
     Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
 };
 
+// A sink that clears its frame itself (as a board's 2D engine does) and records each clear.
+struct ClearingSink final : prism::platform::FrameSink {
+    std::vector<std::uint32_t> pixels = std::vector<std::uint32_t>(std::size_t(W) * H, 0x12345678u);
+    std::atomic<int> presents{0};
+    std::atomic<int> clears{0};
+    std::atomic<std::uint32_t> cleared_with{0};
+
+    std::span<std::uint32_t> back() override { return pixels; }
+    bool clear(std::uint32_t argb) override
+    {
+        cleared_with = argb;
+        ++clears;
+        return true;   // done: and it leaves the pixels alone, so a CPU clear would show
+    }
+    void present() override { ++presents; }
+    Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
+};
+
 // No finger, or a tap at `at`: held for a few polls once the first frame is on screen (the
 // runtime hit-tests against the shown frame, set just after the first present), then lifted.
 struct ScriptedTouch final : prism::platform::TouchSource {
@@ -110,6 +128,24 @@ TEST_CASE("frame_app presents a first frame and returns after quit")
         });
     });
     CHECK(sink.presents >= 1);
+}
+
+TEST_CASE("a sink that clears its own frame is asked to, and the CPU does not clear it")
+{
+    Counter model;
+    ClearingSink sink;
+    ScriptedTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.presents >= 1)
+                ctx.quit();
+        });
+    });
+    REQUIRE(sink.presents >= 1);
+    CHECK(sink.clears >= sink.presents);
+    CHECK(sink.cleared_with == 0xFF1E1E1Eu);   // the window background, rgba(30, 30, 30)
+    // The bottom-right corner is background: no widget draws there, so it keeps what was there.
+    CHECK(sink.pixels.back() == 0x12345678u);
 }
 
 TEST_CASE("a tap on the button reaches the model on the logic thread")
