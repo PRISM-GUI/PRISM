@@ -15,7 +15,8 @@ using namespace prism::render;
 
 namespace {
 
-void draw_list(Canvas& canvas, const DrawList& dl, const Fonts& fonts) {
+template <class P>
+void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
     for (const DrawCmd& cmd : dl.commands) {
         std::visit([&](const auto& c) {
             using K = std::remove_cvref_t<decltype(c)>;
@@ -53,7 +54,8 @@ void draw_list(Canvas& canvas, const DrawList& dl, const Fonts& fonts) {
 
 } // namespace
 
-void draw(Canvas& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
+template <class P>
+void draw(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
     for (std::uint32_t idx : snap.z_order) {
         if (idx >= snap.draw_lists.size()) continue;   // defensive: a malformed snapshot
         if (snap.draw_lists[idx]) {
@@ -67,5 +69,8 @@ void draw(Canvas& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
         draw_list(canvas, snap.overlay, fonts);
     }
 }
+
+template void draw(Canvas&, const SceneSnapshot&, const Fonts&);
+template void draw(Canvas565&, const SceneSnapshot&, const Fonts&);
 
 } // namespace prism::raster

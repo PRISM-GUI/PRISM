@@ -1,7 +1,7 @@
 #pragma once
 
-// Draws a published SceneSnapshot into a Canvas: walks z_order back-to-front, each entry's draw
-// list, then the overlay on top with no clip. ClipPush pushes the (already resolved) rect as the
+// Draws a published SceneSnapshot into a canvas of either pixel format: walks z_order
+// back-to-front, each entry's draw list, then the overlay on top with no clip. ClipPush pushes the (already resolved) rect as the
 // new clip -- intersected with the canvas bounds -- and ClipPop restores the previous one.
 // Coordinates are logical points = pixels here (scale 1).
 //
@@ -14,6 +14,10 @@
 
 namespace prism::raster {
 
-void draw(Canvas& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts);
+template <class P>
+void draw(BasicCanvas<P>& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts);
+
+extern template void draw(Canvas&, const prism::render::SceneSnapshot&, const Fonts&);
+extern template void draw(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&);
 
 } // namespace prism::raster

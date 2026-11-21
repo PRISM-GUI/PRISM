@@ -1,8 +1,8 @@
 #pragma once
 
-// A software rasterizer target: an ARGB8888 framebuffer that PRISM's draw commands paint into.
-// Pixel format: each std::uint32_t is 0xAARRGGBB (on the little-endian targets built here the
-// bytes in memory are R, G, B, A). `stride` is in pixels, so row y starts at pixels[y * stride].
+// A software rasterizer target: a framebuffer that PRISM's draw commands paint into, in the pixel
+// format P (pixel.hpp: Argb8888 or Rgb565). `stride` is in pixels, so row y starts at
+// pixels[y * stride].
 //
 // Coverage rule: a pixel is covered when its centre (x + 0.5, y + 0.5) lies inside the shape
 // (half-open [x0, x1) x [y0, y1) for rects), so adjacent integer rects tile exactly with no seam.
@@ -15,6 +15,7 @@
 // the GPU paths.
 
 #include <prism/core/types.hpp>
+#include <prism/raster/pixel.hpp>
 #include <prism/render/draw_list.hpp>
 
 #include <cstdint>
@@ -34,25 +35,22 @@ using prism::core::Rect;
 using prism::render::FontStyle;
 using prism::render::TextAnchor;
 
-// A colour as the framebuffer stores it: 0xAARRGGBB.
-constexpr std::uint32_t argb(Color c)
-{
-    return (std::uint32_t(c.a) << 24) | (std::uint32_t(c.r) << 16) | (std::uint32_t(c.g) << 8) | c.b;
-}
-
-class Canvas {
+template <class P>
+class BasicCanvas {
 public:
-    Canvas(std::span<std::uint32_t> pixels, int width, int height, int stride);
+    using pixel = typename P::storage;
+
+    BasicCanvas(std::span<pixel> pixels, int width, int height, int stride);
 
     // Points the canvas at another buffer of the same size (the next back buffer) and resets
     // the clip. A canvas reused this way keeps its scratch storage: after the first frame,
     // drawing does not allocate.
-    void retarget(std::span<std::uint32_t> pixels);
+    void retarget(std::span<pixel> pixels);
 
     int width() const { return width_; }
     int height() const { return height_; }
     int stride() const { return stride_; }
-    std::span<std::uint32_t> pixels() const { return pixels_; }
+    std::span<pixel> pixels() const { return pixels_; }
 
     // --- clip (a stack; push intersects the current clip with the given rect) ---
     void reset_clip();          // the whole canvas
@@ -95,11 +93,18 @@ private:
     // x span (floats, centre rule) of the rounded rect at row y; nullopt when the row misses it.
     [[nodiscard]] std::optional<std::pair<float, float>> rounded_span(int y, Rect r, float radius) const;
 
-    std::span<std::uint32_t> pixels_;
+    std::span<pixel> pixels_;
     int width_, height_, stride_;
     std::vector<Clip> clip_stack_;   // empty means the clip is the whole canvas
     std::vector<float> crossings_;   // filled_polygon's scratch: kept so drawing does not allocate
     Clip clip_;
 };
+
+// Defined in canvas.cpp for these two formats only.
+extern template class BasicCanvas<Argb8888>;
+extern template class BasicCanvas<Rgb565>;
+
+using Canvas = BasicCanvas<Argb8888>;
+using Canvas565 = BasicCanvas<Rgb565>;
 
 } // namespace prism::raster

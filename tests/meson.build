@@ -172,6 +172,7 @@ headless_tests = {
   'raster_canvas' : files('test_raster_canvas.cpp'),
   'raster_fonts' : files('test_raster_fonts.cpp'),
   'raster_snapshot' : files('test_raster_snapshot.cpp'),
+  'raster_pixel' : files('test_raster_pixel.cpp'),
   'spsc_ring' : files('test_spsc_ring.cpp'),
 }
 

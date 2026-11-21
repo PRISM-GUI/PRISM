@@ -17,51 +17,35 @@ using prism::render::TextAnchor;
 
 namespace {
 
-// src-over for straight alpha. The framebuffer's alpha stays 255 (the caller clears it opaque),
-// so the plain channel lerp below is exact; a translucent destination would need the /out_a step.
-inline std::uint32_t over(std::uint32_t dst, std::uint8_t r, std::uint8_t g, std::uint8_t b,
-                          std::uint8_t a) {
-    if (a == 0) return dst;
-    if (a == 255)
-        return 0xFF000000u | (std::uint32_t(r) << 16) | (std::uint32_t(g) << 8) | b;
-    const std::uint32_t ia = 255u - a;
-    auto ch = [&](std::uint32_t s, std::uint32_t d) { return (s * a + d * ia + 127u) / 255u; };
-    const std::uint32_t da = dst >> 24;
-    const std::uint32_t oa = a + (da * ia + 127u) / 255u;
-    return (oa << 24) | (ch(r, (dst >> 16) & 0xFFu) << 16) | (ch(g, (dst >> 8) & 0xFFu) << 8)
-         | ch(b, dst & 0xFFu);
-}
-
-inline std::uint32_t pack_opaque(Color c) {
-    return 0xFF000000u | (std::uint32_t(c.r) << 16) | (std::uint32_t(c.g) << 8) | c.b;
-}
-
 // First pixel index whose centre lies in [lo, hi): x + 0.5 >= lo and x + 0.5 < hi.
 inline int span_begin(float lo) { return static_cast<int>(std::ceil(lo - 0.5f)); }
 inline int span_end(float hi) { return static_cast<int>(std::ceil(hi - 0.5f)); }
 
 // Always on (not an assert): a short span would be written past its end, and the check is cheap.
-void require_span(std::span<std::uint32_t> pixels, int stride, int height) {
-    if (pixels.size() >= std::size_t(stride) * height) return;
+void require_span(std::size_t size, int stride, int height) {
+    if (size >= std::size_t(stride) * height) return;
     std::fputs("prism::raster::Canvas: pixel span smaller than stride * height\n", stderr);
     std::abort();
 }
 
 } // namespace
 
-Canvas::Canvas(std::span<std::uint32_t> pixels, int width, int height, int stride)
+template <class P>
+BasicCanvas<P>::BasicCanvas(std::span<pixel> pixels, int width, int height, int stride)
     : pixels_(pixels), width_(width), height_(height), stride_(stride) {
-    require_span(pixels, stride, height);
+    require_span(pixels.size(), stride, height);
     reset_clip();
 }
 
-void Canvas::retarget(std::span<std::uint32_t> pixels) {
-    require_span(pixels, stride_, height_);
+template <class P>
+void BasicCanvas<P>::retarget(std::span<pixel> pixels) {
+    require_span(pixels.size(), stride_, height_);
     pixels_ = pixels;
     reset_clip();
 }
 
-Canvas::Clip Canvas::clip_of(Rect r) const {
+template <class P>
+typename BasicCanvas<P>::Clip BasicCanvas<P>::clip_of(Rect r) const {
     int x0 = static_cast<int>(std::floor(r.origin.x.raw()));
     int y0 = static_cast<int>(std::floor(r.origin.y.raw()));
     int x1 = static_cast<int>(std::ceil(r.origin.x.raw() + r.extent.w.raw()));
@@ -73,12 +57,14 @@ Canvas::Clip Canvas::clip_of(Rect r) const {
     return {x0, y0, x1, y1};
 }
 
-void Canvas::reset_clip() {
+template <class P>
+void BasicCanvas<P>::reset_clip() {
     clip_ = {0, 0, width_, height_};
     clip_stack_.clear();
 }
 
-void Canvas::push_clip(Rect r) {
+template <class P>
+void BasicCanvas<P>::push_clip(Rect r) {
     // The snapshot's ClipPush rects are already resolved against the outer clips (resolve_clips),
     // so intersecting with the current clip too changes nothing for a published snapshot -- and
     // keeps an unresolved one from widening the clip. Intersected with the canvas bounds as well.
@@ -89,7 +75,8 @@ void Canvas::push_clip(Rect r) {
     clip_ = c;
 }
 
-void Canvas::pop_clip() {
+template <class P>
+void BasicCanvas<P>::pop_clip() {
     if (!clip_stack_.empty()) {
         clip_ = clip_stack_.back();
         clip_stack_.pop_back();
@@ -98,47 +85,53 @@ void Canvas::pop_clip() {
     }
 }
 
-Rect Canvas::clip() const {
+template <class P>
+Rect BasicCanvas<P>::clip() const {
     return Rect{Point{X{static_cast<float>(clip_.x0)}, Y{static_cast<float>(clip_.y0)}},
                 Size{Width{static_cast<float>(clip_.x1 - clip_.x0)},
                      Height{static_cast<float>(clip_.y1 - clip_.y0)}}};
 }
 
-void Canvas::clear(Color c) {
+template <class P>
+void BasicCanvas<P>::clear(Color c) {
     // Writes the pixel as-is (no blending): the framebuffer is fully repainted each frame, and a
     // translucent clear over the previous frame is not a case the board needs.
-    const std::uint32_t packed = argb(c);
+    const pixel packed = P::pack(c);
     for (int y = 0; y < height_; ++y)
         for (int x = 0; x < width_; ++x)
             pixels_[static_cast<std::size_t>(y) * stride_ + x] = packed;
 }
 
-void Canvas::fill_span(int y, int xa, int xb, Color c) {
+template <class P>
+void BasicCanvas<P>::fill_span(int y, int xa, int xb, Color c) {
     if (y < clip_.y0 || y >= clip_.y1) return;
     xa = std::max(xa, clip_.x0);
     xb = std::min(xb, clip_.x1);
     if (xa >= xb) return;
-    std::uint32_t* row = pixels_.data() + static_cast<std::size_t>(y) * stride_;
+    pixel* row = pixels_.data() + static_cast<std::size_t>(y) * stride_;
     if (c.a == 255) {
-        const std::uint32_t p = pack_opaque(c);
+        const pixel p = P::pack(c);
         for (int x = xa; x < xb; ++x) row[x] = p;
     } else {
-        for (int x = xa; x < xb; ++x) row[x] = over(row[x], c.r, c.g, c.b, c.a);
+        for (int x = xa; x < xb; ++x) row[x] = P::over(row[x], c);
     }
 }
 
-void Canvas::fill_xspan(int y, float xa, float xb, Color c) {
+template <class P>
+void BasicCanvas<P>::fill_xspan(int y, float xa, float xb, Color c) {
     fill_span(y, span_begin(xa), span_end(xb), c);
 }
 
-void Canvas::fill_rect(Rect r, Color c) {
+template <class P>
+void BasicCanvas<P>::fill_rect(Rect r, Color c) {
     const int y0 = span_begin(r.origin.y.raw());
     const int y1 = span_end(r.origin.y.raw() + r.extent.h.raw());
     for (int y = y0; y < y1; ++y)
         fill_xspan(y, r.origin.x.raw(), r.origin.x.raw() + r.extent.w.raw(), c);
 }
 
-void Canvas::rect_outline(Rect r, Color c, float thickness) {
+template <class P>
+void BasicCanvas<P>::rect_outline(Rect r, Color c, float thickness) {
     if (thickness <= 0.f) return;
     const float x0 = r.origin.x.raw(), y0 = r.origin.y.raw();
     const float w = r.extent.w.raw(), h = r.extent.h.raw();
@@ -152,7 +145,8 @@ void Canvas::rect_outline(Rect r, Color c, float thickness) {
     fill_rect(Rect{Point{X{x0 + w - thickness}, Y{y0 + thickness}}, Size{Width{thickness}, Height{h - 2.f * thickness}}}, c);
 }
 
-std::optional<std::pair<float, float>> Canvas::rounded_span(int y, Rect r, float radius) const {
+template <class P>
+std::optional<std::pair<float, float>> BasicCanvas<P>::rounded_span(int y, Rect r, float radius) const {
     const float x0 = r.origin.x.raw(), y0 = r.origin.y.raw();
     const float x1 = x0 + r.extent.w.raw(), y1 = y0 + r.extent.h.raw();
     const float cy = static_cast<float>(y) + 0.5f;
@@ -168,7 +162,8 @@ std::optional<std::pair<float, float>> Canvas::rounded_span(int y, Rect r, float
     return std::pair{xa, xb};
 }
 
-void Canvas::rounded_rect(Rect r, Color c, float radius, float thickness) {
+template <class P>
+void BasicCanvas<P>::rounded_rect(Rect r, Color c, float radius, float thickness) {
     const float w = r.extent.w.raw(), h = r.extent.h.raw();
     radius = std::clamp(radius, 0.f, std::min(w, h) / 2.f);
     if (radius <= 0.5f) {   // a square corner needs no arcs (as the SDL backend special-cases)
@@ -204,7 +199,8 @@ void Canvas::rounded_rect(Rect r, Color c, float radius, float thickness) {
     }
 }
 
-void Canvas::line(Point from, Point to, Color c, float thickness) {
+template <class P>
+void BasicCanvas<P>::line(Point from, Point to, Color c, float thickness) {
     const float dx = to.x.raw() - from.x.raw(), dy = to.y.raw() - from.y.raw();
     const float len = std::sqrt(dx * dx + dy * dy);
     if (thickness <= 1.f) {
@@ -231,12 +227,14 @@ void Canvas::line(Point from, Point to, Color c, float thickness) {
     filled_polygon(quad, c);
 }
 
-void Canvas::polyline(std::span<const Point> pts, Color c, float thickness) {
+template <class P>
+void BasicCanvas<P>::polyline(std::span<const Point> pts, Color c, float thickness) {
     for (std::size_t i = 1; i < pts.size(); ++i)
         line(pts[i - 1], pts[i], c, thickness);
 }
 
-void Canvas::circle(Point center, float radius, Color c, float thickness) {
+template <class P>
+void BasicCanvas<P>::circle(Point center, float radius, Color c, float thickness) {
     if (radius <= 0.f) return;
     const float cx = center.x.raw(), cy = center.y.raw();
     if (thickness <= 0.f) {
@@ -268,7 +266,8 @@ void Canvas::circle(Point center, float radius, Color c, float thickness) {
     }
 }
 
-void Canvas::filled_polygon(std::span<const Point> pts, Color c) {
+template <class P>
+void BasicCanvas<P>::filled_polygon(std::span<const Point> pts, Color c) {
     const std::size_t n = pts.size();
     if (n < 3) return;
     float min_y = pts[0].y.raw(), max_y = pts[0].y.raw();
@@ -296,7 +295,8 @@ void Canvas::filled_polygon(std::span<const Point> pts, Color c) {
     }
 }
 
-void Canvas::image(const Image& img, Rect dest, std::uint8_t alpha, Color tint) {
+template <class P>
+void BasicCanvas<P>::image(const Image& img, Rect dest, std::uint8_t alpha, Color tint) {
     const float dx0 = dest.origin.x.raw(), dy0 = dest.origin.y.raw();
     const float dw = dest.extent.w.raw(), dh = dest.extent.h.raw();
     if (dw <= 0.f || dh <= 0.f) return;
@@ -322,7 +322,8 @@ void Canvas::image(const Image& img, Rect dest, std::uint8_t alpha, Color tint) 
     }
 }
 
-void Canvas::text(const Fonts& fonts, std::string_view utf8, Point origin, float size, Color col,
+template <class P>
+void BasicCanvas<P>::text(const Fonts& fonts, std::string_view utf8, Point origin, float size, Color col,
                   float angle, TextAnchor anchor, FontStyle style) {
     if (utf8.empty() || size <= 0.f) return;
     const float w = fonts.width(utf8, size, style);
@@ -354,13 +355,15 @@ void Canvas::text(const Fonts& fonts, std::string_view utf8, Point origin, float
     }
 }
 
-void Canvas::blend_pixel(int x, int y, Color c) {
+template <class P>
+void BasicCanvas<P>::blend_pixel(int x, int y, Color c) {
     if (x < clip_.x0 || x >= clip_.x1 || y < clip_.y0 || y >= clip_.y1) return;
-    std::uint32_t& px = pixels_[static_cast<std::size_t>(y) * stride_ + x];
-    px = over(px, c.r, c.g, c.b, c.a);
+    pixel& px = pixels_[static_cast<std::size_t>(y) * stride_ + x];
+    px = P::over(px, c);
 }
 
-void Canvas::blend_bitmap(int x, int y, int w, int h, const std::uint8_t* coverage, Color c) {
+template <class P>
+void BasicCanvas<P>::blend_bitmap(int x, int y, int w, int h, const std::uint8_t* coverage, Color c) {
     for (int j = 0; j < h; ++j) {
         for (int i = 0; i < w; ++i) {
             const int a = (static_cast<int>(c.a) * coverage[static_cast<std::size_t>(j) * w + i] + 127) / 255;
@@ -370,5 +373,8 @@ void Canvas::blend_bitmap(int x, int y, int w, int h, const std::uint8_t* covera
         }
     }
 }
+
+template class BasicCanvas<Argb8888>;
+template class BasicCanvas<Rgb565>;
 
 } // namespace prism::raster
