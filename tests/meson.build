@@ -171,7 +171,6 @@ headless_tests = {
   'frame_pacer' : files('test_frame_pacer.cpp'),
   'raster_canvas' : files('test_raster_canvas.cpp'),
   'raster_fonts' : files('test_raster_fonts.cpp'),
-  'raster_snapshot' : files('test_raster_snapshot.cpp'),
   'raster_pixel' : files('test_raster_pixel.cpp'),
   'spsc_ring' : files('test_spsc_ring.cpp'),
 }
@@ -223,10 +222,12 @@ foreach name, src : {
     dependencies : [prism_embedded_apps_dep, doctest_dep]))
 endforeach
 
-# The two that build a widget snapshot also need the rasterizer (a text measurer for the tree).
+# The ones that build a widget snapshot also need the rasterizer (a text measurer for the tree);
+# raster_snapshot draws both apps whole and in bands.
 foreach name, src : {
   'embedded_apps_audio_scope' : files('test_embedded_apps_audio_scope.cpp'),
   'embedded_apps_widgets_app' : files('test_embedded_apps_widgets_app.cpp'),
+  'raster_snapshot' : files('test_raster_snapshot.cpp'),
 }
   test(name, executable('test_' + name, src,
     dependencies : [prism_embedded_apps_dep, prism_raster_dep, doctest_dep]))

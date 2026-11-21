@@ -52,24 +52,52 @@ void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
     }
 }
 
-} // namespace
-
+// What a list that misses the band leaves behind: its effect on the clip stack.
 template <class P>
-void draw(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
-    for (std::uint32_t idx : snap.z_order) {
-        if (idx >= snap.draw_lists.size()) continue;   // defensive: a malformed snapshot
-        if (snap.draw_lists[idx]) {
-            PRISM_PROFILE_SCOPE("draw list");
-            draw_list(canvas, *snap.draw_lists[idx], fonts);
-        }
-    }
-    canvas.reset_clip();   // the overlay is rendered last, on top, with no clip
-    {
-        PRISM_PROFILE_SCOPE("draw list");   // the overlay is a draw list too
-        draw_list(canvas, snap.overlay, fonts);
+void apply_clips(BasicCanvas<P>& canvas, const DrawList& dl) {
+    for (const DrawCmd& cmd : dl.commands) {
+        if (const auto* push = std::get_if<ClipPush>(&cmd)) canvas.push_clip(push->rect);
+        else if (std::holds_alternative<ClipPop>(cmd)) canvas.pop_clip();
     }
 }
 
+template <class P>
+bool reaches(const BasicCanvas<P>& band, const SceneSnapshot& snap, std::uint32_t idx) {
+    if (idx >= snap.geometry.size()) return true;
+    const Rect& r = snap.geometry[idx].second;
+    const float top = r.origin.y.raw() - kBandMargin;
+    const float bottom = r.origin.y.raw() + r.extent.h.raw() + kBandMargin;
+    return bottom > float(band.first_row()) && top < float(band.first_row() + band.height());
+}
+
+} // namespace
+
+template <class P>
+void draw_band(BasicCanvas<P>& band, const SceneSnapshot& snap, const Fonts& fonts) {
+    for (std::uint32_t idx : snap.z_order) {
+        if (idx >= snap.draw_lists.size() || !snap.draw_lists[idx]) continue;   // an index past the lists, or an empty slot
+        const DrawList& dl = *snap.draw_lists[idx];
+        if (!reaches(band, snap, idx)) {
+            apply_clips(band, dl);
+            continue;
+        }
+        PRISM_PROFILE_SCOPE("draw list");
+        draw_list(band, dl, fonts);
+    }
+    band.reset_clip();   // the overlay is rendered last, on top, with no clip
+    {
+        PRISM_PROFILE_SCOPE("draw list");   // the overlay is a draw list too
+        draw_list(band, snap.overlay, fonts);
+    }
+}
+
+template <class P>
+void draw(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
+    draw_band(canvas, snap, fonts);
+}
+
+template void draw_band(Canvas&, const SceneSnapshot&, const Fonts&);
+template void draw_band(Canvas565&, const SceneSnapshot&, const Fonts&);
 template void draw(Canvas&, const SceneSnapshot&, const Fonts&);
 template void draw(Canvas565&, const SceneSnapshot&, const Fonts&);
 

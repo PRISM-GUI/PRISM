@@ -1,6 +1,6 @@
 // The audio scope (examples/embedded) at the ESP32 panel's size, on the host: what one frame
 // costs to record (the snapshot) and to draw, draw list by draw list, with the command kinds of
-// the slowest. Run: ./builddir/benchmarks/bench_scope_frame
+// the slowest, and the same frame drawn in 48-row bands. Run: ./builddir/benchmarks/bench_scope_frame
 #include <embedded/audio_scope.hpp>
 #include <prism/app/widget_tree.hpp>
 #include <prism/raster/canvas.hpp>
@@ -51,6 +51,24 @@ struct Timed {
     std::size_t index;
 };
 
+constexpr int kBandRows = 48;
+
+// The frame as the ESP32 draws it: one 48-row band buffer, cleared and drawn ten times.
+double draw_banded(const prism::render::SceneSnapshot& snap, const prism::raster::Fonts& fonts)
+{
+    constexpr int kRepeats = 50;
+    std::vector<std::uint32_t> band_pixels(std::size_t(W) * kBandRows);
+    prism::raster::Canvas band{band_pixels, W, kBandRows, W, 0};
+    const auto t0 = Clock::now();
+    for (int r = 0; r < kRepeats; ++r)
+        for (int y = 0; y < H; y += kBandRows) {
+            band.retarget(band_pixels, y);
+            band.clear(snap.window.background);
+            prism::raster::draw_band(band, snap, fonts);
+        }
+    return ms_since(t0) / kRepeats;
+}
+
 } // namespace
 
 int main()
@@ -86,6 +104,9 @@ int main()
     fmt::print("per frame: tick (FFT) {:.2f} ms, record {:.2f} ms, draw {:.2f} ms ({} draw lists)\n",
                tick / kFrames, record / kFrames,
                draw / kFrames, snap->draw_lists.size());
+
+    fmt::print("banded ({} bands of {}): draw {:.2f} ms\n", H / kBandRows, kBandRows,
+               draw_banded(*snap, fonts));
 
     std::vector<Timed> lists;
     for (std::size_t i = 0; i < snap->draw_lists.size(); ++i) {

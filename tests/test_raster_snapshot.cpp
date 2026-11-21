@@ -5,6 +5,9 @@
 #include <prism/raster/draw_snapshot.hpp>
 #include <prism/raster/fonts.hpp>
 
+#include <embedded/audio_scope.hpp>
+#include <embedded/widgets_app.hpp>
+
 #include <prism/app/widget_tree.hpp>
 #include <prism/core/field.hpp>
 #include <prism/render/scene_snapshot.hpp>
@@ -14,6 +17,7 @@
 #include <cstdint>
 #include <memory>
 #include <set>
+#include <span>
 #include <string>
 #include <variant>
 #include <vector>
@@ -110,4 +114,138 @@ TEST_CASE("a laid-out snapshot draws into a 480x272 canvas") {
             }
         }
     CHECK(ink > 0);   // the text actually drew
+}
+
+namespace {
+
+using prism::raster::BasicCanvas;
+using prism::raster::Fonts;
+
+Rect rect(float x, float y, float w, float h) {
+    return Rect{Point{X{x}, Y{y}}, Size{Width{w}, Height{h}}};
+}
+
+template <class P>
+std::vector<typename P::storage> draw_whole(const SceneSnapshot& snap, const Fonts& fonts, int w, int h) {
+    std::vector<typename P::storage> frame(std::size_t(w) * h);
+    BasicCanvas<P> canvas{frame, w, h, w};
+    canvas.clear(snap.window.background);
+    prism::raster::draw(canvas, snap, fonts);
+    return frame;
+}
+
+// As a board draws: one band buffer, reused for every band, copied into the frame after.
+template <class P>
+std::vector<typename P::storage> draw_in_bands(const SceneSnapshot& snap, const Fonts& fonts, int w, int h,
+                                               int band_rows) {
+    std::vector<typename P::storage> frame(std::size_t(w) * h);
+    std::vector<typename P::storage> band_pixels(std::size_t(w) * band_rows);
+    BasicCanvas<P> band{band_pixels, w, band_rows, w, 0};
+    for (int y = 0; y < h; y += band_rows) {
+        band.retarget(band_pixels, y);
+        band.clear(snap.window.background);
+        prism::raster::draw_band(band, snap, fonts);
+        std::ranges::copy(band_pixels, frame.begin() + std::ptrdiff_t(y) * w);
+    }
+    return frame;
+}
+
+template <class P>
+void check_bands_equal_whole(const SceneSnapshot& snap, const Fonts& fonts, int w, int h, int band_rows) {
+    const auto whole = draw_whole<P>(snap, fonts, w, h);
+    const auto banded = draw_in_bands<P>(snap, fonts, w, h, band_rows);
+    const auto [first, _] = std::ranges::mismatch(whole, banded);
+    const auto at = std::size_t(first - whole.begin());
+    INFO("first difference at ", at % std::size_t(w), ",", at / std::size_t(w));
+    CHECK(whole == banded);
+    CHECK(std::set(whole.begin(), whole.end()).size() > 1);   // something was drawn
+}
+
+void check_all_formats(const SceneSnapshot& snap, const Fonts& fonts, int w, int h, int band_rows) {
+    SUBCASE("ARGB8888") { check_bands_equal_whole<prism::raster::Argb8888>(snap, fonts, w, h, band_rows); }
+    SUBCASE("RGB565") { check_bands_equal_whole<prism::raster::Rgb565>(snap, fonts, w, h, band_rows); }
+}
+
+// 533 samples (one 30 fps frame at 16 kHz) once, then dry.
+struct OneFrameTone final : prism_examples::SampleSource {
+    std::size_t left = 533;
+    double t = 0;
+    std::size_t read(std::span<float> out) override {
+        const std::size_t n = std::min(out.size(), left);
+        left -= n;
+        for (std::size_t i = 0; i < n; ++i, t += 1.0 / 16000.0)
+            out[i] = float(0.4 * std::sin(2 * 3.14159265 * 440 * t) + 0.1 * std::sin(2 * 3.14159265 * 3100 * t));
+        return n;
+    }
+    float sample_rate() const override { return 16000.f; }
+    const char* name() const override { return "tone"; }
+};
+
+std::shared_ptr<prism::render::DrawList> filled(Rect r, Color c) {
+    auto dl = std::make_shared<prism::render::DrawList>();
+    dl->filled_rect(r, c);
+    return dl;
+}
+
+} // namespace
+
+TEST_CASE("the widget demo drawn in 48-row bands equals the whole frame") {
+    prism_examples::WidgetsModel model;
+    WidgetTree tree(model);
+    Fonts fonts;
+    tree.set_text_measurer(&fonts);
+    auto snap = tree.build_snapshot(800, 480, 1);
+    REQUIRE(snap != nullptr);
+    check_all_formats(*snap, fonts, 800, 480, 48);
+}
+
+TEST_CASE("the audio scope drawn in 48-row bands equals the whole frame") {
+    OneFrameTone source;
+    prism_examples::ScopeState state{source};
+    prism_examples::ScopeModel model;
+    prism_examples::scope_bind(model, state);
+    prism_examples::scope_tick(model, state);
+    WidgetTree tree(model);
+    Fonts fonts;
+    tree.set_text_measurer(&fonts);
+    auto snap = tree.build_snapshot(800, 480, 1);
+    REQUIRE(snap != nullptr);
+    check_all_formats(*snap, fonts, 800, 480, 48);
+}
+
+// 8-row bands: the band [32, 40) holds part of the fill but misses the geometry rect (rows 10 to
+// 30) by more than a band; only the margin brings the list into it.
+TEST_CASE("a draw list up to kBandMargin outside its geometry rect is drawn in its bands") {
+    SceneSnapshot snap;
+    snap.geometry = {{1, rect(10, 10, 20, 20)}};
+    snap.draw_lists = {filled(rect(10, 25, 20, 20), Color::rgba(200, 40, 40))};
+    snap.z_order = {0};
+    Fonts fonts;
+    check_all_formats(snap, fonts, 64, 64, 8);
+}
+
+// A scroll view's clip entries (a ClipPush list over the viewport, a ClipPop list with an empty
+// rect) miss most bands, yet the widgets between them are clipped by them in every band.
+TEST_CASE("clip entries that miss a band still clip the lists drawn in it") {
+    SceneSnapshot snap;
+    auto push = std::make_shared<prism::render::DrawList>();
+    push->clip_push(Point{X{0}, Y{0}}, Size{Width{64}, Height{8}});
+    auto pop = std::make_shared<prism::render::DrawList>();
+    pop->clip_pop();
+    snap.geometry = {{1, rect(0, 0, 64, 8)}, {2, rect(0, 40, 64, 8)}, {0, rect(0, 0, 0, 0)},
+                     {3, rect(0, 50, 64, 6)}};
+    snap.draw_lists = {push, filled(rect(0, 40, 64, 8), Color::rgba(200, 40, 40)), pop,
+                       filled(rect(0, 50, 64, 6), Color::rgba(40, 200, 40))};
+    snap.z_order = {0, 1, 2, 3};
+    Fonts fonts;
+    check_all_formats(snap, fonts, 64, 64, 8);
+}
+
+// A snapshot built by hand may leave geometry empty: its lists are then drawn in every band.
+TEST_CASE("a draw list with no geometry entry is drawn in every band") {
+    SceneSnapshot snap;
+    snap.draw_lists = {filled(rect(0, 40, 64, 8), Color::rgba(200, 40, 40))};
+    snap.z_order = {0};
+    Fonts fonts;
+    check_all_formats(snap, fonts, 64, 64, 8);
 }
