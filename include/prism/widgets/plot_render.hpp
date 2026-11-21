@@ -32,14 +32,7 @@ struct PlotMapping {
     Rect plot_area;
     bool operator==(const PlotMapping&) const = default;
 
-    Point to_pixel(double data_x, double data_y) const
-    {
-        const float sx = float(plot_area.extent.w.raw() / (x_range.max - x_range.min));
-        const float sy = float(plot_area.extent.h.raw() / (y_range.max - y_range.min));
-        X px = plot_area.origin.x + DX{float(data_x - x_range.min) * sx};
-        Y py = plot_area.origin.y + DY{plot_area.extent.h.raw() - float(data_y - y_range.min) * sy};
-        return Point{px, py};
-    }
+    Point to_pixel(double data_x, double data_y) const;
 
     std::pair<double, double> to_data(Point pixel) const
     {
@@ -66,6 +59,34 @@ struct PlotMapping {
         return {center - half_range, center + half_range, false};
     }
 };
+
+// A mapping's scales, computed once: mapping a point is then one double subtraction and one
+// float multiply per axis. Built once per series, as on a board without hardware doubles
+// (ESP32) the two divisions cost more than mapping the point itself.
+struct PixelScale {
+    double x_min, y_min;
+    float sx, sy;
+    X left;
+    Y top;
+    float height;
+
+    explicit PixelScale(const PlotMapping& m)
+        : x_min{m.x_range.min}, y_min{m.y_range.min},
+          sx{float(m.plot_area.extent.w.raw() / (m.x_range.max - m.x_range.min))},
+          sy{float(m.plot_area.extent.h.raw() / (m.y_range.max - m.y_range.min))},
+          left{m.plot_area.origin.x}, top{m.plot_area.origin.y}, height{m.plot_area.extent.h.raw()}
+    {}
+
+    Point at(double data_x, double data_y) const
+    {
+        return Point{left + DX{float(data_x - x_min) * sx}, top + DY{height - float(data_y - y_min) * sy}};
+    }
+};
+
+inline Point PlotMapping::to_pixel(double data_x, double data_y) const
+{
+    return PixelScale{*this}.at(data_x, data_y);
+}
 
 // Tick positions in a fixed array: a plot draws a handful per axis, so computing them each
 // redraw allocates nothing (doc/design/allocation-free-frames.md). simplify: past `capacity`
@@ -374,16 +395,16 @@ std::vector<Point> decimated_series_points(const S& s, const PlotMapping& map)
     std::vector<Bucket> buckets(static_cast<size_t>(columns));
 
     struct DecimState {
-        const PlotMapping* map;
+        PixelScale scale;
         std::vector<Bucket>* buckets;
         float left;
         int columns;
         size_t i = 0;
     };
-    DecimState state{&map, &buckets, left, columns};
+    DecimState state{PixelScale{map}, &buckets, left, columns};
     auto visit = [](void* ctx, double x, double y) {
         auto& st = *static_cast<DecimState*>(ctx);
-        const Point p = st.map->to_pixel(x, y);
+        const Point p = st.scale.at(x, y);
         const size_t i = st.i++;
         if (std::isnan(p.x.raw()) || std::isnan(p.y.raw())) return;
         // Points outside the visible x-range fold into the edge columns, keeping the
@@ -466,13 +487,13 @@ void draw_series(DrawList& dl, const PlotMapping& map, const SeriesRange& series
             } else {
                 pts.reserve(s.size());
                 struct PushState {
-                    const PlotMapping* map;
+                    PixelScale scale;
                     std::vector<Point>* pts;
                 };
-                PushState state{&map, &pts};
+                PushState state{PixelScale{map}, &pts};
                 auto visit = [](void* ctx, double x, double y) {
                     auto& st = *static_cast<PushState*>(ctx);
-                    st.pts->push_back(st.map->to_pixel(x, y));
+                    st.pts->push_back(st.scale.at(x, y));
                 };
                 using Elem = std::remove_cvref_t<decltype(s)>;
                 if constexpr (ScannableSeries<Elem>) {

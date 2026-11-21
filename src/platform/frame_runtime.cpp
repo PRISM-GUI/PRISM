@@ -24,6 +24,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -230,6 +232,8 @@ void logic_main(const RunArgs& a)
 
 // The render thread: waits for each snapshot, has `painter` draw and present it, and records the
 // frame. A painter is how a frame reaches the sink: begin() (untimed), draw(snapshot), present().
+// draw() returns how long of it went waiting for the display (a band sink's band() and flush()):
+// the timing line counts that as present, so its draw is drawing only.
 template <class Painter>
 void render_loop(const RunArgs& a, Painter& painter)
 {
@@ -250,17 +254,18 @@ void render_loop(const RunArgs& a, Painter& painter)
         const SceneSnapshot& snap = h.slots[std::size_t(h.drawing)];
         painter.begin();
         auto start = Clock::now();
+        std::chrono::microseconds waited;
         {
             PRISM_PROFILE_SCOPE("draw"); // the clear is part of drawing the frame, as the stats count it
-            painter.draw(snap);
+            waited = painter.draw(snap);
         }
-        times.draw = since(start);
+        times.draw = since(start) - waited;
         start = Clock::now();
         {
             PRISM_PROFILE_SCOPE("present");
             painter.present();
         }
-        times.present = since(start);
+        times.present = since(start) + waited;
         {
             std::lock_guard lock{h.mu};
             h.shown = h.drawing;
@@ -280,11 +285,12 @@ struct FramePainter {
     raster::Canvas canvas;
 
     void begin() { canvas.retarget(sink.back()); }
-    void draw(const SceneSnapshot& snap)
+    std::chrono::microseconds draw(const SceneSnapshot& snap)
     {
         if (!sink.clear(raster::argb(snap.window.background)))
             canvas.clear(snap.window.background); // clearing is the caller's job, as with SDL
         raster::draw(canvas, snap, fonts);
+        return {};
     }
     void present() { sink.present(); }
 };
@@ -303,15 +309,22 @@ struct BandPainter {
     raster::BasicCanvas<P> canvas;
 
     void begin() {}
-    void draw(const SceneSnapshot& snap)
+    std::chrono::microseconds draw(const SceneSnapshot& snap)
     {
+        std::chrono::microseconds waited{};
         for (int k = 0; k * rows < height; ++k) {
             const int index = k % 2, first_row = k * rows;
-            canvas.retarget(sink.band(index), first_row);
+            auto start = Clock::now();
+            const auto pixels = sink.band(index);
+            waited += since(start);
+            canvas.retarget(pixels, first_row);
             canvas.clear(snap.window.background);
             raster::draw_band(canvas, snap, fonts);
+            start = Clock::now();
             sink.flush(index, first_row, std::min(rows, height - first_row));
+            waited += since(start);
         }
+        return waited;
     }
     void present() { sink.present(); }
 };
@@ -323,10 +336,20 @@ void render_main(const RunArgs& a, FrameSink& sink)
     render_loop(a, painter);
 }
 
+// Always on, as a zero band height would loop forever drawing empty bands.
+void require_band_height(int rows)
+{
+    if (rows > 0)
+        return;
+    std::fputs("prism::platform::frame_app: BandSink::band_height() must be > 0\n", stderr);
+    std::abort();
+}
+
 template <class P>
 void render_main(const RunArgs& a, BandSink<P>& sink)
 {
     const int width = int(a.size.w.raw()), height = int(a.size.h.raw()), rows = sink.band_height();
+    require_band_height(rows);
     BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}};
     render_loop(a, painter);
 }

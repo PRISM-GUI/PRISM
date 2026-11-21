@@ -96,11 +96,14 @@ struct MemoryBandSink final : prism::platform::BandSink<P> {
                                             std::vector<pixel>(std::size_t(W) * kBandRows)};
     std::vector<pixel> frame = std::vector<pixel>(std::size_t(W) * H);
     std::atomic<int> presents{0};
+    int rows_per_band = kBandRows;
+    std::chrono::milliseconds flush_time{0};
 
-    int band_height() const override { return kBandRows; }
+    int band_height() const override { return rows_per_band; }
     std::span<pixel> band(int index) override { return bands[std::size_t(index)]; }
     void flush(int index, int first_row, int rows) override
     {
+        std::this_thread::sleep_for(flush_time);
         std::copy_n(bands[std::size_t(index)].begin(), std::size_t(W) * rows,
                     frame.begin() + std::ptrdiff_t(first_row) * W);
     }
@@ -347,6 +350,40 @@ TEST_CASE("the timing line reaches on_stats")
     CHECK(line.find("fps") != std::string::npos);
 }
 
+// The number after `name ` in the timing line, or -1 when the field is missing or "-".
+static double stage_ms(std::string_view line, std::string_view name)
+{
+    const auto at = line.find(name);
+    if (at == std::string_view::npos)
+        return -1;
+    const std::string rest{line.substr(at + name.size())};
+    char* end = nullptr;
+    const double v = std::strtod(rest.c_str(), &end);
+    return end == rest.c_str() ? -1 : v;
+}
+
+TEST_CASE("time a band sink spends flushing counts as present, not draw")
+{
+    Counter model;
+    MemoryBandSink<prism::raster::Argb8888> sink;
+    sink.flush_time = 20ms; // as a board's first band waits for the panel flip
+    NoTouch touch;
+    std::string line;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_stats([&](std::string_view l) {
+            if (stage_ms(l, "draw ") < 0)
+                return; // no frame in this period yet
+            line = l;
+            ctx.quit();
+        });
+    });
+    INFO(line);
+    constexpr int bands = (H + kBandRows - 1) / kBandRows;
+    CHECK(stage_ms(line, "draw ") >= 0);
+    CHECK(stage_ms(line, "draw ") < 10);
+    CHECK(stage_ms(line, "present ") >= 20.0 * bands);
+}
+
 TEST_CASE("a band sink's frame equals a frame sink's frame")
 {
     MemorySink whole;
@@ -407,6 +444,16 @@ bool aborts(F f)
     return WIFSIGNALED(status) && WTERMSIG(status) == SIGABRT;
 }
 } // namespace
+
+TEST_CASE("a band sink with no rows per band aborts instead of looping forever")
+{
+    CHECK(aborts([] {
+        alarm(10); // a loop that never ends dies of SIGALRM: the check fails instead of hanging
+        MemoryBandSink<prism::raster::Argb8888> sink;
+        sink.rows_per_band = 0;
+        run_one_frame(sink);
+    }));
+}
 
 TEST_CASE("registering a hook from inside a running hook aborts")
 {

@@ -24,17 +24,18 @@ struct FrameSink {
     virtual ~FrameSink() = default;
 };
 
-// A target with no whole frame in RAM (a panel with its own frame memory, fed over SPI): the
-// runtime draws each frame as bands of rows into one of two band buffers, in the panel's pixel
-// format P (raster/pixel.hpp), and hands each band over as it is done
-// (doc/design/band-rendering.md).
+// A target that takes its frame in bands: a panel with its own frame memory fed over SPI, or a
+// board that draws bands in fast RAM and copies them to a frame buffer. The runtime draws each
+// frame as bands of rows into one of two band buffers, in the target's pixel format P
+// (raster/pixel.hpp), and hands each band over as it is done (doc/design/band-rendering.md).
 template <class P>
 struct BandSink {
     virtual int band_height() const = 0;                         // rows per band
     virtual std::span<typename P::storage> band(int index) = 0;  // index 0 or 1; width * band_height
     // Starts copying `band(index)` (rows [first_row, first_row + rows)) to the frame and
     // returns. band(index) is not handed out again until that copy is done: the sink waits
-    // in band() if it must.
+    // in band() if it must. band(i) asked again before flush(i) returns the same buffer without
+    // waiting (the runtime asks for band 0 to build its canvas, then again for the first band).
     virtual void flush(int index, int first_row, int rows) = 0;
     virtual void present() = 0;                                  // every band flushed: show it
     virtual core::Size size() const = 0;

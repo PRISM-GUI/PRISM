@@ -1736,3 +1736,16 @@ TEST_CASE("to_pixel: timestamps ~1.7e9 over a 1 s range land within 0.01 px of t
         CHECK(std::abs(p.y.raw() - float(20.0 + 0.25 * 200.0)) <= 0.01f);
     }
 }
+
+TEST_CASE("PixelScale::at lands where to_pixel does")
+{
+    using namespace prism;
+    using namespace prism::plot;
+    const PlotMapping m{{1.7e9, 1.7e9 + 1.0}, {-1.0, 3.0}, Rect{Point{X{10}, Y{20}}, Size{Width{800}, Height{200}}}};
+    const PixelScale scale{m};
+    for (auto [x, y] : {std::pair{1.7e9, -1.0}, {1.7e9 + 0.3, 0.5}, {1.7e9 + 1.0, 3.0}, {1.7e9 - 2.0, 7.0}}) {
+        const Point a = scale.at(x, y), b = m.to_pixel(x, y);
+        CHECK(a.x.raw() == b.x.raw());
+        CHECK(a.y.raw() == b.y.raw());
+    }
+}
