@@ -1724,3 +1724,15 @@ TEST_CASE("x ticks thin out on a narrow plot so their labels do not overlap")
     const auto [wide_map, wide] = ticks_over(800.f);
     CHECK(wide.x.size() > narrow.x.size());
 }
+
+TEST_CASE("to_pixel: timestamps ~1.7e9 over a 1 s range land within 0.01 px of the exact position")
+{
+    using namespace prism;
+    using namespace prism::plot;
+    PlotMapping m{{1.7e9, 1.7e9 + 1.0}, {-1.0, 1.0}, Rect{Point{X{10}, Y{20}}, Size{Width{800}, Height{200}}}};
+    for (double f : {0.0, 0.25, 0.5, 0.999}) {
+        const Point p = m.to_pixel(1.7e9 + f, 0.5);
+        CHECK(std::abs(p.x.raw() - float(10.0 + f * 800.0)) <= 0.01f);
+        CHECK(std::abs(p.y.raw() - float(20.0 + 0.25 * 200.0)) <= 0.01f);
+    }
+}

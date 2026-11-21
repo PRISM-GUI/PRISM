@@ -34,12 +34,10 @@ struct PlotMapping {
 
     Point to_pixel(double data_x, double data_y) const
     {
-        X px = plot_area.origin.x + DX{
-            static_cast<float>((data_x - x_range.min) / (x_range.max - x_range.min))
-            * plot_area.extent.w.raw()};
-        Y py = plot_area.origin.y + DY{
-            static_cast<float>(1.0 - (data_y - y_range.min) / (y_range.max - y_range.min))
-            * plot_area.extent.h.raw()};
+        const float sx = float(plot_area.extent.w.raw() / (x_range.max - x_range.min));
+        const float sy = float(plot_area.extent.h.raw() / (y_range.max - y_range.min));
+        X px = plot_area.origin.x + DX{float(data_x - x_range.min) * sx};
+        Y py = plot_area.origin.y + DY{plot_area.extent.h.raw() - float(data_y - y_range.min) * sy};
         return Point{px, py};
     }
 
