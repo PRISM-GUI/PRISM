@@ -5,7 +5,9 @@
 #include <prism/profile/profile.hpp>
 #include <prism/render/draw_list.hpp>
 
+#include <cmath>
 #include <cstdint>
+#include <optional>
 #include <type_traits>
 #include <variant>
 
@@ -61,13 +63,40 @@ void apply_clips(BasicCanvas<P>& canvas, const DrawList& dl) {
     }
 }
 
+// The rect a list's first ClipPush keeps everything else in: a widget's list (layout_flatten
+// wraps it in its allocated rect). nullopt when the list has no leading clip, or when that clip
+// is popped before the list ends and the commands after it are free.
+std::optional<Rect> leading_clip(const DrawList& dl) {
+    if (dl.commands.empty()) return std::nullopt;
+    const auto* push = std::get_if<ClipPush>(&dl.commands.front());
+    if (!push) return std::nullopt;
+    int depth = 0;
+    for (std::size_t i = 0; i + 1 < dl.commands.size(); ++i) {
+        if (std::holds_alternative<ClipPush>(dl.commands[i])) ++depth;
+        else if (std::holds_alternative<ClipPop>(dl.commands[i]) && --depth == 0) return std::nullopt;
+    }
+    return push->rect;
+}
+
+// Rows [top, bottom) against the band's rows.
+template <class P>
+bool overlaps_rows(const BasicCanvas<P>& band, float top, float bottom) {
+    return bottom > float(band.first_row()) && top < float(band.first_row() + band.height());
+}
+
 template <class P>
 bool reaches(const BasicCanvas<P>& band, const SceneSnapshot& snap, std::uint32_t idx) {
+    // Rounded outward, as the canvas rounds a clip.
+    if (const auto clip = leading_clip(*snap.draw_lists[idx]))
+        return overlaps_rows(band, std::floor(clip->origin.y.raw()),
+                             std::ceil(clip->origin.y.raw() + clip->extent.h.raw()));
     if (idx >= snap.geometry.size()) return true;
+    // simplify: with no leading clip, the list is trusted to draw at most kBandMargin outside its
+    // geometry rect (a board's own drawing, a hand-built list); one that draws further is cut in
+    // a band. Upgrade: a bounds rect per draw list, measured when the list is built.
     const Rect& r = snap.geometry[idx].second;
-    const float top = r.origin.y.raw() - kBandMargin;
-    const float bottom = r.origin.y.raw() + r.extent.h.raw() + kBandMargin;
-    return bottom > float(band.first_row()) && top < float(band.first_row() + band.height());
+    return overlaps_rows(band, r.origin.y.raw() - kBandMargin,
+                         r.origin.y.raw() + r.extent.h.raw() + kBandMargin);
 }
 
 } // namespace

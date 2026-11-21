@@ -121,4 +121,7 @@ Each step is measured on the board with the trace page.
 
 - The exact copy engine on the ESP32 (PPA SRM in RGB565 → RGB565, or 2D-DMA).
 - How the runtime finds a target's draw-list bounds cheaply (they exist in the snapshot's
-  geometry).
+  geometry). *Decided (raster::draw_band):* a list whose first ClipPush wraps the whole list (every
+  widget's list: layout wraps it in its allocated rect) is bounded by that clip, exactly. Any other
+  list by its geometry rect grown by `kBandMargin` (16 px), a trusted margin, marked `simplify:`.
+  A skipped list still applies its clips, so a scroll view's clip entries keep working.

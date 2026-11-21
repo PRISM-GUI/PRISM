@@ -8,12 +8,13 @@
 // Clearing is the caller's job: fill the canvas with snap.window.background first, as the SDL
 // backend clears with it (SDL_RenderClear in SdlWindow::render_snapshot).
 //
-// draw_band draws the part of the frame a band canvas holds (canvas.hpp): the draw lists whose
-// geometry rect, grown by kBandMargin on each side, reaches the band's rows, and the overlay. A
-// list that misses the band still applies its ClipPush/ClipPop, so the lists after it are clipped
-// as in the whole frame. A list with no geometry entry (a snapshot built by hand) is always
-// drawn. Banded output equals the whole frame as long as a widget draws at most kBandMargin
-// pixels outside its geometry rect (doc/design/band-rendering.md).
+// draw_band draws the part of the frame a band canvas holds (canvas.hpp): the draw lists that
+// reach the band's rows, and the overlay. A list wrapped in a leading ClipPush (every widget's
+// list) reaches the rows of that clip rect. Any other list reaches its geometry rect grown by
+// kBandMargin on each side, so it may draw at most kBandMargin pixels outside that rect; with no
+// geometry entry (a snapshot built by hand) it is always drawn. A list that misses the band still
+// applies its ClipPush/ClipPop, so the lists after it are clipped as in the whole frame
+// (doc/design/band-rendering.md).
 
 #include <prism/raster/canvas.hpp>
 

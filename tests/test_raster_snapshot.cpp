@@ -224,6 +224,36 @@ TEST_CASE("a draw list up to kBandMargin outside its geometry rect is drawn in i
     check_all_formats(snap, fonts, 64, 64, 8);
 }
 
+// A widget's list is wrapped in its allocated rect, which can be far larger than the drawn
+// bounding box its geometry holds: the leading clip, not the geometry, bounds the list.
+TEST_CASE("a list with a leading clip is drawn in every band its clip reaches") {
+    SceneSnapshot snap;
+    auto dl = std::make_shared<prism::render::DrawList>();
+    dl->clip_push(Point{X{0}, Y{0}}, Size{Width{100}, Height{60}});
+    dl->filled_rect(rect(0, 40, 64, 15), Color::rgba(200, 40, 40));
+    dl->clip_pop();
+    snap.geometry = {{1, rect(10, 10, 20, 20)}};
+    snap.draw_lists = {dl};
+    snap.z_order = {0};
+    Fonts fonts;
+    check_all_formats(snap, fonts, 64, 64, 8);
+}
+
+// A board's own drawing may clip a part, pop, and draw on: its first clip bounds nothing.
+TEST_CASE("a list whose first clip is popped before its end falls back to its geometry") {
+    SceneSnapshot snap;
+    auto dl = std::make_shared<prism::render::DrawList>();
+    dl->clip_push(Point{X{0}, Y{0}}, Size{Width{64}, Height{8}});
+    dl->filled_rect(rect(0, 0, 64, 8), Color::rgba(40, 40, 200));
+    dl->clip_pop();
+    dl->filled_rect(rect(0, 40, 64, 8), Color::rgba(200, 40, 40));
+    snap.geometry = {{1, rect(0, 0, 64, 48)}};
+    snap.draw_lists = {dl};
+    snap.z_order = {0};
+    Fonts fonts;
+    check_all_formats(snap, fonts, 64, 64, 8);
+}
+
 // A scroll view's clip entries (a ClipPush list over the viewport, a ClipPop list with an empty
 // rect) miss most bands, yet the widgets between them are clipped by them in every band.
 TEST_CASE("clip entries that miss a band still clip the lists drawn in it") {
