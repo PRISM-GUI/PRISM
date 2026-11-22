@@ -266,33 +266,8 @@ void BasicCanvas<P>::line(Point from, Point to, Color c, float thickness) {
         }
         return;
     }
-    // Thick line: the segment as a square-ended quad. simplify: square ends, no caps or joins --
-    // polyline() below draws each segment separately, so joins are covered by overlap.
-    const float ux = len > 0.f ? dx / len : 1.f, uy = len > 0.f ? dy / len : 0.f;
-    const float nx = -uy * thickness / 2.f, ny = ux * thickness / 2.f;
-    const Point quad[4] = {
-        Point{X{from.x.raw() + nx}, Y{from.y.raw() + ny}},
-        Point{X{to.x.raw() + nx}, Y{to.y.raw() + ny}},
-        Point{X{to.x.raw() - nx}, Y{to.y.raw() - ny}},
-        Point{X{from.x.raw() - nx}, Y{from.y.raw() - ny}},
-    };
-    filled_polygon(quad, c);
+    thick_line(from, to, c, thickness);
 }
-
-namespace {
-
-// A plot trace: points that only go right, and a line thin enough that the square ends and the
-// joins of the general path cannot be told from the fast one's.
-constexpr float kTraceMaxThickness = 4.f;
-
-bool is_trace(std::span<const Point> pts, float thickness) {
-    if (pts.size() < 2 || thickness <= 1.f || thickness > kTraceMaxThickness) return false;
-    for (std::size_t i = 1; i < pts.size(); ++i)
-        if (!(pts[i].x.raw() >= pts[i - 1].x.raw())) return false;   // also false for NaN
-    return true;
-}
-
-} // namespace
 
 template <class P>
 void BasicCanvas<P>::fill_column(int x, float lo, float hi, Color c) {
@@ -302,39 +277,45 @@ void BasicCanvas<P>::fill_column(int x, float lo, float hi, Color c) {
         row(y)[x] = P::over(row(y)[x], c);
 }
 
-// A thick line that only goes right is, in each pixel column, one vertical run: the rows whose
-// centre lies within the strip's vertical half-extent of the line at the column's centre. That
-// is the centre rule the quad path applies, evaluated once per column instead of once per
-// segment and row (the digital oscilloscope's one run per column, for a thick line).
-// Only for segments rising or falling at most one pixel per pixel: a steeper strip is as tall as
-// the segment, so a run by the formula would overshoot its ends, and the quad path is cheap there
-// (a few rows). Those, and vertical steps, are drawn as lines.
-// simplify: a gentle segment's strip ends are cut at the column edges instead of square, and joins
-// are not drawn (the strips of two segments just meet). Upgrade: coverage-weighted runs
-// (anti-aliasing) if traces ever need to be smooth.
+// A thick line: a square-ended strip. In each pixel column the strip is one run of rows (a convex
+// polygon cut by a vertical line), so the line is one fill per column instead of a polygon scan
+// with its crossings sorted for every row: the centre rule, the same pixels. For a plot, whose
+// thick lines are mostly many short segments, that is the difference between a few operations per
+// column and a few dozen per row (the digital oscilloscope's one run per column).
+// simplify: no caps or joins beyond the square ends; polyline() draws segments one by one.
 template <class P>
-void BasicCanvas<P>::thick_trace(std::span<const Point> pts, Color c, float thickness) {
-    const float reach_base = thickness / 2.f;
-    for (std::size_t i = 1; i < pts.size(); ++i) {
-        const float x0 = pts[i - 1].x.raw(), y0 = pts[i - 1].y.raw();
-        const float x1 = pts[i].x.raw(), y1 = pts[i].y.raw();
-        const float slope = x1 > x0 ? (y1 - y0) / (x1 - x0) : 0.f;
-        if (!(x1 > x0) || std::abs(slope) > 1.f) {
-            line(pts[i - 1], pts[i], c, thickness);
+void BasicCanvas<P>::thick_line(Point from, Point to, Color c, float thickness) {
+    float x0 = from.x.raw(), y0 = from.y.raw(), x1 = to.x.raw(), y1 = to.y.raw();
+    if (x1 < x0) { std::swap(x0, x1); std::swap(y0, y1); }
+    const float dx = x1 - x0, dy = y1 - y0, len2 = dx * dx + dy * dy;
+    if (!(len2 > 0.f)) return;
+    const float len = std::sqrt(len2), half = thickness / 2.f;
+    const float cap = half * std::abs(dy) / len;   // how far the square ends reach sideways
+    const int k0 = std::max(span_begin(x0 - cap), clip_.x0), k1 = std::min(span_end(x1 + cap), clip_.x1);
+    for (int k = k0; k < k1; ++k) {
+        const float u = static_cast<float>(k) + 0.5f - x0;
+        float lo = -std::numeric_limits<float>::infinity(), hi = std::numeric_limits<float>::infinity();
+        if (dx > 0.f) {   // within half the thickness of the line
+            lo = std::max(lo, (u * dy - half * len) / dx);
+            hi = std::min(hi, (u * dy + half * len) / dx);
+        } else if (std::abs(u) > half) {
             continue;
         }
-        const float reach = reach_base * std::sqrt(1.f + slope * slope);
-        const int k0 = std::max(span_begin(x0), clip_.x0), k1 = std::min(span_end(x1), clip_.x1);
-        for (int k = k0; k < k1; ++k) {
-            const float y = y0 + slope * (static_cast<float>(k) + 0.5f - x0);
-            fill_column(k, y - reach, y + reach, c);
+        if (dy > 0.f) {   // between the two ends
+            lo = std::max(lo, -u * dx / dy);
+            hi = std::min(hi, (len2 - u * dx) / dy);
+        } else if (dy < 0.f) {
+            lo = std::max(lo, (len2 - u * dx) / dy);
+            hi = std::min(hi, -u * dx / dy);
+        } else if (u < 0.f || u > dx) {
+            continue;
         }
+        if (lo < hi) fill_column(k, y0 + lo, y0 + hi, c);
     }
 }
 
 template <class P>
 void BasicCanvas<P>::polyline(std::span<const Point> pts, Color c, float thickness) {
-    if (is_trace(pts, thickness)) return thick_trace(pts, c, thickness);
     for (std::size_t i = 1; i < pts.size(); ++i)
         line(pts[i - 1], pts[i], c, thickness);
 }

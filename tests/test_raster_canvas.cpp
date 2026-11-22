@@ -273,7 +273,7 @@ void draw_segments(F& fb, const Pts& pts, Color c, float thickness) {
 
 } // namespace
 
-TEST_CASE("a thick polyline that only goes right covers the pixels of its segments, within a margin") {
+TEST_CASE("a thick polyline is its segments drawn one by one") {
     const Color white = Color::rgba(255, 255, 255);
     for (const float thickness : {1.5f, 2.f, 3.f}) {
         for (const float step : {0.5f, 1.f, 3.f}) {
@@ -317,6 +317,42 @@ TEST_CASE("a steep spike in a thick polyline does not overshoot its end points")
         CHECK(lowest <= 60 + thickness);
         CHECK(highest >= 20 - thickness);
     }
+}
+
+// The square-ended strip as a polygon: what a thick line was drawn as before it became one run
+// per pixel column.
+template <class F>
+void draw_strip(F& fb, Point from, Point to, Color c, float thickness) {
+    const float dx = to.x.raw() - from.x.raw(), dy = to.y.raw() - from.y.raw();
+    const float len = std::sqrt(dx * dx + dy * dy);
+    const float nx = -dy / len * thickness / 2.f, ny = dx / len * thickness / 2.f;
+    const Point quad[4] = {pt(from.x.raw() + nx, from.y.raw() + ny), pt(to.x.raw() + nx, to.y.raw() + ny),
+                           pt(to.x.raw() - nx, to.y.raw() - ny), pt(from.x.raw() - nx, from.y.raw() - ny)};
+    fb.canvas.filled_polygon(quad, c);
+}
+
+TEST_CASE("a thick line covers the pixels of its strip, in every direction and thickness") {
+    const Color white = Color::rgba(255, 255, 255);
+    int segments = 0, worst = 0;
+    for (const float thickness : {1.5f, 2.f, 3.f, 6.f}) {
+        for (int angle = 0; angle < 360; angle += 15) {
+            for (const float length : {0.5f, 3.f, 40.f}) {
+                const float a = float(angle) * 3.14159265f / 180.f;
+                const Point from = pt(50.3f, 50.6f);
+                const Point to = pt(50.3f + length * std::cos(a), 50.6f + length * std::sin(a));
+                Fb<100, 100> line, strip;
+                line.canvas.line(from, to, white, thickness);
+                draw_strip(strip, from, to, white, thickness);
+                int differ = 0;
+                for (int i = 0; i < 100 * 100; ++i)
+                    differ += (line.px[std::size_t(i)] != kCleared) != (strip.px[std::size_t(i)] != kCleared);
+                ++segments;
+                worst = std::max(worst, differ);
+            }
+        }
+    }
+    CHECK(segments > 0);
+    CHECK(worst <= 2);   // a pixel centre on an edge may fall either way
 }
 
 TEST_CASE("a polyline that goes back in x is its segments, pixel for pixel") {
