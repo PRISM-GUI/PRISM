@@ -280,8 +280,9 @@ void BasicCanvas<P>::fill_column(int x, float lo, float hi, Color c) {
 // A thick line: a square-ended strip. In each pixel column the strip is one run of rows (a convex
 // polygon cut by a vertical line), so the line is one fill per column instead of a polygon scan
 // with its crossings sorted for every row: the centre rule, the same pixels. For a plot, whose
-// thick lines are mostly many short segments, that is the difference between a few operations per
-// column and a few dozen per row (the digital oscilloscope's one run per column).
+// thick lines are mostly many short segments, that is a few multiplications per column.
+// An axis-aligned line is a rectangle, filled by spans (a grid line is 300 columns but 2 rows).
+// The per-column work has no division: they are slow on a core without a fast FPU divide.
 // simplify: no caps or joins beyond the square ends; polyline() draws segments one by one.
 template <class P>
 void BasicCanvas<P>::thick_line(Point from, Point to, Color c, float thickness) {
@@ -289,26 +290,26 @@ void BasicCanvas<P>::thick_line(Point from, Point to, Color c, float thickness) 
     if (x1 < x0) { std::swap(x0, x1); std::swap(y0, y1); }
     const float dx = x1 - x0, dy = y1 - y0, len2 = dx * dx + dy * dy;
     if (!(len2 > 0.f)) return;
-    const float len = std::sqrt(len2), half = thickness / 2.f;
+    const float half = thickness / 2.f;
+    if (dy == 0.f) return fill_rect(Rect{Point{X{x0}, Y{y0 - half}}, Size{Width{dx}, Height{thickness}}}, c);
+    if (dx == 0.f) {
+        const float top = std::min(y0, y1);
+        return fill_rect(Rect{Point{X{x0 - half}, Y{top}}, Size{Width{thickness}, Height{std::abs(dy)}}}, c);
+    }
+    const float len = std::sqrt(len2);
     const float cap = half * std::abs(dy) / len;   // how far the square ends reach sideways
     const int k0 = std::max(span_begin(x0 - cap), clip_.x0), k1 = std::min(span_end(x1 + cap), clip_.x1);
+    const float slope = dy / dx, band = half * len / dx;   // within `band` rows of the line at the column
+    const float ratio = dx / dy, end_gap = len2 / dy;       // between the ends: v in [-u*ratio, end_gap - u*ratio]
     for (int k = k0; k < k1; ++k) {
         const float u = static_cast<float>(k) + 0.5f - x0;
-        float lo = -std::numeric_limits<float>::infinity(), hi = std::numeric_limits<float>::infinity();
-        if (dx > 0.f) {   // within half the thickness of the line
-            lo = std::max(lo, (u * dy - half * len) / dx);
-            hi = std::min(hi, (u * dy + half * len) / dx);
-        } else if (std::abs(u) > half) {
-            continue;
-        }
-        if (dy > 0.f) {   // between the two ends
-            lo = std::max(lo, -u * dx / dy);
-            hi = std::min(hi, (len2 - u * dx) / dy);
-        } else if (dy < 0.f) {
-            lo = std::max(lo, (len2 - u * dx) / dy);
-            hi = std::min(hi, -u * dx / dy);
-        } else if (u < 0.f || u > dx) {
-            continue;
+        float lo = u * slope - band, hi = u * slope + band;
+        if (dy > 0.f) {
+            lo = std::max(lo, -u * ratio);
+            hi = std::min(hi, end_gap - u * ratio);
+        } else {
+            lo = std::max(lo, end_gap - u * ratio);
+            hi = std::min(hi, -u * ratio);
         }
         if (lo < hi) fill_column(k, y0 + lo, y0 + hi, c);
     }
