@@ -140,7 +140,7 @@ void draw_band(BasicCanvas<P>& band, const SceneSnapshot& snap, const Fonts& fon
 
 template <class P>
 void draw_damage(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts,
-                 const prism::render::Damage& damage) {
+                 const prism::render::Damage& damage, RectCleaner* cleaner) {
     if (damage.full) {
         canvas.clear_scissor();
         canvas.clear(snap.window.background);
@@ -150,7 +150,8 @@ void draw_damage(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts&
     for (const prism::render::PixelRect& r : damage.rects) {
         canvas.set_scissor(Rect{Point{X{float(r.x0)}, Y{float(r.y0)}},
                                 Size{Width{float(r.x1 - r.x0)}, Height{float(r.y1 - r.y0)}}});
-        canvas.clear(snap.window.background);
+        if (!cleaner || !cleaner->clear(r.x0, r.y0, r.x1, r.y1, snap.window.background))
+            canvas.clear(snap.window.background);
         draw_band(canvas, snap, fonts);
     }
     canvas.clear_scissor();
@@ -163,8 +164,8 @@ void draw(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts)
 
 template void draw_band(Canvas&, const SceneSnapshot&, const Fonts&);
 template void draw_band(Canvas565&, const SceneSnapshot&, const Fonts&);
-template void draw_damage(Canvas&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&);
-template void draw_damage(Canvas565&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&);
+template void draw_damage(Canvas&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&, RectCleaner*);
+template void draw_damage(Canvas565&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&, RectCleaner*);
 template void draw(Canvas&, const SceneSnapshot&, const Fonts&);
 template void draw(Canvas565&, const SceneSnapshot&, const Fonts&);
 

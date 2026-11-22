@@ -32,6 +32,7 @@
 #include <optional>
 #include <pthread.h>
 #include <thread>
+#include <utility>
 
 namespace prism::platform {
 
@@ -320,19 +321,26 @@ private:
 // A whole frame into the FrameSink's back buffer. One canvas for the whole run, pointed at each
 // frame's back buffer: it keeps its scratch storage, so drawing does not allocate after the
 // first frame.
-struct FramePainter {
+struct FramePainter final : raster::RectCleaner {
     FrameSink& sink;
     const raster::Fonts& fonts;
     raster::Canvas canvas;
     DamagePlan damage;
     float scale;   // FrameOptions::ui_scale
 
+    FramePainter(FrameSink& s, const raster::Fonts& f, raster::Canvas c, float ui_scale)
+        : sink(s), fonts(f), canvas(std::move(c)), scale(ui_scale) {}
+
+    bool clear(int x0, int y0, int x1, int y1, core::Color background) override
+    {
+        return sink.clear_rect(x0, y0, x1, y1, raster::argb(background));
+    }
     void begin() { canvas.retarget(sink.back()); }
     std::chrono::microseconds draw(const SceneSnapshot& snap, const SceneSnapshot* previous)
     {
         const Damage& d = damage.plan(previous, snap, sink.size(), sink.buffer_age(), scale);
         if (!d.full) {
-            raster::draw_damage(canvas, snap, fonts, d);
+            raster::draw_damage(canvas, snap, fonts, d, this);
         } else {
             if (!sink.clear(raster::argb(snap.window.background)))
                 canvas.clear(snap.window.background); // clearing is the caller's job, as with SDL
@@ -394,7 +402,7 @@ struct BandPainter {
 void render_main(const RunArgs& a, FrameSink& sink)
 {
     const int width = int(sink.size().w.raw()), height = int(sink.size().h.raw());
-    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}, {}, a.scale};
+    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}, a.scale};
     painter.canvas.set_ui_scale(a.scale);
     render_loop(a, painter);
 }

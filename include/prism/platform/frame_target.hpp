@@ -19,6 +19,15 @@ struct FrameSink {
     // Fills back() with `argb` (0xAARRGGBB) before a frame is drawn, and returns true; false (the
     // default) leaves the clear to the CPU. A board with a 2D engine clears faster than the CPU.
     virtual bool clear(std::uint32_t argb) { (void)argb; return false; }
+    // The same for a rectangle [x0, x1) x [y0, y1) of back(), when only part of a frame is
+    // redrawn (damage tracking): fills it with `argb` and returns true, or false to leave it to
+    // the CPU. The runtime draws into the rectangle after this returns, so a 2D engine must be
+    // done with it (and the CPU's cache must not hold older pixels of it).
+    virtual bool clear_rect(int x0, int y0, int x1, int y1, std::uint32_t argb)
+    {
+        (void)x0; (void)y0; (void)x1; (void)y1; (void)argb;
+        return false;
+    }
     virtual void present() = 0;                  // flip to what was drawn into back()
     virtual core::Size size() const = 0;         // in pixels: back() holds width x height
     // How many presented frames old what back() holds is: 1 when it keeps the frame presented

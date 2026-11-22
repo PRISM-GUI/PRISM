@@ -32,17 +32,25 @@ void draw_band(BasicCanvas<P>& band, const prism::render::SceneSnapshot& snap, c
 template <class P>
 void draw(BasicCanvas<P>& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts);
 
+// Lets the target clear a damaged rect before it is drawn (a board's 2D engine). `clear` returns
+// true when it filled the pixels [x0, x1) x [y0, y1) of the frame with `background`; false leaves
+// it to the canvas.
+struct RectCleaner {
+    virtual bool clear(int x0, int y0, int x1, int y1, prism::core::Color background) = 0;
+    virtual ~RectCleaner() = default;
+};
+
 // Redraws only the damaged part of a frame (render/damage.hpp) into a canvas that already shows the
 // frame the damage is measured against: each rect is cleared to the background and drawn again,
 // the lists that miss it skipped. The pixels equal those of drawing the whole frame.
 template <class P>
 void draw_damage(BasicCanvas<P>& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts,
-                 const prism::render::Damage& damage);
+                 const prism::render::Damage& damage, RectCleaner* cleaner = nullptr);
 
 extern template void draw_band(Canvas&, const prism::render::SceneSnapshot&, const Fonts&);
 extern template void draw_band(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&);
-extern template void draw_damage(Canvas&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&);
-extern template void draw_damage(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&);
+extern template void draw_damage(Canvas&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&, RectCleaner*);
+extern template void draw_damage(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&, RectCleaner*);
 extern template void draw(Canvas&, const prism::render::SceneSnapshot&, const Fonts&);
 extern template void draw(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&);
 

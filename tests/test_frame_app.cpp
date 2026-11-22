@@ -170,6 +170,36 @@ bool is_a_whole_frame(const std::vector<std::uint32_t>& frame, int max)
     return false;
 }
 
+// An AgedSink whose 2D engine clears rectangles (here the CPU does it, and counts): the runtime must
+// ask for each damaged rect and then draw on top of what the engine cleared.
+struct RectClearSink final : prism::platform::FrameSink {
+    std::array<std::vector<std::uint32_t>, 2> buffers{std::vector<std::uint32_t>(std::size_t(W) * H, 0x12345678u),
+                                                      std::vector<std::uint32_t>(std::size_t(W) * H, 0x12345678u)};
+    std::size_t back_index = 0, shown_index = 0;
+    std::atomic<int> presents{0};
+    std::atomic<int> rects{0};
+    std::atomic<int> whole{0};
+
+    std::span<std::uint32_t> back() override { return buffers[back_index]; }
+    bool clear(std::uint32_t) override { ++whole; return false; }
+    bool clear_rect(int x0, int y0, int x1, int y1, std::uint32_t argb) override
+    {
+        ++rects;
+        for (int y = y0; y < y1; ++y)
+            std::fill(buffers[back_index].begin() + std::ptrdiff_t(y) * W + x0,
+                      buffers[back_index].begin() + std::ptrdiff_t(y) * W + x1, argb);
+        return true;
+    }
+    void present() override
+    {
+        shown_index = back_index;
+        back_index ^= 1;
+        ++presents;
+    }
+    Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
+    int buffer_age() const override { return 2; }
+};
+
 constexpr int kBandRows = 48; // 100 rows: two full bands and a 4-row one
 
 // Two band buffers; flush copies a band into a whole frame, which the test reads after the run.
@@ -557,6 +587,27 @@ TEST_CASE("a frame sink that keeps its frames is redrawn where the frame changed
 {
     SUBCASE("one buffer") { check_redraws_only_changes(1); }
     SUBCASE("two buffers that flip") { check_redraws_only_changes(2); }
+}
+
+TEST_CASE("a sink that clears rectangles itself is asked for each damaged rect, and the frame is right")
+{
+    RectClearSink sink;
+    TwoCounters model;
+    NoTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.presents >= 12)
+                ctx.quit();
+            else if (model.first.get() == model.second.get())
+                model.first.set(model.first.get() + 1);
+            else
+                model.second.set(model.second.get() + 1);
+        });
+    });
+    REQUIRE(sink.presents >= 12);
+    CHECK(sink.rects > 0);
+    CHECK(sink.whole < sink.presents);
+    CHECK(is_a_whole_frame(sink.buffers[sink.shown_index], model.first.get()));
 }
 
 TEST_CASE("a band sink that keeps its frame gets only the bands that changed")
