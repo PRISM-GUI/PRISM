@@ -12,6 +12,7 @@
 #include <prism/app/event_routing.hpp>
 #include <prism/app/widget_tree.hpp>
 #include <prism/core/logic_thread.hpp>
+#include <prism/input/hit_test.hpp>
 #include <prism/input/input_event.hpp>
 #include <prism/profile/profile.hpp>
 #include <prism/raster/canvas.hpp>
@@ -23,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <condition_variable>
 #include <cstdint>
 #include <cstdio>
@@ -105,8 +107,48 @@ std::optional<Point> logical(std::optional<Point> pixels, float scale)
     return Point{core::X{pixels->x.raw() / scale}, core::Y{pixels->y.raw() / scale}};
 }
 
+// What a finger is doing. A finger that lands where a scroll view could pan waits: lifted without
+// moving it is a tap (a press and a release at the landing point), moved past the slop it is a pan
+// (the view scrolls with it and nothing is pressed). Anywhere else it presses at once, so a slider
+// or a button answers the moment it is touched.
+struct Gesture {
+    enum class Mode { none, direct, pending, panning };
+    Mode mode = Mode::none;
+    std::optional<Point> last;   // the finger at the last poll
+    Point start{};               // where it landed
+};
+
+constexpr float kPanSlop = 8.f;       // logical units a finger may drift and still be a tap
+constexpr float kWheelUnit = 60.f;    // route_mouse_scroll scrolls this many units per wheel unit
+
+float distance(Point a, Point b)
+{
+    return std::hypot(a.x.raw() - b.x.raw(), a.y.raw() - b.y.raw());
+}
+
+void scroll_by(WidgetTree& tree, const SceneSnapshot* snap, Point where, float dy)
+{
+    // A finger moving down drags the content down: a wheel turned up.
+    app::widget_detail::route_event(tree, snap, input::MouseScroll{where, core::DX{0.f}, core::DY{dy / kWheelUnit}});
+}
+
+void press_and_release(WidgetTree& tree, const SceneSnapshot* snap, Point at, bool press, bool release)
+{
+    if (press)
+        app::widget_detail::route_event(tree, snap, MouseButton{at, input::buttons::left, true});
+    if (release)
+        app::widget_detail::route_event(tree, snap, MouseButton{at, input::buttons::left, false});
+}
+
+// The finger is gone: nothing hovers, and the focus a tap gave is not shown as a ring.
+void finger_lifted(WidgetTree& tree, const SceneSnapshot* snap)
+{
+    app::widget_detail::route_event(tree, snap, input::MouseLeave{});
+    tree.clear_touch_focus();
+}
+
 // One touch poll as PRISM pointer events, in window coordinates, against the shown frame.
-void route_touch(WidgetTree& tree, Handoff& h, std::optional<Point> now, std::optional<Point>& last)
+void route_touch(WidgetTree& tree, Handoff& h, std::optional<Point> now, Gesture& g)
 {
     int shown;
     {
@@ -118,17 +160,30 @@ void route_touch(WidgetTree& tree, Handoff& h, std::optional<Point> now, std::op
     // Read without the lock: only this (the logic) thread writes slots, and never `shown`'s.
     const SceneSnapshot* snap = &h.slots[std::size_t(shown)];
     const auto moved = [](Point a, Point b) { return a.x.raw() != b.x.raw() || a.y.raw() != b.y.raw(); };
-    if (now && !last)
-        app::widget_detail::route_event(tree, snap, MouseButton{*now, input::buttons::left, true});
-    else if (!now && last) {
-        app::widget_detail::route_event(tree, snap, MouseButton{*last, input::buttons::left, false});
-        // The finger is gone: nothing hovers, and the focus a tap gave is not shown as a ring.
-        app::widget_detail::route_event(tree, snap, input::MouseLeave{});
-        tree.clear_touch_focus();
+    if (now && !g.last) {   // down
+        g.start = *now;
+        const auto id = input::hit_test(*snap, *now);
+        g.mode = id && tree.touch_may_pan(*id) ? Gesture::Mode::pending : Gesture::Mode::direct;
+        if (g.mode == Gesture::Mode::direct)
+            press_and_release(tree, snap, *now, true, false);
+    } else if (now && g.last) {   // moved, or held
+        if (g.mode == Gesture::Mode::pending && distance(*now, g.start) > kPanSlop) {
+            g.mode = Gesture::Mode::panning;
+            scroll_by(tree, snap, g.start, now->y.raw() - g.start.y.raw());   // catch up on what the slop held back
+        } else if (g.mode == Gesture::Mode::panning && moved(*now, *g.last)) {
+            scroll_by(tree, snap, g.start, now->y.raw() - g.last->y.raw());
+        } else if (g.mode == Gesture::Mode::direct && moved(*now, *g.last)) {
+            app::widget_detail::route_event(tree, snap, MouseMove{*now, input::buttons::left_mask});
+        }
+    } else if (!now && g.last) {   // up
+        if (g.mode == Gesture::Mode::pending)
+            press_and_release(tree, snap, g.start, true, true);
+        else if (g.mode == Gesture::Mode::direct)
+            press_and_release(tree, snap, *g.last, false, true);
+        finger_lifted(tree, snap);
+        g.mode = Gesture::Mode::none;
     }
-    else if (now && last && moved(*now, *last))
-        app::widget_detail::route_event(tree, snap, MouseMove{*now, input::buttons::left_mask});
-    last = now;
+    g.last = now;
 }
 
 // A slot that is neither pending, being drawn nor shown (call with h.mu held).
@@ -208,13 +263,13 @@ void logic_loop(const RunArgs& a, WidgetTree& tree, const FrameContext& ctx)
     publish(tree, *a.h, a.size, ++version, {});
 
     const std::stop_token stop = a.stop.get_token();
-    std::optional<Point> last_touch;
+    Gesture touch_gesture;
     while (!stop.stop_requested()) {
         {
             // One block per loop turn (the ring wraps: a whole-run block would vanish), and it
             // ends before the sleep below.
             PRISM_PROFILE_SCOPE("logic loop");
-            route_touch(tree, *a.h, logical(a.touch->read(), a.scale), last_touch);
+            route_touch(tree, *a.h, logical(a.touch->read(), a.scale), touch_gesture);
             const auto update_start = Clock::now();
             {
                 PRISM_PROFILE_SCOPE("update hooks");

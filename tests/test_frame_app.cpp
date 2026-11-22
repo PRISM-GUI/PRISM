@@ -56,6 +56,25 @@ struct Counter {
     void view(prism::app::ViewBuilder& vb) { vb.vstack(plus, count); }
 };
 
+// A scrolling list of buttons: more rows than the frame holds.
+struct ButtonList {
+    std::array<Field<prism::ui::Button>, 12> rows;
+    ButtonList() {
+        for (std::size_t i = 0; i < rows.size(); ++i) {
+            auto b = rows[i].get();
+            b.text = "row " + std::to_string(i);
+            rows[i].set(b);
+        }
+    }
+    void view(prism::app::ViewBuilder& vb)
+    {
+        vb.scroll([&] {
+            for (auto& r : rows)
+                vb.widget(r);
+        });
+    }
+};
+
 struct MemorySink final : prism::platform::FrameSink {
     std::vector<std::uint32_t> pixels = std::vector<std::uint32_t>(std::size_t(W) * H);
     std::atomic<int> presents{0};
@@ -325,6 +344,52 @@ struct ScriptedTouch final : prism::platform::TouchSource {
     }
 };
 
+// The list drawn whole by a fresh tree scrolled by `offset` pixels: no hover, no pressed button.
+std::vector<std::uint32_t> list_scrolled_by(ButtonList& model, float offset)
+{
+    prism::app::WidgetTree tree(model);
+    prism::raster::Fonts fonts;
+    tree.set_text_measurer(&fonts);
+    auto snap = tree.build_snapshot(float(W), float(H), 1);
+    tree.scroll_at(tree.leaf_ids().front(), DY{offset});
+    snap = tree.build_snapshot(float(W), float(H), 2);
+    std::vector<std::uint32_t> px(std::size_t(W) * H);
+    prism::raster::Canvas canvas{px, W, H, W};
+    canvas.clear(snap->window.background);
+    prism::raster::draw(canvas, *snap, fonts);
+    return px;
+}
+
+bool is_a_clean_scroll(ButtonList& model, const std::vector<std::uint32_t>& frame)
+{
+    for (float offset = 1.f; offset <= 400.f; offset += 1.f)
+        if (list_scrolled_by(model, offset) == frame)
+            return true;
+    return false;
+}
+
+// A finger down at `from`, moved in steps to `to`, held there, then lifted: polls are 16 ms apart.
+struct DragTouch final : prism::platform::TouchSource {
+    const MemorySink* sink = nullptr;
+    Point from{}, to{};
+    int steps = 6, holds = 4, poll = 0;
+    std::atomic<bool> lifted{false};
+
+    std::optional<Point> read() override
+    {
+        if (sink->presents == 0)
+            return std::nullopt;
+        const int n = poll++;
+        if (n > steps + holds) {
+            lifted = true;
+            return std::nullopt;
+        }
+        const float t = float(std::min(n, steps)) / float(steps);
+        return Point{X{from.x.raw() + (to.x.raw() - from.x.raw()) * t},
+                     Y{from.y.raw() + (to.y.raw() - from.y.raw()) * t}};
+    }
+};
+
 // The button's centre, laid out as the runtime lays it out: the same model type, size and fonts.
 // In panel pixels, with the UI laid out in logical units of `scale` pixels.
 Point button_centre(float scale = 1.f)
@@ -477,6 +542,55 @@ TEST_CASE("after a tap lifts, the button is not left hovered or focused")
     });
     REQUIRE(model.count.get() == 1);
     CHECK(sink.pixels == whole_frame(model));   // no hover colour, no focus ring: a fresh tree's frame
+}
+
+TEST_CASE("dragging a finger over a scroll view scrolls it and presses nothing")
+{
+    ButtonList model;
+    MemorySink sink;
+    DragTouch touch;
+    touch.sink = &sink;
+    touch.from = Point{X{60.f}, Y{85.f}};
+    touch.to = Point{X{60.f}, Y{20.f}};   // up: the list scrolls down
+    std::atomic<int> clicks{0};
+    std::vector<Connection> connections;
+    std::vector<std::uint32_t> first;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        for (auto& r : model.rows)
+            connections.push_back(r.on_change().connect([&](const prism::ui::Button& b) { if (b.click_count) ++clicks; }));
+        ctx.on_loop([&] {
+            if (first.empty() && sink.presents >= 1)
+                first = sink.pixels;
+            if (touch.lifted)
+                ctx.quit();
+        });
+    });
+    CHECK(clicks == 0);
+    REQUIRE_FALSE(first.empty());
+    CHECK(sink.pixels != first);
+    CHECK(is_a_clean_scroll(model, sink.pixels));   // scrolled, and no button left pressed or hovered
+}
+
+TEST_CASE("a tap on a button inside a scroll view still clicks it")
+{
+    ButtonList model;
+    MemorySink sink;
+    DragTouch touch;
+    touch.sink = &sink;
+    touch.from = touch.to = Point{X{60.f}, Y{16.f}};   // on the first row, no movement
+    std::atomic<int> clicks{0};
+    std::vector<Connection> connections;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        for (auto& r : model.rows)
+            connections.push_back(r.on_change().connect([&](const prism::ui::Button& b) { if (b.click_count) ++clicks; }));
+        ctx.on_loop([&] {
+            if (touch.lifted && clicks > 0)
+                ctx.quit();
+            else if (touch.lifted)
+                ctx.quit();
+        });
+    });
+    CHECK(clicks == 1);
 }
 
 TEST_CASE("quit while the render thread waits ends the run")

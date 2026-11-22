@@ -67,6 +67,29 @@ void WidgetTree::scroll_at(WidgetId target, DY delta, WidgetId stop) {
     }
 }
 
+bool WidgetTree::touch_may_pan(WidgetId id) {
+    const auto it = index_.find(id);
+    if (it == index_.end()) return false;
+    if (it->second->layout_kind == LayoutKind::Handle) return false;
+    if (it->second->access) {
+        switch (it->second->access().role) {
+        case Role::Slider: case Role::ScrollBar: case Role::SpinButton: case Role::Canvas:
+        case Role::TextInput: case Role::MultilineTextInput: case Role::PasswordInput:
+            return false;
+        default: break;
+        }
+    }
+    for (WidgetId current = id; current != 0;) {
+        if (const auto node = index_.find(current); node != index_.end()) {
+            WidgetNode& n = *node->second;
+            if (get_scroll_view(n) || get_vlist_state(n) || get_table_state(n)) return true;
+        }
+        const auto parent = parent_map_.find(current);
+        current = parent != parent_map_.end() ? parent->second : 0;
+    }
+    return false;
+}
+
 void WidgetTree::scroll_to(WidgetId id, DY offset) {
     auto it = index_.find(id);
     if (it == index_.end()) return;

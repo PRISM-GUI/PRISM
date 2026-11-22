@@ -324,6 +324,12 @@ public:
 
     void set_focused(WidgetId id);
 
+    // Touch: whether a finger that presses `id` may be starting a pan. True when a scroll view, list or
+    // table is at or above it and the widget does not take drags itself (a slider, a text field, a
+    // plot, a scrollbar, a splitter handle): those get the press at once, the rest wait to see whether
+    // the finger scrolls or taps.
+    [[nodiscard]] bool touch_may_pan(WidgetId id);
+
     // A touch has no pointer to leave a widget on and no keyboard to move the focus ring with: when
     // a finger lifts, the focus it gave goes too, unless the widget edits text (it keeps it to
     // type into). A mouse never calls this.
