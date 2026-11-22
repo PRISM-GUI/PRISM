@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <numeric>
+#include <string>
 
 namespace prism_examples {
 namespace {
@@ -18,6 +20,30 @@ struct BufferSource {
     double x(std::size_t i) const { return double(i) * x_step; }
     double y(std::size_t i) const { return (*ys)[i]; }
 };
+
+// The spectrum on a logarithmic frequency axis: x is log10 of the bin's frequency, so the plot's
+// ticks are evenly spaced in decades. Bin 0 (DC) has no logarithm and is left out.
+struct LogBinSource {
+    const std::vector<float> *ys;
+    double bin_hz;
+    std::size_t size() const { return ys->size() - 1; }
+    double x(std::size_t i) const { return std::log10(double(i + 1) * bin_hz); }
+    double y(std::size_t i) const { return (*ys)[i + 1]; }
+};
+
+// "100", "1k", "2.5k": a log10 tick value as the frequency it stands for.
+std::string hz_label(double log10_hz)
+{
+    const double hz = std::pow(10.0, log10_hz);
+    char text[16];
+    if (hz < 1000.0)
+        std::snprintf(text, sizeof text, "%.0f", hz);
+    else if (std::abs(hz / 1000.0 - std::round(hz / 1000.0)) < 0.05)
+        std::snprintf(text, sizeof text, "%.0fk", hz / 1000.0);
+    else
+        std::snprintf(text, sizeof text, "%.1fk", hz / 1000.0);
+    return text;
+}
 
 AxisRange fixed(double min, double max) { return {.min = min, .max = max, .auto_fit = false}; }
 
@@ -72,9 +98,10 @@ void scope_bind(ScopeModel &model, ScopeState &state)
     model.waveform.x_range.set(fixed(0.0, double(S::kWaveformSamples) * 1000.0 / rate));
     model.waveform.y_range.set(fixed(-1.0, 1.0));
     model.waveform.x_label.set("ms");
-    model.spectrum.add_series(BufferSource{&state.spectrum_, rate / double(S::kFftSize)}, {});
-    model.spectrum.x_range.set(fixed(0.0, rate / 2.0));
+    model.spectrum.add_series(LogBinSource{&state.spectrum_, rate / double(S::kFftSize)}, {});
+    model.spectrum.x_range.set(state.spectrum_x_range());
     model.spectrum.x_label.set("Hz");
+    model.spectrum.x_tick_format = hz_label;
     model.spectrum.y_range.set(spectrum_y_range(true));
 }
 
@@ -109,17 +136,29 @@ void scope_tick(ScopeModel &model, ScopeState &state)
     }
 }
 
-// Like an oscilloscope's autoset: once, on the samples shown now. The waveform gets its peak
-// with some headroom; the spectrum its peak at the top and 60 dB below it (dB), or 0 .. peak.
+AxisRange ScopeState::spectrum_x_range() const
+{
+    const double rate = source_.sample_rate();
+    return fixed(std::log10(rate / double(kFftSize)), std::log10(rate / 2.0));
+}
+
+// Like an oscilloscope's autoset: once, on the samples shown now. Both plots go back to their whole
+// x extent and lose any pan or zoom; the waveform's y gets its peak with some headroom, the
+// spectrum's its peak at the top and 60 dB below it (dB), or 0 .. peak.
 void ScopeState::fit_ranges(ScopeModel &model)
 {
     constexpr double kHeadroom = 1.2;
+    const double rate = source_.sample_rate();
     float peak = 0.f;
     for (float v : waveform_)
         peak = std::max(peak, std::abs(v));
     const double half = std::max(double(peak) * kHeadroom, 1e-4);
+    model.waveform.view.set({});
+    model.spectrum.view.set({});
+    model.waveform.x_range.set(fixed(0.0, double(kWaveformSamples) * 1000.0 / rate));
+    model.spectrum.x_range.set(spectrum_x_range());
     model.waveform.y_range.set(fixed(-half, half));
-    const double top = *std::ranges::max_element(spectrum_);
+    const double top = *std::ranges::max_element(std::span<const float>(spectrum_).subspan(1));
     model.spectrum.y_range.set(shown_db_ ? fixed(top - 60.0, top + 6.0)
                                          : fixed(0.0, std::max(top * kHeadroom, 1e-6)));
 }
@@ -129,12 +168,14 @@ void ScopeState::update_plots(ScopeModel &model)
     const auto gain = float(model.gain.get().value);
     const bool db = model.db_scale.get().checked;
     std::ranges::transform(window_, gained_.begin(), [gain](float v) { return v * gain; });
+    const float mean = std::accumulate(gained_.begin(), gained_.end(), 0.f) / float(gained_.size());
+    std::ranges::transform(gained_, centered_.begin(), [mean](float v) { return v - mean; });
     std::ranges::transform(std::span<const float>(gained_).last(kWaveformSamples), waveform_.begin(),
                            [](float v) { return std::clamp(v, -1.f, 1.f); });
     if (db)
-        fft_.compute(gained_, spectrum_);
+        fft_.compute(centered_, spectrum_);
     else
-        fft_.compute_linear(gained_, spectrum_);
+        fft_.compute_linear(centered_, spectrum_);
     model.waveform.notify();
     model.spectrum.notify();
     shown_gain_ = gain;

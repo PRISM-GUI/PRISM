@@ -1,7 +1,8 @@
 #pragma once
 
 // The audio scope: a SampleSource (a board's input (an ADC, microphones), or a generated sweep)
-// shown as a waveform plot (the last 20 ms) and a spectrum plot (0 .. half the sample rate), with
+// shown as a waveform plot (the last 20 ms) and a spectrum plot (the mean removed, a logarithmic
+// frequency axis up to half the sample rate), with
 // freeze, gain, dB/linear and fit controls and the runtime's timing line. The title reports the
 // samples received each second and their peak level, so a silent or stalled source shows.
 // Everything goes through PRISM (plot::PlotModel on vb.canvas), so what is slow on the board is
@@ -31,7 +32,7 @@ struct ScopeModel {
     prism::core::Field<prism::ui::Checkbox> db_scale{{.checked = true, .label = "dB"}};
     prism::core::Field<prism::ui::Slider<>> gain{
         {.value = 1.0, .min = 0.5, .max = 8.0, .step = 0.5, .label = "gain"}};
-    prism::core::Field<prism::ui::Button> fit{{.text = "fit"}}; // y ranges to the signal now
+    prism::core::Field<prism::ui::Button> fit{{.text = "fit"}}; // both plots to the signal now, zoom and pan reset
     prism::plot::PlotModel waveform, spectrum;
     prism::core::Field<prism::ui::Label<>> stats{{.value = "measuring…", .wrap = true}};
 
@@ -59,6 +60,7 @@ private:
     bool drain_source(bool frozen); // true when new samples entered the window
     void update_plots(ScopeModel &model);
     void fit_ranges(ScopeModel &model);
+    prism::plot::AxisRange spectrum_x_range() const; // the log10 of the first bin .. Nyquist
     void show_level(ScopeModel &model);
 
     SampleSource &source_;
@@ -66,6 +68,7 @@ private:
     std::vector<float> window_ = std::vector<float>(kFftSize, 0.f); // the last kFftSize samples
     std::vector<float> scratch_ = std::vector<float>(kFftSize);
     std::vector<float> gained_ = std::vector<float>(kFftSize);
+    std::vector<float> centered_ = std::vector<float>(kFftSize); // gained_ minus its mean: what the FFT sees
     std::vector<float> waveform_ = std::vector<float>(kWaveformSamples, 0.f);
     std::vector<float> spectrum_ = std::vector<float>(kFftSize / 2, Spectrum::kFloorDb);
     double shown_gain_ = 0.0; // the settings the plots were last computed with

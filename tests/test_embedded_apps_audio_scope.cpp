@@ -78,7 +78,7 @@ TEST_CASE("audio scope: a 1 kHz block gives a 320-point waveform and a spectrum 
     CHECK(scope.waveform().size() == 320);
     CHECK(scope.spectrum().size() == 512);
     CHECK(scope.model.waveform.series_len(0) == 320);
-    CHECK(scope.model.spectrum.series_len(0) == 512);
+    CHECK(scope.model.spectrum.series_len(0) == 511);   // bin 0 (DC) is not on a log axis
     CHECK(std::abs(peak_hz(scope.spectrum()) - 1000.f) <= kBinHz);
 }
 
@@ -101,6 +101,32 @@ TEST_CASE("audio scope: maximum gain on a full-scale sine clamps the waveform, s
     scope.tick();
     CHECK(std::ranges::all_of(scope.waveform(), [](float v) { return v >= -1.f && v <= 1.f; }));
     CHECK(std::ranges::all_of(scope.spectrum(), [](float v) { return std::isfinite(v); }));
+}
+
+TEST_CASE("audio scope: the mean is removed before the FFT, so a DC offset does not show")
+{
+    QueuedSource src;
+    Scope scope{src};
+    src.push_sine(1000.f, 1024, 0.01f);
+    for (float &v : src.queued)
+        v += 0.3f;   // a DC level thirty times the sine
+    scope.tick();
+    CHECK(std::abs(peak_hz(scope.spectrum()) - 1000.f) <= kBinHz);
+    CHECK(scope.spectrum()[0] < -80.f);
+    CHECK(scope.spectrum()[1] < -60.f);   // the window's leakage of 0.3 would be near -20 dB
+}
+
+TEST_CASE("audio scope: the spectrum's x axis is logarithmic, labelled in Hz")
+{
+    QueuedSource src;
+    Scope scope{src};
+    const auto x = scope.model.spectrum.x_range.get();
+    CHECK(x.min == doctest::Approx(std::log10(kBinHz)));
+    CHECK(x.max == doctest::Approx(std::log10(kRate / 2.f)));
+    REQUIRE(scope.model.spectrum.x_tick_format);
+    CHECK(scope.model.spectrum.x_tick_format(2.0) == "100");
+    CHECK(scope.model.spectrum.x_tick_format(3.0) == "1k");
+    CHECK(scope.model.spectrum.x_tick_format(std::log10(2500.0)) == "2.5k");
 }
 
 TEST_CASE("audio scope: samples that arrive while frozen are dropped")
@@ -149,6 +175,30 @@ void press_fit(Scope &scope)
     scope.model.fit.set(button);
 }
 } // namespace
+
+TEST_CASE("audio scope: fit resets both plots' zoom and pan, and frames x and y of both")
+{
+    QueuedSource src;
+    Scope scope{src};
+    src.push_sine(1000.f, 1024, 0.01f);
+    for (float &v : src.queued)
+        v += 0.3f;
+    scope.tick();
+    for (auto *plot : {&scope.model.waveform, &scope.model.spectrum}) {
+        plot->view.set(prism::plot::ViewTransform{.offset_x = 12.0, .offset_y = 5.0, .scale_x = 2.0, .scale_y = 2.0});
+        plot->x_range.set({.min = 0.1, .max = 0.2, .auto_fit = false});
+    }
+    press_fit(scope);
+    scope.tick();
+    for (auto *plot : {&scope.model.waveform, &scope.model.spectrum}) {
+        CHECK(plot->view.get() == prism::plot::ViewTransform{});
+    }
+    CHECK(scope.model.waveform.x_range.get().min == doctest::Approx(0.0));
+    CHECK(scope.model.waveform.x_range.get().max == doctest::Approx(320.0 * 1000.0 / kRate));
+    CHECK(scope.model.spectrum.x_range.get().min == doctest::Approx(std::log10(kBinHz)));
+    CHECK(scope.model.spectrum.x_range.get().max == doctest::Approx(std::log10(kRate / 2.f)));
+    CHECK(scope.model.spectrum.y_range.get().max < -20.0);   // the sine's peak, not the DC bin's
+}
 
 TEST_CASE("audio scope: fit scales the waveform to the signal's peak")
 {
