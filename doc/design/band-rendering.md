@@ -1,6 +1,7 @@
 # Drawing in bands, in the panel's pixel format
 
-**Status:** Proposal — for review before code.
+**Status:** Done (2026-11-22), measured on the board below. The band target is a small virtual
+interface, `platform::BandSink` (frame_target.hpp), not the concept sketched in section 1.
 
 ## Why
 
@@ -116,6 +117,28 @@ Each step is measured on the board with the trace page.
   Measure; if needed, clip commands to the band before replaying.
 - **Two DMA engines and the panel on one PSRAM.** The panel's scan-out reads PSRAM continuously.
   Band copies are sequential writes, the cheapest kind.
+
+## Measured on the board (2026-11-22)
+
+The scope on the ESP32-S31-Korvo-1, from the trace page and the console's timing line:
+
+| | before (full ARGB frame in PSRAM) | bands, RGB565 |
+|---|---|---|
+| frame time | 68 ms (15 fps) | about 30 ms (33 fps) |
+| draw (render thread) | ~52 ms | ~28 ms |
+
+Three things besides the bands were needed:
+
+- **Internal RAM.** The two bands and the render thread's stack must fit in internal SRAM. Small
+  allocations now go to PSRAM and the logic thread's stack lives there too; the board prints the
+  free internal RAM before each thread starts.
+- **Thick lines.** Axis-aligned thick lines (the grid) are drawn as rectangles, and the other
+  thick lines one run per pixel column, with no division in the loop.
+- **Profile marks cost time on this chip:** about 3 to 6 fps with profiling on. One mark per
+  drawn line was removed.
+
+Damage tracking (doc/design/damage-tracking.md) came after this note and redraws only what
+changed; the scope's plots change every frame, so it gains little there.
 
 ## Left to the builder
 
