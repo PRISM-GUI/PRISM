@@ -24,3 +24,7 @@ executable('bench_node_board_scale', 'node_board_scale.cpp',
 executable('bench_scope_frame', 'scope_frame.cpp',
   dependencies : [prism_embedded_apps_dep, prism_raster_dep, fmt_dep],
 )
+
+executable('bench_dirty_area', 'dirty_area.cpp',
+  dependencies : [prism_embedded_apps_dep, prism_raster_dep, fmt_dep],
+)
