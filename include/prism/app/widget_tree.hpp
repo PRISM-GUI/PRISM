@@ -324,6 +324,13 @@ public:
 
     void set_focused(WidgetId id);
 
+    // A touch has no pointer to leave a widget on and no keyboard to move the focus ring with: when
+    // a finger lifts, the focus it gave goes too, unless the widget edits text (it keeps it to
+    // type into). A mouse never calls this.
+    void clear_touch_focus() {
+        if (!focused_edits_text()) clear_focus();
+    }
+
     void clear_focus() {
         flip_visual_flag(focused_id_, &WidgetVisualState::focused, false);
         focused_id_ = 0;

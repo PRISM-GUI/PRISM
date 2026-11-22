@@ -120,8 +120,12 @@ void route_touch(WidgetTree& tree, Handoff& h, std::optional<Point> now, std::op
     const auto moved = [](Point a, Point b) { return a.x.raw() != b.x.raw() || a.y.raw() != b.y.raw(); };
     if (now && !last)
         app::widget_detail::route_event(tree, snap, MouseButton{*now, input::buttons::left, true});
-    else if (!now && last)
+    else if (!now && last) {
         app::widget_detail::route_event(tree, snap, MouseButton{*last, input::buttons::left, false});
+        // The finger is gone: nothing hovers, and the focus a tap gave is not shown as a ring.
+        app::widget_detail::route_event(tree, snap, input::MouseLeave{});
+        tree.clear_touch_focus();
+    }
     else if (now && last && moved(*now, *last))
         app::widget_detail::route_event(tree, snap, MouseMove{*now, input::buttons::left_mask});
     last = now;

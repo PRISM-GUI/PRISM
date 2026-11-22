@@ -454,6 +454,31 @@ TEST_CASE("with a UI scale, the UI is drawn that much larger and a tap lands whe
     CHECK(first.pixels != whole_frame(fresh, 1.f));
 }
 
+TEST_CASE("after a tap lifts, the button is not left hovered or focused")
+{
+    Counter model;
+    MemorySink sink;
+    ScriptedTouch touch;
+    touch.sink = &sink;
+    touch.at = button_centre();
+    Connection on_click;
+    std::optional<std::chrono::steady_clock::time_point> lifted;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        on_click = model.plus.on_change().connect([&](const prism::ui::Button&) {
+            model.count.set(model.count.get() + 1);
+        });
+        ctx.on_loop([&] {
+            if (model.count.get() >= 1 && touch.held_polls == 0 && !lifted)
+                lifted = std::chrono::steady_clock::now();
+            // A frame is drawn only when something changed, so wait by the clock, not by frames.
+            if (lifted && std::chrono::steady_clock::now() - *lifted > 300ms)
+                ctx.quit();
+        });
+    });
+    REQUIRE(model.count.get() == 1);
+    CHECK(sink.pixels == whole_frame(model));   // no hover colour, no focus ring: a fresh tree's frame
+}
+
 TEST_CASE("quit while the render thread waits ends the run")
 {
     Counter model;
