@@ -62,6 +62,16 @@ public:
     int first_row() const { return first_row_; }
     std::span<pixel> pixels() const { return pixels_; }
 
+    // --- UI scale: the draw commands are in logical units and every one is multiplied by this
+    // on its way in (coordinates, sizes, thicknesses, text size): 1 draws them as they are, 1.5
+    // makes a 32-unit button 48 pixels tall. The clip, the scissor and everything below the
+    // drawing calls are in pixels. See platform::FrameOptions::ui_scale.
+    void set_ui_scale(float scale) { ui_scale_ = scale; }
+    [[nodiscard]] float ui_scale() const { return ui_scale_; }
+    // `pts` multiplied by the UI scale: `pts` itself at 1, else in storage the canvas keeps (valid
+    // until the next call), so a frame allocates nothing once it has grown.
+    [[nodiscard]] std::span<const Point> scaled(std::span<const Point> pts);
+
     // --- scissor: the part of the canvas that drawing may touch at all, `clear` included. It
     // survives reset_clip and keeps clips inside it; retarget removes it. Redrawing only the
     // damaged part of a frame (render/damage.hpp) sets it to each damaged rect in turn.
@@ -118,6 +128,8 @@ private:
     std::vector<float> crossings_;   // filled_polygon's scratch: kept so drawing does not allocate
     Clip clip_;
     Clip scissor_;   // the whole canvas unless set_scissor
+    float ui_scale_ = 1.f;
+    std::vector<Point> scaled_points_;
 };
 
 // Defined in canvas.cpp for these two formats only.

@@ -125,14 +125,15 @@ struct TwoCounters {
 
 // A model at 120x100, drawn whole.
 template <class Model>
-std::vector<std::uint32_t> whole_frame(Model& model)
+std::vector<std::uint32_t> whole_frame(Model& model, float scale = 1.f)
 {
     prism::app::WidgetTree tree(model);
     prism::raster::Fonts fonts;
     tree.set_text_measurer(&fonts);
-    const auto snap = tree.build_snapshot(float(W), float(H), 1);
+    const auto snap = tree.build_snapshot(float(W) / scale, float(H) / scale, 1);
     std::vector<std::uint32_t> px(std::size_t(W) * H);
     prism::raster::Canvas canvas{px, W, H, W};
+    canvas.set_ui_scale(scale);
     canvas.clear(snap->window.background);
     prism::raster::draw(canvas, *snap, fonts);
     return px;
@@ -295,17 +296,20 @@ struct ScriptedTouch final : prism::platform::TouchSource {
 };
 
 // The button's centre, laid out as the runtime lays it out: the same model type, size and fonts.
-Point button_centre()
+// In panel pixels, with the UI laid out in logical units of `scale` pixels.
+Point button_centre(float scale = 1.f)
 {
     Counter twin;
     prism::app::WidgetTree tree(twin);
     prism::raster::Fonts fonts;
     tree.set_text_measurer(&fonts);
-    const auto snap = tree.build_snapshot(float(W), float(H), 1);
+    const auto snap = tree.build_snapshot(float(W) / scale, float(H) / scale, 1);
     const auto button = tree.leaf_ids().front();
     for (const auto& [id, r] : snap->geometry)
-        if (id == button)
-            return r.center();
+        if (id == button) {
+            const Point c = r.center();
+            return {X{c.x.raw() * scale}, Y{c.y.raw() * scale}};
+        }
     FAIL("no geometry for the button");
     return {};
 }
@@ -386,6 +390,38 @@ TEST_CASE("a tap on the button reaches the model on the logic thread")
     CHECK(model.count.get() == 1);
     CHECK(clicked_on != std::thread::id{});
     CHECK(clicked_on != std::this_thread::get_id());
+}
+
+TEST_CASE("with a UI scale, the UI is drawn that much larger and a tap lands where it is drawn")
+{
+    constexpr float scale = 2.f;
+    prism::platform::FrameOptions options;
+    options.ui_scale = scale;
+    Counter model;
+    MemorySink sink;
+    ScriptedTouch touch;
+    touch.sink = &sink;
+    touch.at = button_centre(scale);
+    Connection on_click;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        on_click = model.plus.on_change().connect([&](const prism::ui::Button&) {
+            model.count.set(model.count.get() + 1);
+        });
+        ctx.on_loop([&] {
+            if (model.count.get() == 1)
+                ctx.quit();
+        });
+    }, options);
+    CHECK(model.count.get() == 1);
+
+    Counter fresh;
+    MemorySink first;
+    NoTouch none;
+    prism::platform::frame_app(first, none, fresh, [&](FrameContext& ctx) {
+        ctx.on_loop([&] { if (first.presents >= 1) ctx.quit(); });
+    }, options);
+    CHECK(first.pixels == whole_frame(fresh, scale));
+    CHECK(first.pixels != whole_frame(fresh, 1.f));
 }
 
 TEST_CASE("quit while the render thread waits ends the run")

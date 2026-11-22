@@ -96,6 +96,14 @@ using input::MouseMove;
 using render::Damage;
 using render::SceneSnapshot;
 
+// A touch position in the panel's pixels as the logical position the tree is laid out in.
+std::optional<Point> logical(std::optional<Point> pixels, float scale)
+{
+    if (!pixels)
+        return std::nullopt;
+    return Point{core::X{pixels->x.raw() / scale}, core::Y{pixels->y.raw() / scale}};
+}
+
 // One touch poll as PRISM pointer events, in window coordinates, against the shown frame.
 void route_touch(WidgetTree& tree, Handoff& h, std::optional<Point> now, std::optional<Point>& last)
 {
@@ -180,7 +188,8 @@ struct RunArgs {
     Handoff* h;
     TouchSource* touch;
     raster::Fonts* fonts;
-    core::Size size;
+    core::Size size;   // the frame in logical units: what the tree is laid out in
+    float scale;       // pixels per logical unit
     std::stop_source stop;
     TreeFactory* make_tree;
     std::function<void(FrameContext&)>* setup;
@@ -200,7 +209,7 @@ void logic_loop(const RunArgs& a, WidgetTree& tree, const FrameContext& ctx)
             // One block per loop turn (the ring wraps: a whole-run block would vanish), and it
             // ends before the sleep below.
             PRISM_PROFILE_SCOPE("logic loop");
-            route_touch(tree, *a.h, a.touch->read(), last_touch);
+            route_touch(tree, *a.h, logical(a.touch->read(), a.scale), last_touch);
             const auto update_start = Clock::now();
             {
                 PRISM_PROFILE_SCOPE("update hooks");
@@ -286,10 +295,11 @@ void render_loop(const RunArgs& a, Painter& painter)
 class DamagePlan {
 public:
     // `age`: how many frames old the buffer being drawn into is (FrameSink::buffer_age).
-    const Damage& plan(const SceneSnapshot* previous, const SceneSnapshot& snap, core::Size size, int age)
+    const Damage& plan(const SceneSnapshot* previous, const SceneSnapshot& snap, core::Size size, int age,
+                       float scale)
     {
         const int w = int(size.w.raw()), h = int(size.h.raw());
-        render::damage_between(previous, snap, w, h, scratch_, current_);
+        render::damage_between(previous, snap, w, h, scratch_, current_, scale);
         if (age == 1) {
             result_ = current_;
         } else if (age == 2) {
@@ -315,11 +325,12 @@ struct FramePainter {
     const raster::Fonts& fonts;
     raster::Canvas canvas;
     DamagePlan damage;
+    float scale;   // FrameOptions::ui_scale
 
     void begin() { canvas.retarget(sink.back()); }
     std::chrono::microseconds draw(const SceneSnapshot& snap, const SceneSnapshot* previous)
     {
-        const Damage& d = damage.plan(previous, snap, sink.size(), sink.buffer_age());
+        const Damage& d = damage.plan(previous, snap, sink.size(), sink.buffer_age(), scale);
         if (!d.full) {
             raster::draw_damage(canvas, snap, fonts, d);
         } else {
@@ -345,6 +356,7 @@ struct BandPainter {
     int height, rows;
     raster::BasicCanvas<P> canvas;
     DamagePlan damage;
+    float scale;   // FrameOptions::ui_scale
 
     void begin() {}
     // Whether band k holds rows the damage touches (a full damage touches them all).
@@ -356,7 +368,7 @@ struct BandPainter {
     }
     std::chrono::microseconds draw(const SceneSnapshot& snap, const SceneSnapshot* previous)
     {
-        const Damage& d = damage.plan(previous, snap, sink.size(), sink.frame_age());
+        const Damage& d = damage.plan(previous, snap, sink.size(), sink.frame_age(), scale);
         std::chrono::microseconds waited{};
         int drawn = 0; // the two band buffers alternate over the bands that are drawn
         for (int k = 0; k * rows < height; ++k) {
@@ -381,8 +393,9 @@ struct BandPainter {
 
 void render_main(const RunArgs& a, FrameSink& sink)
 {
-    const int width = int(a.size.w.raw()), height = int(a.size.h.raw());
-    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}, {}};
+    const int width = int(sink.size().w.raw()), height = int(sink.size().h.raw());
+    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}, {}, a.scale};
+    painter.canvas.set_ui_scale(a.scale);
     render_loop(a, painter);
 }
 
@@ -398,9 +411,10 @@ void require_band_height(int rows)
 template <class P>
 void render_main(const RunArgs& a, BandSink<P>& sink)
 {
-    const int width = int(a.size.w.raw()), height = int(a.size.h.raw()), rows = sink.band_height();
+    const int width = int(sink.size().w.raw()), height = int(sink.size().h.raw()), rows = sink.band_height();
     require_band_height(rows);
-    BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}, {}};
+    BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}, {}, a.scale};
+    painter.canvas.set_ui_scale(a.scale);
     render_loop(a, painter);
 }
 
@@ -453,7 +467,10 @@ void run(Sink& sink, TouchSource& touch, TreeFactory make_tree, std::function<vo
     // mutex-guarded (raster/fonts.hpp).
     raster::Fonts fonts;
     auto h = std::make_unique<Handoff>(); // the snapshot slots are large for a task stack
-    RunArgs args{h.get(), &touch, &fonts, sink.size(), {}, &make_tree, &setup};
+    const float scale = options.ui_scale > 0.f ? options.ui_scale : 1.f;
+    const core::Size pixels = sink.size();
+    RunArgs args{h.get(), &touch, &fonts, {core::Width{pixels.w.raw() / scale}, core::Height{pixels.h.raw() / scale}},
+                 scale, {}, &make_tree, &setup};
     RenderArgs<Sink> render_args{&args, &sink};
 
     // pthreads, not std::thread: the stack sizes matter on an RTOS, whose default is small.

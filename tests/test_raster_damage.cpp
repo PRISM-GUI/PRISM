@@ -27,10 +27,11 @@ constexpr int W = 800, H = 480;
 
 using Pixels = std::vector<std::uint32_t>;
 
-Pixels full_frame(const SceneSnapshot& snap, const prism::raster::Fonts& fonts)
+Pixels full_frame(const SceneSnapshot& snap, const prism::raster::Fonts& fonts, float scale = 1.f)
 {
     Pixels px(std::size_t{W} * H);
     prism::raster::Canvas canvas{px, W, H, W};
+    canvas.set_ui_scale(scale);
     canvas.clear(snap.window.background);
     prism::raster::draw(canvas, snap, fonts);
     return px;
@@ -40,7 +41,7 @@ Pixels full_frame(const SceneSnapshot& snap, const prism::raster::Fonts& fonts)
 // the damage against the one before, over the previous frame's pixels.
 template <class Model>
 void check_damage_matches_full_redraw(Model& model, int frames, const std::function<void(int)>& step,
-                                      bool expect_savings = true)
+                                      bool expect_savings = true, float scale = 1.f)
 {
     prism::raster::Fonts fonts;
     WidgetTree tree(model);
@@ -53,17 +54,18 @@ void check_damage_matches_full_redraw(Model& model, int frames, const std::funct
     std::size_t saved_frames = 0;
     for (int f = 0; f < frames; ++f) {
         step(f);
-        auto snap = tree.build_snapshot(float(W), float(H), std::uint64_t(f + 1));
+        auto snap = tree.build_snapshot(float(W) / scale, float(H) / scale, std::uint64_t(f + 1));
         tree.clear_dirty();
-        prism::render::damage_between(previous.get(), *snap, W, H, scratch, damage);
+        prism::render::damage_between(previous.get(), *snap, W, H, scratch, damage, scale);
         if (previous) {
             prism::raster::Canvas canvas{shown, W, H, W};
+            canvas.set_ui_scale(scale);
             prism::raster::draw_damage(canvas, *snap, fonts, damage);
             saved_frames += !damage.full;
         } else {
-            shown = full_frame(*snap, fonts);
+            shown = full_frame(*snap, fonts, scale);
         }
-        const Pixels reference = full_frame(*snap, fonts);
+        const Pixels reference = full_frame(*snap, fonts, scale);
         REQUIRE_MESSAGE(shown == reference, "frame " << f << ", full damage " << damage.full
                                                       << ", rects " << damage.rects.size());
         previous = std::move(snap);
@@ -84,6 +86,44 @@ TEST_CASE("widgets demo: damage redraw gives the pixels of a full redraw") {
         default: break;
         }
     });
+}
+
+TEST_CASE("widgets demo at a UI scale of 1.5: damage redraw gives the pixels of a full redraw") {
+    prism_examples::WidgetsModel model;
+    check_damage_matches_full_redraw(
+        model, 12,
+        [&](int f) {
+            switch (f % 3) {
+            case 0: model.stats.mutate([f](prism::ui::Label<>& l) { l.value = "frame " + std::to_string(f); }); break;
+            case 1: model.volume.mutate([f](prism::ui::Slider<>& s) { s.value = (f % 20) / 20.0; }); break;
+            default: break;
+            }
+        },
+        true, 1.5f);
+}
+
+TEST_CASE("a UI scale draws every command that much larger") {
+    using namespace prism::core;
+    SceneSnapshot snap;
+    snap.viewport = Size{Width{float(W)}, Height{float(H)}};
+    auto dl = std::make_shared<prism::render::DrawList>();
+    dl->commands.emplace_back(prism::render::ClipPush{Rect{Point{X{0.f}, Y{0.f}}, Size{Width{400.f}, Height{300.f}}}});
+    dl->commands.emplace_back(prism::render::FilledRect{Rect{Point{X{10.f}, Y{10.f}}, Size{Width{100.f}, Height{32.f}}},
+                                                        Color::rgba(255, 0, 0)});
+    dl->commands.emplace_back(prism::render::ClipPop{});
+    snap.geometry.emplace_back(1, Rect{Point{X{0.f}, Y{0.f}}, Size{Width{400.f}, Height{300.f}}});
+    snap.draw_lists = {dl};
+    snap.z_order = {0};
+    prism::raster::Fonts fonts;
+    const Pixels px = full_frame(snap, fonts, 1.5f);
+    const std::uint32_t red = 0xFFFF0000u;
+    const auto at = [&](int x, int y) { return px[std::size_t(y) * W + x]; };
+    CHECK(at(15, 15) == red);
+    CHECK(at(164, 62) == red);
+    CHECK(at(14, 30) != red);
+    CHECK(at(165, 30) != red);
+    CHECK(at(30, 14) != red);
+    CHECK(at(30, 63) != red);
 }
 
 TEST_CASE("audio scope: damage redraw gives the pixels of a full redraw") {

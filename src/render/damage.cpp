@@ -45,12 +45,12 @@ std::optional<Rect> list_bounds(const SceneSnapshot& s, std::uint32_t i)
 }
 
 // Rounded outward and cut to the frame, as the canvas rounds a clip.
-PixelRect to_pixels(const Rect& r, int width, int height)
+PixelRect to_pixels(const Rect& r, int width, int height, float scale)
 {
-    const int x0 = std::clamp(int(std::floor(r.origin.x.raw())), 0, width);
-    const int y0 = std::clamp(int(std::floor(r.origin.y.raw())), 0, height);
-    const int x1 = std::clamp(int(std::ceil(r.origin.x.raw() + r.extent.w.raw())), 0, width);
-    const int y1 = std::clamp(int(std::ceil(r.origin.y.raw() + r.extent.h.raw())), 0, height);
+    const int x0 = std::clamp(int(std::floor(r.origin.x.raw() * scale)), 0, width);
+    const int y0 = std::clamp(int(std::floor(r.origin.y.raw() * scale)), 0, height);
+    const int x1 = std::clamp(int(std::ceil((r.origin.x.raw() + r.extent.w.raw()) * scale)), 0, width);
+    const int y1 = std::clamp(int(std::ceil((r.origin.y.raw() + r.extent.h.raw()) * scale)), 0, height);
     return {x0, y0, std::max(x0, x1), std::max(y0, y1)};
 }
 
@@ -145,21 +145,22 @@ bool same_entry(const SceneSnapshot& a, std::uint32_t i, const SceneSnapshot& b,
 }
 
 // Adds where entry `i` of `s` draws. False when that is unknown.
-bool add_entry(std::vector<PixelRect>& rects, const SceneSnapshot& s, std::uint32_t i, int width, int height)
+bool add_entry(std::vector<PixelRect>& rects, const SceneSnapshot& s, std::uint32_t i, int width, int height,
+               float scale)
 {
     if (!s.draw_lists[i])
         return true;
     const auto bounds = list_bounds(s, i);
     if (!bounds)
         return false;
-    add_rect(rects, to_pixels(*bounds, width, height));
+    add_rect(rects, to_pixels(*bounds, width, height, scale));
     return true;
 }
 
 } // namespace
 
 void damage_between(const SceneSnapshot* before, const SceneSnapshot& after, int width, int height,
-                    DamageScratch& scratch, Damage& out)
+                    DamageScratch& scratch, Damage& out, float scale)
 {
     out.full = false;
     out.rects.clear();
@@ -184,14 +185,14 @@ void damage_between(const SceneSnapshot* before, const SceneSnapshot& after, int
                                  (a < scratch.before.size() &&
                                   id_of(*before, scratch.before[a]) < id_of(after, scratch.after[b]));
         if (only_after) {
-            known = add_entry(out.rects, after, scratch.after[b++], width, height);
+            known = add_entry(out.rects, after, scratch.after[b++], width, height, scale);
         } else if (only_before) {
-            known = add_entry(out.rects, *before, scratch.before[a++], width, height);
+            known = add_entry(out.rects, *before, scratch.before[a++], width, height, scale);
         } else {
             const std::uint32_t i = scratch.before[a++], j = scratch.after[b++];
             if (!same_entry(*before, i, after, j))
-                known = add_entry(out.rects, *before, i, width, height) &&
-                        add_entry(out.rects, after, j, width, height);
+                known = add_entry(out.rects, *before, i, width, height, scale) &&
+                        add_entry(out.rects, after, j, width, height, scale);
         }
     }
     if (!known)

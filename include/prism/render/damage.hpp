@@ -43,8 +43,10 @@ struct DamageScratch {
 };
 
 // `before` is the frame the buffer shows now, nullptr when there is none (first frame).
+// `width` x `height` is the frame in pixels; the snapshots are in logical units, `scale` pixels each
+// (FrameOptions::ui_scale).
 void damage_between(const SceneSnapshot* before, const SceneSnapshot& after, int width, int height,
-                    DamageScratch& scratch, Damage& out);
+                    DamageScratch& scratch, Damage& out, float scale = 1.f);
 
 // The damage of two successive frames together: what a buffer that is two frames old must redraw.
 // `out` may not be `a` or `b`.

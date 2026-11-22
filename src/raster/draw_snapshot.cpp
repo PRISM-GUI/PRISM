@@ -17,38 +17,47 @@ using namespace prism::render;
 
 namespace {
 
+Rect scaled(const Rect& r, float s) {
+    return Rect{Point{X{r.origin.x.raw() * s}, Y{r.origin.y.raw() * s}},
+                Size{Width{r.extent.w.raw() * s}, Height{r.extent.h.raw() * s}}};
+}
+
+Point scaled(Point p, float s) { return Point{X{p.x.raw() * s}, Y{p.y.raw() * s}}; }
+
+// The canvas draws in pixels; the commands are in logical units, `canvas.ui_scale()` pixels each.
 template <class P>
 void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
+    const float s = canvas.ui_scale();
     for (const DrawCmd& cmd : dl.commands) {
         std::visit([&](const auto& c) {
             using K = std::remove_cvref_t<decltype(c)>;
             if constexpr (std::is_same_v<K, FilledRect>) {
-                canvas.fill_rect(c.rect, c.color);
+                canvas.fill_rect(scaled(c.rect, s), c.color);
             } else if constexpr (std::is_same_v<K, RectOutline>) {
-                canvas.rect_outline(c.rect, c.color, c.thickness);
+                canvas.rect_outline(scaled(c.rect, s), c.color, c.thickness * s);
             } else if constexpr (std::is_same_v<K, TextCmd>) {
                 if (!c.text.empty()) {
                     PRISM_PROFILE_SCOPE("text");
-                    canvas.text(fonts, c.text, c.origin, c.size, c.color, c.angle, c.anchor, c.font);
+                    canvas.text(fonts, c.text, scaled(c.origin, s), c.size * s, c.color, c.angle, c.anchor, c.font);
                 }
             } else if constexpr (std::is_same_v<K, ClipPush>) {
-                canvas.push_clip(c.rect);
+                canvas.push_clip(scaled(c.rect, s));
             } else if constexpr (std::is_same_v<K, ClipPop>) {
                 canvas.pop_clip();
             } else if constexpr (std::is_same_v<K, RoundedRect>) {
-                canvas.rounded_rect(c.rect, c.color, c.radius, c.thickness);
+                canvas.rounded_rect(scaled(c.rect, s), c.color, c.radius * s, c.thickness * s);
             } else if constexpr (std::is_same_v<K, Line>) {
                 PRISM_PROFILE_SCOPE("line");
-                canvas.line(c.from, c.to, c.color, c.thickness);
+                canvas.line(scaled(c.from, s), scaled(c.to, s), c.color, c.thickness * s);
             } else if constexpr (std::is_same_v<K, Polyline>) {
                 PRISM_PROFILE_SCOPE("polyline");
-                canvas.polyline(c.points, c.color, c.thickness);
+                canvas.polyline(canvas.scaled(c.points), c.color, c.thickness * s);
             } else if constexpr (std::is_same_v<K, Circle>) {
-                canvas.circle(c.center, c.radius, c.color, c.thickness);
+                canvas.circle(scaled(c.center, s), c.radius * s, c.color, c.thickness * s);
             } else if constexpr (std::is_same_v<K, FilledPolygon>) {
-                canvas.filled_polygon(c.points, c.color);
+                canvas.filled_polygon(canvas.scaled(c.points), c.color);
             } else if constexpr (std::is_same_v<K, ImageCmd>) {
-                if (c.image) canvas.image(*c.image, c.rect, c.alpha, c.tint);
+                if (c.image) canvas.image(*c.image, scaled(c.rect, s), c.alpha, c.tint);
             }
         }, cmd);
     }
@@ -57,8 +66,9 @@ void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
 // What a list that misses the band leaves behind: its effect on the clip stack.
 template <class P>
 void apply_clips(BasicCanvas<P>& canvas, const DrawList& dl) {
+    const float s = canvas.ui_scale();
     for (const DrawCmd& cmd : dl.commands) {
-        if (const auto* push = std::get_if<ClipPush>(&cmd)) canvas.push_clip(push->rect);
+        if (const auto* push = std::get_if<ClipPush>(&cmd)) canvas.push_clip(scaled(push->rect, s));
         else if (std::holds_alternative<ClipPop>(cmd)) canvas.pop_clip();
     }
 }
@@ -88,19 +98,22 @@ bool overlaps_area(const BasicCanvas<P>& band, float x, float y, float w, float 
 
 template <class P>
 bool reaches(const BasicCanvas<P>& band, const SceneSnapshot& snap, std::uint32_t idx) {
+    const float s = band.ui_scale();
     // Rounded outward, as the canvas rounds a clip.
     if (const auto clip = leading_clip(*snap.draw_lists[idx])) {
-        const float x = std::floor(clip->origin.x.raw()), y = std::floor(clip->origin.y.raw());
-        return overlaps_area(band, x, y, std::ceil(clip->origin.x.raw() + clip->extent.w.raw()) - x,
-                             std::ceil(clip->origin.y.raw() + clip->extent.h.raw()) - y);
+        const Rect px = scaled(*clip, s);
+        const float x = std::floor(px.origin.x.raw()), y = std::floor(px.origin.y.raw());
+        return overlaps_area(band, x, y, std::ceil(px.origin.x.raw() + px.extent.w.raw()) - x,
+                             std::ceil(px.origin.y.raw() + px.extent.h.raw()) - y);
     }
     if (idx >= snap.geometry.size()) return true;
     // simplify: with no leading clip, the list is trusted to draw at most kBandMargin outside its
     // geometry rect (a board's own drawing, a hand-built list); one that draws further is cut in
     // a band. Upgrade: a bounds rect per draw list, measured when the list is built.
-    const Rect& r = snap.geometry[idx].second;
-    return overlaps_area(band, r.origin.x.raw() - kBandMargin, r.origin.y.raw() - kBandMargin,
-                         r.extent.w.raw() + 2 * kBandMargin, r.extent.h.raw() + 2 * kBandMargin);
+    const Rect r = scaled(snap.geometry[idx].second, s);
+    const float margin = kBandMargin * s;
+    return overlaps_area(band, r.origin.x.raw() - margin, r.origin.y.raw() - margin,
+                         r.extent.w.raw() + 2 * margin, r.extent.h.raw() + 2 * margin);
 }
 
 } // namespace

@@ -70,6 +70,11 @@ struct FrameOptions {
     // Called on the caller's thread right before each runtime thread is created: a port sets its
     // thread-creation attributes there (ESP-IDF: esp_pthread_set_cfg's core).
     std::function<void(ThreadRole)> before_thread_start;
+    // Pixels per logical unit. 1: the UI is laid out in the sink's pixels. A touch panel's finger is
+    // bigger than a pointer: 1.5 lays the UI out in a frame 1.5 times smaller and draws it 1.5 times
+    // larger, so every widget, gap and text is that much easier to hit and read, and touch positions
+    // are mapped back. The widgets themselves do not change.
+    float ui_scale = 1.f;
 };
 
 void run_frames(FrameSink& sink, TouchSource& touch, TreeFactory make_tree,

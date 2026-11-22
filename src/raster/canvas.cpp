@@ -102,6 +102,15 @@ void BasicCanvas<P>::clear_scissor() {
 }
 
 template <class P>
+std::span<const Point> BasicCanvas<P>::scaled(std::span<const Point> pts) {
+    if (ui_scale_ == 1.f) return pts;
+    scaled_points_.clear();
+    for (const Point& p : pts)
+        scaled_points_.push_back(Point{X{p.x.raw() * ui_scale_}, Y{p.y.raw() * ui_scale_}});
+    return scaled_points_;
+}
+
+template <class P>
 Rect BasicCanvas<P>::scissor_area() const {
     return Rect{Point{X{float(scissor_.x0)}, Y{float(scissor_.y0)}},
                 Size{Width{float(scissor_.x1 - scissor_.x0)}, Height{float(scissor_.y1 - scissor_.y0)}}};
