@@ -12,6 +12,8 @@
 #include <prism/app/widget_tree.hpp>
 #include <prism/core/connection.hpp>
 #include <prism/core/field.hpp>
+#include <prism/raster/canvas.hpp>
+#include <prism/raster/draw_snapshot.hpp>
 #include <prism/raster/fonts.hpp>
 
 #include <algorithm>
@@ -86,6 +88,87 @@ struct ClearingSink final : prism::platform::FrameSink {
     Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
 };
 
+// A sink that keeps what it shows: one buffer (age 1) or two that flip (age 2). It says so through
+// buffer_age(), counts the clears the CPU is asked to do (only a whole-frame draw clears), and
+// keeps the buffer on screen for the test to read.
+struct AgedSink final : prism::platform::FrameSink {
+    explicit AgedSink(int buffer_age) : age(buffer_age), buffers(std::size_t(buffer_age)) {
+        for (auto& b : buffers)
+            b.assign(std::size_t(W) * H, 0x12345678u);   // nothing like a frame: a skipped pixel shows
+    }
+    int age;
+    std::vector<std::vector<std::uint32_t>> buffers;
+    std::size_t back_index = 0, shown_index = 0;
+    std::atomic<int> presents{0};
+    std::atomic<int> clears{0};
+
+    std::span<std::uint32_t> back() override { return buffers[back_index]; }
+    bool clear(std::uint32_t) override { ++clears; return false; }
+    void present() override
+    {
+        shown_index = back_index;
+        back_index = (back_index + 1) % buffers.size();
+        ++presents;
+    }
+    Size size() const override { return {Width{float(W)}, Height{float(H)}}; }
+    int buffer_age() const override { return age; }
+    const std::vector<std::uint32_t>& shown() const { return buffers[shown_index]; }
+};
+
+// Two numbers one under the other: the test changes them in turn, so two frames in a row damage
+// different places.
+struct TwoCounters {
+    Field<int> first{0};
+    Field<int> second{0};
+    void view(prism::app::ViewBuilder& vb) { vb.vstack(first, second); }
+};
+
+// A model at 120x100, drawn whole.
+template <class Model>
+std::vector<std::uint32_t> whole_frame(Model& model)
+{
+    prism::app::WidgetTree tree(model);
+    prism::raster::Fonts fonts;
+    tree.set_text_measurer(&fonts);
+    const auto snap = tree.build_snapshot(float(W), float(H), 1);
+    std::vector<std::uint32_t> px(std::size_t(W) * H);
+    prism::raster::Canvas canvas{px, W, H, W};
+    canvas.clear(snap->window.background);
+    prism::raster::draw(canvas, *snap, fonts);
+    return px;
+}
+
+std::vector<std::uint32_t> reference_frame(int first, int second)
+{
+    TwoCounters model;
+    model.first.set(first);
+    model.second.set(second);
+    return whole_frame(model);
+}
+
+// Whether `frame` is the counter at some count up to `max`.
+bool is_a_whole_counter_frame(const std::vector<std::uint32_t>& frame, int max)
+{
+    for (int count = 0; count <= max; ++count) {
+        Counter model;
+        model.count.set(count);
+        if (whole_frame(model) == frame)
+            return true;
+    }
+    return false;
+}
+
+// Whether `frame` shows the numbers at some state the test passed through (they differ by at most
+// one, the first changing first): no pixel of an older frame is left.
+bool is_a_whole_frame(const std::vector<std::uint32_t>& frame, int max)
+{
+    for (int first = 0; first <= max; ++first)
+        for (int second = std::max(0, first - 1); second <= first; ++second)
+            if (reference_frame(first, second) == frame)
+                return true;
+    return false;
+}
+
 constexpr int kBandRows = 48; // 100 rows: two full bands and a 4-row one
 
 // Two band buffers; flush copies a band into a whole frame, which the test reads after the run.
@@ -96,14 +179,18 @@ struct MemoryBandSink final : prism::platform::BandSink<P> {
                                             std::vector<pixel>(std::size_t(W) * kBandRows)};
     std::vector<pixel> frame = std::vector<pixel>(std::size_t(W) * H);
     std::atomic<int> presents{0};
+    std::atomic<int> flushes{0};
     int rows_per_band = kBandRows;
+    int age = 0; // what frame_age() says: 1 = the frame memory keeps earlier frames
     std::chrono::milliseconds flush_time{0};
 
     int band_height() const override { return rows_per_band; }
+    int frame_age() const override { return age; }
     std::span<pixel> band(int index) override { return bands[std::size_t(index)]; }
     void flush(int index, int first_row, int rows) override
     {
         std::this_thread::sleep_for(flush_time);
+        ++flushes;
         std::copy_n(bands[std::size_t(index)].begin(), std::size_t(W) * rows,
                     frame.begin() + std::ptrdiff_t(first_row) * W);
     }
@@ -408,6 +495,52 @@ TEST_CASE("a band sink's frame equals a frame sink's frame")
         CHECK(far == 0);
         CHECK(banded.frame.front() == to_rgb565(whole.pixels.front()));
     }
+}
+
+void check_redraws_only_changes(int age)
+{
+    AgedSink sink{age};
+    TwoCounters model;
+    NoTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.presents >= 12)
+                ctx.quit();
+            else if (model.first.get() == model.second.get())
+                model.first.set(model.first.get() + 1); // a new frame each loop, in turn
+            else
+                model.second.set(model.second.get() + 1);
+        });
+    });
+    REQUIRE(sink.presents >= 12);
+    CHECK(sink.clears < sink.presents);
+    CHECK(is_a_whole_frame(sink.shown(), model.first.get()));
+}
+
+TEST_CASE("a frame sink that keeps its frames is redrawn where the frame changed, not whole")
+{
+    SUBCASE("one buffer") { check_redraws_only_changes(1); }
+    SUBCASE("two buffers that flip") { check_redraws_only_changes(2); }
+}
+
+TEST_CASE("a band sink that keeps its frame gets only the bands that changed")
+{
+    Counter model;
+    MemoryBandSink<prism::raster::Argb8888> sink;
+    sink.age = 1;
+    NoTouch touch;
+    prism::platform::frame_app(sink, touch, model, [&](FrameContext& ctx) {
+        ctx.on_loop([&] {
+            if (sink.presents >= 12)
+                ctx.quit();
+            else
+                model.count.set(model.count.get() + 1);
+        });
+    });
+    constexpr int bands = (H + kBandRows - 1) / kBandRows;
+    REQUIRE(sink.presents >= 12);
+    CHECK(sink.flushes < sink.presents * bands);
+    CHECK(is_a_whole_counter_frame(sink.frame, model.count.get()));
 }
 
 TEST_CASE("the runtime never draws into a band whose copy is in flight")

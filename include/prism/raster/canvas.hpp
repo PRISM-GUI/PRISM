@@ -62,14 +62,21 @@ public:
     int first_row() const { return first_row_; }
     std::span<pixel> pixels() const { return pixels_; }
 
+    // --- scissor: the part of the canvas that drawing may touch at all, `clear` included. It
+    // survives reset_clip and keeps clips inside it; retarget removes it. Redrawing only the
+    // damaged part of a frame (render/damage.hpp) sets it to each damaged rect in turn.
+    void set_scissor(Rect r);
+    void clear_scissor();
+    [[nodiscard]] Rect scissor_area() const;   // the scissor cut to the canvas, or the canvas
+
     // --- clip (a stack; push intersects the current clip with the given rect) ---
-    void reset_clip();          // the whole canvas (a band's rows)
+    void reset_clip();          // the scissor, or the whole canvas (a band's rows)
     void push_clip(Rect r);
     void pop_clip();
     [[nodiscard]] Rect clip() const;
 
     // --- drawing; every operation is clipped and src-over blended ---
-    void clear(Color c);                                    // whole buffer, ignoring the clip
+    void clear(Color c);                                    // whole buffer (the scissor), ignoring the clip
     void fill_rect(Rect r, Color c);
     void rect_outline(Rect r, Color c, float thickness);    // bands inside the rect
     void rounded_rect(Rect r, Color c, float radius, float thickness);  // thickness 0 = filled
@@ -110,6 +117,7 @@ private:
     std::vector<Clip> clip_stack_;   // empty means the clip is the whole canvas
     std::vector<float> crossings_;   // filled_polygon's scratch: kept so drawing does not allocate
     Clip clip_;
+    Clip scissor_;   // the whole canvas unless set_scissor
 };
 
 // Defined in canvas.cpp for these two formats only.

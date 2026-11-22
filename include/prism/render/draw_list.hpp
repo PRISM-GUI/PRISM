@@ -21,12 +21,14 @@ using namespace prism::core;
 struct FilledRect {
     Rect rect;
     Color color;
+    bool operator==(const FilledRect&) const = default;
 };
 
 struct RectOutline {
     Rect rect;
     Color color;
     float thickness;
+    bool operator==(const RectOutline&) const = default;
 };
 
 enum class TextAnchor { TopLeft, Center };
@@ -60,19 +62,24 @@ struct TextCmd {
     float angle = 0.f;       // degrees, counter-clockwise
     TextAnchor anchor = TextAnchor::TopLeft;
     FontStyle font{};
+    bool operator==(const TextCmd&) const = default;
 };
 
 struct ClipPush {
     Rect rect;
+    bool operator==(const ClipPush&) const = default;
 };
 
-struct ClipPop {};
+struct ClipPop {
+    bool operator==(const ClipPop&) const = default;
+};
 
 struct RoundedRect {
     Rect rect;
     Color color;
     float radius;
     float thickness;  // 0 = filled, >0 = stroke only
+    bool operator==(const RoundedRect&) const = default;
 };
 
 struct Line {
@@ -80,12 +87,14 @@ struct Line {
     Point to;
     Color color;
     float thickness;
+    bool operator==(const Line&) const = default;
 };
 
 struct Polyline {
     std::vector<Point> points;
     Color color;
     float thickness;
+    bool operator==(const Polyline&) const = default;
 };
 
 struct Circle {
@@ -93,6 +102,7 @@ struct Circle {
     float radius;
     Color color;
     float thickness;  // 0 = filled, >0 = stroke only
+    bool operator==(const Circle&) const = default;
 };
 
 struct FilledPolygon {
@@ -100,6 +110,7 @@ struct FilledPolygon {
     // i in [0, points.size()-3] -- the same generic primitive as a GPU triangle strip.
     std::vector<Point> points;
     Color color;
+    bool operator==(const FilledPolygon&) const = default;
 };
 
 // Immutable RGBA8 pixels (row-major, 4 bytes per pixel, straight alpha). Shared by pointer: draw
@@ -161,6 +172,7 @@ struct ImageCmd {
     Rect rect;   // destination; the image is scaled to fit
     std::uint8_t alpha = 255;   // multiplies the image's own alpha (a disabled widget's icon)
     Color tint = Color::rgba(255, 255, 255);   // multiplies its colors: a symbolic icon's color
+    bool operator==(const ImageCmd&) const = default;
 };
 
 using DrawCmd = std::variant<FilledRect, RectOutline, TextCmd, ClipPush, ClipPop,

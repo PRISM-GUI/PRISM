@@ -12,6 +12,7 @@
 #include <prism/raster/canvas.hpp>
 #include <prism/raster/draw_snapshot.hpp>
 #include <prism/raster/fonts.hpp>
+#include <prism/render/damage.hpp>
 
 #include <fmt/core.h>
 
@@ -26,56 +27,16 @@
 namespace {
 
 using prism::render::SceneSnapshot;
-using Snap = std::shared_ptr<const SceneSnapshot>;
 using Clock = std::chrono::steady_clock;
 
 constexpr int W = 800, H = 480, kBandRows = 48, kBands = H / kBandRows;
 constexpr double kPsramMBps = 58.0;
-constexpr float kMargin = prism::raster::kBandMargin;
 
-struct IRect {
-    int x0, y0, x1, y1;   // [x0,x1) x [y0,y1), clamped to the frame
-};
-
-IRect to_pixels(const prism::core::Rect& r)
-{
-    const float x = r.origin.x.raw() - kMargin, y = r.origin.y.raw() - kMargin;
-    const float w = r.extent.w.raw() + 2 * kMargin, h = r.extent.h.raw() + 2 * kMargin;
-    return {std::clamp(int(std::floor(x)), 0, W), std::clamp(int(std::floor(y)), 0, H),
-            std::clamp(int(std::ceil(x + w)), 0, W), std::clamp(int(std::ceil(y + h)), 0, H)};
-}
-
-std::map<prism::render::WidgetId, std::pair<const void*, prism::core::Rect>> by_id(const SceneSnapshot& s)
-{
-    std::map<prism::render::WidgetId, std::pair<const void*, prism::core::Rect>> m;
-    for (std::size_t i = 0; i < s.geometry.size() && i < s.draw_lists.size(); ++i)
-        m[s.geometry[i].first] = {s.draw_lists[i].get(), s.geometry[i].second};
-    return m;
-}
-
-// The rects whose pixels differ: lists that are new or replaced (their new rect), and lists that
-// went away or moved (their old rect).
-std::vector<IRect> changed(const SceneSnapshot& before, const SceneSnapshot& after)
-{
-    const auto a = by_id(before), b = by_id(after);
-    std::vector<IRect> out;
-    for (const auto& [id, now] : b) {
-        const auto was = a.find(id);
-        if (was == a.end() || was->second.first != now.first) {
-            out.push_back(to_pixels(now.second));
-            if (was != a.end())
-                out.push_back(to_pixels(was->second.second));
-        }
-    }
-    for (const auto& [id, was] : a)
-        if (!b.contains(id))
-            out.push_back(to_pixels(was.second));
-    return out;
-}
+using prism::render::PixelRect;
 
 struct Mask {
     std::vector<bool> px = std::vector<bool>(std::size_t(W) * H);
-    void add(const IRect& r)
+    void add(const PixelRect& r)
     {
         for (int y = r.y0; y < r.y1; ++y)
             for (int x = r.x0; x < r.x1; ++x)
@@ -161,17 +122,22 @@ void run_scene(const char* name, Model& model, prism::raster::Fonts& fonts, int 
 {
     prism::app::WidgetTree tree(model);
     tree.set_text_measurer(&fonts);
-    Snap prev, prev_prev;
+    std::unique_ptr<SceneSnapshot> prev;
     Mask last_mask;
+    prism::render::DamageScratch scratch;
+    prism::render::Damage damage;
     Totals t;
     double full_ms = 0;
     for (int f = 0; f < frames; ++f) {
         step(f);
-        Snap now = tree.build_snapshot(float(W), float(H), 1);
+        auto now = tree.build_snapshot(float(W), float(H), 1);
         tree.clear_dirty();
         if (prev) {
             Mask mine;
-            for (const IRect& r : changed(*prev, *now))
+            prism::render::damage_between(prev.get(), *now, W, H, scratch, damage);
+            if (damage.full)
+                mine.add({0, 0, W, H});
+            for (const PixelRect& r : damage.rects)
                 mine.add(r);
             Mask both = mine;
             both.add(last_mask);
@@ -185,8 +151,7 @@ void run_scene(const char* name, Model& model, prism::raster::Fonts& fonts, int 
             ++t.frames;
             last_mask = std::move(mine);
         }
-        prev_prev = prev;
-        prev = now;
+        prev = std::move(now);
     }
     report(name, t, full_ms / t.frames);
 }

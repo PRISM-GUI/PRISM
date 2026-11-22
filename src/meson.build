@@ -49,6 +49,7 @@ prism_lib_sources = [
   'app/view_builder.cpp',
   'app/widget_tree.cpp',
   'core/shared_state.cpp',
+  'render/damage.cpp',
   'render/scene_snapshot.cpp',
   'render/view_transform.cpp',
   'nodes/board_view.cpp',

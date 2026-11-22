@@ -17,6 +17,7 @@
 #include <prism/raster/canvas.hpp>
 #include <prism/raster/draw_snapshot.hpp>
 #include <prism/raster/fonts.hpp>
+#include <prism/render/damage.hpp>
 #include <prism/render/scene_snapshot.hpp>
 
 #include <algorithm>
@@ -92,6 +93,7 @@ using app::WidgetTree;
 using core::Point;
 using input::MouseButton;
 using input::MouseMove;
+using render::Damage;
 using render::SceneSnapshot;
 
 // One touch poll as PRISM pointer events, in window coordinates, against the shown frame.
@@ -242,12 +244,14 @@ void render_loop(const RunArgs& a, Painter& painter)
     const std::stop_token stop = a.stop.get_token();
     for (;;) {
         StageTimes times;
+        const SceneSnapshot* previous; // the frame on screen: its slot is not reused until this one is shown
         {
             std::unique_lock lock{h.mu};
             if (!h.cv.wait(lock, stop, [&] { return h.pending >= 0; }))
                 return; // quit
             h.drawing = h.pending;
             h.pending = -1;
+            previous = h.shown >= 0 ? &h.slots[std::size_t(h.shown)] : nullptr;
             times.update = h.pending_update_time;
             times.snapshot = h.pending_build_time;
         }
@@ -257,7 +261,7 @@ void render_loop(const RunArgs& a, Painter& painter)
         std::chrono::microseconds waited;
         {
             PRISM_PROFILE_SCOPE("draw"); // the clear is part of drawing the frame, as the stats count it
-            waited = painter.draw(snap);
+            waited = painter.draw(snap, previous);
         }
         times.draw = since(start) - waited;
         start = Clock::now();
@@ -276,6 +280,33 @@ void render_loop(const RunArgs& a, Painter& painter)
     }
 }
 
+// What to redraw for each frame: the damage against the frame before it (render/damage.hpp),
+// united with the one before that when the target is two frames behind. Holds its scratch, so a
+// frame allocates nothing once the vectors have grown.
+class DamagePlan {
+public:
+    // `age`: how many frames old the buffer being drawn into is (FrameSink::buffer_age).
+    const Damage& plan(const SceneSnapshot* previous, const SceneSnapshot& snap, core::Size size, int age)
+    {
+        const int w = int(size.w.raw()), h = int(size.h.raw());
+        render::damage_between(previous, snap, w, h, scratch_, current_);
+        if (age == 1) {
+            result_ = current_;
+        } else if (age == 2) {
+            render::unite(current_, last_, result_);
+        } else {
+            result_.full = true;
+            result_.rects.clear();
+        }
+        last_ = current_;
+        return result_;
+    }
+
+private:
+    render::DamageScratch scratch_;
+    Damage current_, last_, result_;
+};
+
 // A whole frame into the FrameSink's back buffer. One canvas for the whole run, pointed at each
 // frame's back buffer: it keeps its scratch storage, so drawing does not allocate after the
 // first frame.
@@ -283,13 +314,19 @@ struct FramePainter {
     FrameSink& sink;
     const raster::Fonts& fonts;
     raster::Canvas canvas;
+    DamagePlan damage;
 
     void begin() { canvas.retarget(sink.back()); }
-    std::chrono::microseconds draw(const SceneSnapshot& snap)
+    std::chrono::microseconds draw(const SceneSnapshot& snap, const SceneSnapshot* previous)
     {
-        if (!sink.clear(raster::argb(snap.window.background)))
-            canvas.clear(snap.window.background); // clearing is the caller's job, as with SDL
-        raster::draw(canvas, snap, fonts);
+        const Damage& d = damage.plan(previous, snap, sink.size(), sink.buffer_age());
+        if (!d.full) {
+            raster::draw_damage(canvas, snap, fonts, d);
+        } else {
+            if (!sink.clear(raster::argb(snap.window.background)))
+                canvas.clear(snap.window.background); // clearing is the caller's job, as with SDL
+            raster::draw(canvas, snap, fonts);
+        }
         return {};
     }
     void present() { sink.present(); }
@@ -307,13 +344,26 @@ struct BandPainter {
     const raster::Fonts& fonts;
     int height, rows;
     raster::BasicCanvas<P> canvas;
+    DamagePlan damage;
 
     void begin() {}
-    std::chrono::microseconds draw(const SceneSnapshot& snap)
+    // Whether band k holds rows the damage touches (a full damage touches them all).
+    static bool touched(const Damage& d, int first_row, int band_rows)
     {
+        return d.full || std::ranges::any_of(d.rects, [&](const render::PixelRect& r) {
+                   return r.y0 < first_row + band_rows && r.y1 > first_row;
+               });
+    }
+    std::chrono::microseconds draw(const SceneSnapshot& snap, const SceneSnapshot* previous)
+    {
+        const Damage& d = damage.plan(previous, snap, sink.size(), sink.frame_age());
         std::chrono::microseconds waited{};
+        int drawn = 0; // the two band buffers alternate over the bands that are drawn
         for (int k = 0; k * rows < height; ++k) {
-            const int index = k % 2, first_row = k * rows;
+            const int first_row = k * rows;
+            if (!touched(d, first_row, rows))
+                continue;
+            const int index = drawn++ % 2;
             auto start = Clock::now();
             const auto pixels = sink.band(index);
             waited += since(start);
@@ -332,7 +382,7 @@ struct BandPainter {
 void render_main(const RunArgs& a, FrameSink& sink)
 {
     const int width = int(a.size.w.raw()), height = int(a.size.h.raw());
-    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}};
+    FramePainter painter{sink, *a.fonts, raster::Canvas{sink.back(), width, height, width}, {}};
     render_loop(a, painter);
 }
 
@@ -350,7 +400,7 @@ void render_main(const RunArgs& a, BandSink<P>& sink)
 {
     const int width = int(a.size.w.raw()), height = int(a.size.h.raw()), rows = sink.band_height();
     require_band_height(rows);
-    BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}};
+    BandPainter<P> painter{sink, *a.fonts, height, rows, raster::BasicCanvas<P>{sink.band(0), width, rows, width, 0}, {}};
     render_loop(a, painter);
 }
 

@@ -78,25 +78,29 @@ std::optional<Rect> leading_clip(const DrawList& dl) {
     return push->rect;
 }
 
-// Rows [top, bottom) against the band's rows.
+// A rect (x, y, w, h as floats) against the area the canvas can draw in.
 template <class P>
-bool overlaps_rows(const BasicCanvas<P>& band, float top, float bottom) {
-    return bottom > float(band.first_row()) && top < float(band.first_row() + band.height());
+bool overlaps_area(const BasicCanvas<P>& band, float x, float y, float w, float h) {
+    const Rect a = band.scissor_area();
+    return x + w > a.origin.x.raw() && x < a.origin.x.raw() + a.extent.w.raw() &&
+           y + h > a.origin.y.raw() && y < a.origin.y.raw() + a.extent.h.raw();
 }
 
 template <class P>
 bool reaches(const BasicCanvas<P>& band, const SceneSnapshot& snap, std::uint32_t idx) {
     // Rounded outward, as the canvas rounds a clip.
-    if (const auto clip = leading_clip(*snap.draw_lists[idx]))
-        return overlaps_rows(band, std::floor(clip->origin.y.raw()),
-                             std::ceil(clip->origin.y.raw() + clip->extent.h.raw()));
+    if (const auto clip = leading_clip(*snap.draw_lists[idx])) {
+        const float x = std::floor(clip->origin.x.raw()), y = std::floor(clip->origin.y.raw());
+        return overlaps_area(band, x, y, std::ceil(clip->origin.x.raw() + clip->extent.w.raw()) - x,
+                             std::ceil(clip->origin.y.raw() + clip->extent.h.raw()) - y);
+    }
     if (idx >= snap.geometry.size()) return true;
     // simplify: with no leading clip, the list is trusted to draw at most kBandMargin outside its
     // geometry rect (a board's own drawing, a hand-built list); one that draws further is cut in
     // a band. Upgrade: a bounds rect per draw list, measured when the list is built.
     const Rect& r = snap.geometry[idx].second;
-    return overlaps_rows(band, r.origin.y.raw() - kBandMargin,
-                         r.origin.y.raw() + r.extent.h.raw() + kBandMargin);
+    return overlaps_area(band, r.origin.x.raw() - kBandMargin, r.origin.y.raw() - kBandMargin,
+                         r.extent.w.raw() + 2 * kBandMargin, r.extent.h.raw() + 2 * kBandMargin);
 }
 
 } // namespace
@@ -121,12 +125,32 @@ void draw_band(BasicCanvas<P>& band, const SceneSnapshot& snap, const Fonts& fon
 }
 
 template <class P>
+void draw_damage(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts,
+                 const prism::render::Damage& damage) {
+    if (damage.full) {
+        canvas.clear_scissor();
+        canvas.clear(snap.window.background);
+        draw_band(canvas, snap, fonts);
+        return;
+    }
+    for (const prism::render::PixelRect& r : damage.rects) {
+        canvas.set_scissor(Rect{Point{X{float(r.x0)}, Y{float(r.y0)}},
+                                Size{Width{float(r.x1 - r.x0)}, Height{float(r.y1 - r.y0)}}});
+        canvas.clear(snap.window.background);
+        draw_band(canvas, snap, fonts);
+    }
+    canvas.clear_scissor();
+}
+
+template <class P>
 void draw(BasicCanvas<P>& canvas, const SceneSnapshot& snap, const Fonts& fonts) {
     draw_band(canvas, snap, fonts);
 }
 
 template void draw_band(Canvas&, const SceneSnapshot&, const Fonts&);
 template void draw_band(Canvas565&, const SceneSnapshot&, const Fonts&);
+template void draw_damage(Canvas&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&);
+template void draw_damage(Canvas565&, const SceneSnapshot&, const Fonts&, const prism::render::Damage&);
 template void draw(Canvas&, const SceneSnapshot&, const Fonts&);
 template void draw(Canvas565&, const SceneSnapshot&, const Fonts&);
 

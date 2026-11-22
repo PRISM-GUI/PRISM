@@ -18,11 +18,12 @@
 
 #include <prism/raster/canvas.hpp>
 
+#include <prism/render/damage.hpp>
 #include <prism/render/scene_snapshot.hpp>
 
 namespace prism::raster {
 
-inline constexpr float kBandMargin = 16.f;
+inline constexpr float kBandMargin = prism::render::kListMargin;
 
 template <class P>
 void draw_band(BasicCanvas<P>& band, const prism::render::SceneSnapshot& snap, const Fonts& fonts);
@@ -31,8 +32,17 @@ void draw_band(BasicCanvas<P>& band, const prism::render::SceneSnapshot& snap, c
 template <class P>
 void draw(BasicCanvas<P>& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts);
 
+// Redraws only the damaged part of a frame (render/damage.hpp) into a canvas that already shows the
+// frame the damage is measured against: each rect is cleared to the background and drawn again,
+// the lists that miss it skipped. The pixels equal those of drawing the whole frame.
+template <class P>
+void draw_damage(BasicCanvas<P>& canvas, const prism::render::SceneSnapshot& snap, const Fonts& fonts,
+                 const prism::render::Damage& damage);
+
 extern template void draw_band(Canvas&, const prism::render::SceneSnapshot&, const Fonts&);
 extern template void draw_band(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&);
+extern template void draw_damage(Canvas&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&);
+extern template void draw_damage(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&, const prism::render::Damage&);
 extern template void draw(Canvas&, const prism::render::SceneSnapshot&, const Fonts&);
 extern template void draw(Canvas565&, const prism::render::SceneSnapshot&, const Fonts&);
 

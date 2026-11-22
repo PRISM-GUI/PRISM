@@ -169,6 +169,7 @@ headless_tests = {
   'record_reuse' : files('test_record_reuse.cpp'),
   'perf_lab' : files('test_perf_lab.cpp'),
   'frame_pacer' : files('test_frame_pacer.cpp'),
+  'damage' : files('test_damage.cpp'),
   'raster_canvas' : files('test_raster_canvas.cpp'),
   'raster_fonts' : files('test_raster_fonts.cpp'),
   'raster_pixel' : files('test_raster_pixel.cpp'),
@@ -228,6 +229,7 @@ foreach name, src : {
   'embedded_apps_audio_scope' : files('test_embedded_apps_audio_scope.cpp'),
   'embedded_apps_widgets_app' : files('test_embedded_apps_widgets_app.cpp'),
   'raster_snapshot' : files('test_raster_snapshot.cpp'),
+  'raster_damage' : files('test_raster_damage.cpp'),
 }
   test(name, executable('test_' + name, src,
     dependencies : [prism_embedded_apps_dep, prism_raster_dep, doctest_dep]))

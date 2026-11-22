@@ -49,7 +49,7 @@ template <class P>
 BasicCanvas<P>::BasicCanvas(std::span<pixel> pixels, int width, int height, int stride, int first_row)
     : pixels_(pixels), width_(width), height_(height), stride_(stride), first_row_(first_row) {
     require_span(pixels.size(), stride, height);
-    reset_clip();
+    clear_scissor();
 }
 
 template <class P>
@@ -57,7 +57,7 @@ void BasicCanvas<P>::retarget(std::span<pixel> pixels, int first_row) {
     require_span(pixels.size(), stride_, height_);
     pixels_ = pixels;
     first_row_ = first_row;
-    reset_clip();
+    clear_scissor();
 }
 
 template <class P>
@@ -85,8 +85,26 @@ typename BasicCanvas<P>::Clip BasicCanvas<P>::clip_of(Rect r) const {
 
 template <class P>
 void BasicCanvas<P>::reset_clip() {
-    clip_ = {0, first_row_, width_, first_row_ + height_};
+    clip_ = scissor_;
     clip_stack_.clear();
+}
+
+template <class P>
+void BasicCanvas<P>::set_scissor(Rect r) {
+    scissor_ = clip_of(r);
+    reset_clip();
+}
+
+template <class P>
+void BasicCanvas<P>::clear_scissor() {
+    scissor_ = {0, first_row_, width_, first_row_ + height_};
+    reset_clip();
+}
+
+template <class P>
+Rect BasicCanvas<P>::scissor_area() const {
+    return Rect{Point{X{float(scissor_.x0)}, Y{float(scissor_.y0)}},
+                Size{Width{float(scissor_.x1 - scissor_.x0)}, Height{float(scissor_.y1 - scissor_.y0)}}};
 }
 
 template <class P>
@@ -123,8 +141,8 @@ void BasicCanvas<P>::clear(Color c) {
     // Writes the pixel as-is (no blending): the framebuffer is fully repainted each frame, and a
     // translucent clear over the previous frame is not a case the board needs.
     const pixel packed = P::pack(c);
-    for (int y = first_row_; y < first_row_ + height_; ++y)
-        std::fill_n(row(y), width_, packed);
+    for (int y = scissor_.y0; y < scissor_.y1; ++y)
+        std::fill_n(row(y) + scissor_.x0, scissor_.x1 - scissor_.x0, packed);
 }
 
 template <class P>

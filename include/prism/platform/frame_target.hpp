@@ -21,6 +21,11 @@ struct FrameSink {
     virtual bool clear(std::uint32_t argb) { (void)argb; return false; }
     virtual void present() = 0;                  // flip to what was drawn into back()
     virtual core::Size size() const = 0;         // in pixels: back() holds width x height
+    // How many presented frames old what back() holds is: 1 when it keeps the frame presented
+    // last (a single buffer, or a copy), 2 when two buffers flip. The runtime then redraws only
+    // what changed since then (render/damage.hpp). 0, the default, means its contents are
+    // unknown: every frame is drawn whole.
+    virtual int buffer_age() const { return 0; }
     virtual ~FrameSink() = default;
 };
 
@@ -39,6 +44,10 @@ struct BandSink {
     virtual void flush(int index, int first_row, int rows) = 0;
     virtual void present() = 0;                                  // every band flushed: show it
     virtual core::Size size() const = 0;
+    // As FrameSink::buffer_age, for the frame memory the bands are copied into: 1 or 2 when it
+    // keeps what earlier frames drew there, so only the bands that changed are drawn and flushed.
+    // 0, the default: every band of every frame.
+    virtual int frame_age() const { return 0; }
     virtual ~BandSink() = default;
 };
 
