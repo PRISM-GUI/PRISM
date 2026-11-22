@@ -47,7 +47,8 @@ void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
             } else if constexpr (std::is_same_v<K, RoundedRect>) {
                 canvas.rounded_rect(scaled(c.rect, s), c.color, c.radius * s, c.thickness * s);
             } else if constexpr (std::is_same_v<K, Line>) {
-                PRISM_PROFILE_SCOPE("line");
+                // No mark: a plot draws hundreds of grid lines a frame, and two marks each fill the
+                // recorder's ring (and cost more than the line) faster than a trace can use them.
                 canvas.line(scaled(c.from, s), scaled(c.to, s), c.color, c.thickness * s);
             } else if constexpr (std::is_same_v<K, Polyline>) {
                 PRISM_PROFILE_SCOPE("polyline");
