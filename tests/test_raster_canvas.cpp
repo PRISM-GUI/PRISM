@@ -26,9 +26,11 @@ namespace {
 
 constexpr std::uint32_t kCleared = 0xFF000000u;   // opaque black: "untouched"
 
+// On the heap: two 200x60 frames are 96 KB, past the 64 KB stack of a WebAssembly thread, where
+// an overflow corrupts memory silently.
 template <int W, int H>
 struct Fb {
-    std::array<std::uint32_t, W * H> px{};
+    std::vector<std::uint32_t> px = std::vector<std::uint32_t>(W * H);
     prism::raster::Canvas canvas{px, W, H, W};
     Fb() { canvas.clear(Color::rgba(0, 0, 0)); }
     std::uint32_t at(int x, int y) const { return px[static_cast<std::size_t>(y) * W + x]; }
