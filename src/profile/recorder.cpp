@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <thread>
 
 namespace prism::profile {
 namespace {
@@ -17,13 +16,15 @@ namespace {
 // has a null site. Its function/file/line are recorder.cpp's, the line of this call.
 constexpr Site frame_site = make_site("frame");
 
-// Slot::id: a value unique per thread. Hosted: a hash of the thread id. This lives in an
-// anonymous namespace, so a port cannot replace it by linking something else in; Task 7 (the
-// FreeRTOS task switches) will move it behind the port, so the task handle lands on the same
-// track as the task's marks.
+// Slot::id: a value unique per live thread -- the address of a thread_local. Not
+// std::this_thread::get_id(): ESP-IDF answers it only on a pthread and aborts on any other
+// FreeRTOS task (app_main's, where a board opens its display). Task 7 (the FreeRTOS task
+// switches) will move it behind the port, so the task handle lands on the same track as the
+// task's marks.
 std::uintptr_t this_thread_id()
 {
-    return static_cast<std::uintptr_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    static thread_local const char tag = 0;
+    return reinterpret_cast<std::uintptr_t>(&tag);
 }
 
 // Keys the threads' slot cache. 32-bit on purpose, like every atomic here: no lock-free 64-bit
