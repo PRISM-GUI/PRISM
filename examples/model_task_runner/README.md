@@ -23,7 +23,7 @@ The same window with each block outlined and named: every panel is one small str
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_task_runner.html).
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_task_runner.html).
   There is no shell there, so only the three generated tasks are offered.
 - **On the desktop:** `ninja -C builddir examples/model_task_runner/model_task_runner`, then run
   `builddir/examples/model_task_runner/model_task_runner`. **ping**, **ls** and **uname** start a

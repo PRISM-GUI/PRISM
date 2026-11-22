@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jeandet/PRISM/actions/workflows/ci.yml"><img src="https://github.com/jeandet/PRISM/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
-  <a href="https://jeandet.github.io/PRISM/"><img src="https://img.shields.io/badge/live%20demos-in%20your%20browser-8250df" alt="Live demos"/></a>
+  <a href="https://github.com/PRISM-GUI/PRISM/actions/workflows/ci.yml"><img src="https://github.com/PRISM-GUI/PRISM/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="https://prism-gui.github.io/PRISM/"><img src="https://img.shields.io/badge/live%20demos-in%20your%20browser-8250df" alt="Live demos"/></a>
   <a href="https://prism-gui.readthedocs.io/"><img src="https://readthedocs.org/projects/prism-gui/badge/?version=latest" alt="Documentation"/></a>
   <img src="https://img.shields.io/badge/C%2B%2B-26%20%7C%2023-0969da" alt="C++26 | C++23"/>
   <img src="https://img.shields.io/badge/license-MIT-1a7f37" alt="MIT license"/>
@@ -37,7 +37,7 @@ int main() {
 
 <p align="center"><img src="doc/screenshots/counter.svg" alt="Counter app" width="400"/></p>
 
-**Try it without installing anything:** the [live demos](https://jeandet.github.io/PRISM/) run the
+**Try it without installing anything:** the [live demos](https://prism-gui.github.io/PRISM/) run the
 real examples, compiled to WebAssembly.
 
 ## Why PRISM
@@ -70,7 +70,7 @@ reference for every widget and type, each with an example. Its pages are Markdow
 
 [`examples/tour/`](examples/tour/) is the place to start: five programs of 20 to 40 lines, one idea
 each. [`examples/`](examples/README.md) holds eight complete apps, from a widget gallery to a
-synthesizer and a SQL tool; all of them [run in the browser](https://jeandet.github.io/PRISM/).
+synthesizer and a SQL tool; all of them [run in the browser](https://prism-gui.github.io/PRISM/).
 
 <p align="center"><img src="doc/screenshots/widget_gallery.svg" alt="Widget Gallery" width="700"/></p>
 

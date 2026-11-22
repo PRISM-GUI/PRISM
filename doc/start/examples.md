@@ -3,7 +3,7 @@
 PRISM comes with two kinds of examples.
 The tour is five short programs, one idea each.
 The apps are eight complete programs that use those ideas at full size.
-Every app also runs [in your browser](https://jeandet.github.io/PRISM/), with nothing to install.
+Every app also runs [in your browser](https://prism-gui.github.io/PRISM/), with nothing to install.
 
 ## The tour: five short programs
 

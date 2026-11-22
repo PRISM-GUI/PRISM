@@ -21,7 +21,7 @@ Without it, everything still works: you place the fields yourself in `view()`.
 ## Build and test
 
 ```bash
-git clone https://github.com/jeandet/PRISM.git
+git clone https://github.com/PRISM-GUI/PRISM.git
 cd PRISM
 meson setup builddir
 ninja -C builddir
@@ -89,7 +89,7 @@ Two things the page needs:
 - PRISM uses threads, so the server must send the COOP and COEP headers. `emrun` does.
 - JSPI needs Chrome 137+, Firefox 153+ or Safari 27.
 
-The [live demos](https://jeandet.github.io/PRISM/) are this build of the examples.
+The [live demos](https://prism-gui.github.io/PRISM/) are this build of the examples.
 `scripts/build_web_site.sh` builds the same site on your machine.
 
 ## The WebGPU renderer (experimental)

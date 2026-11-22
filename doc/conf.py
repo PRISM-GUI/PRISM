@@ -22,7 +22,7 @@ html_theme = "furo"
 html_title = "PRISM"
 html_logo = "logo/logo.png"
 html_theme_options = {
-    "source_repository": "https://github.com/jeandet/PRISM/",
+    "source_repository": "https://github.com/PRISM-GUI/PRISM/",
     "source_branch": "main",
     "source_directory": "doc/",
 }
@@ -31,7 +31,7 @@ html_theme_options = {
 # has nothing to serve, so those links go to the file on GitHub instead.
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DOC = REPO / "doc"
-GITHUB = "https://github.com/jeandet/PRISM/blob/main/"
+GITHUB = "https://github.com/PRISM-GUI/PRISM/blob/main/"
 GITHUB_ONLY = ["review-*.md", "handover-*.md", "design/*.md"]  # in doc/, left out of the site
 LINK = re.compile(r'(\]\(|src=")([^)"#\s]+)')
 

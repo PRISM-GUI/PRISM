@@ -36,7 +36,7 @@ int main() {
 | [Completion](text/completion.md) | a list of suggestions under the caret |
 | [Markdown and rich text](documents.md) | headings, lists and bold text; reading and writing Markdown |
 
-Try them in the [gallery's Code tab](https://jeandet.github.io/PRISM/widget_gallery.html):
+Try them in the [gallery's Code tab](https://prism-gui.github.io/PRISM/widget_gallery.html):
 it opens a 100,000-line file on request.
 
 ```{toctree}

@@ -21,7 +21,7 @@ The same window with each block outlined and named: every panel is one small str
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_lab_bench.html).
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_lab_bench.html).
   The instrument it talks to is simulated, so nothing has to be plugged in.
 - **On the desktop:** `ninja -C builddir examples/model_lab_bench/model_lab_bench`, then run
   `builddir/examples/model_lab_bench/model_lab_bench`.

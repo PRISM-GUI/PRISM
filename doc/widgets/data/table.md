@@ -64,7 +64,7 @@ The table asks only for the rows on screen. Add any of these methods for more:
 | `std::optional<bool> cell_check(row, col)` | a checkbox in the cell; a click hands `set_cell` `"true"` or `"false"` |
 | `std::shared_ptr<const render::Image> cell_image(row, col)` | an icon before the cell's text |
 
-The [gallery's Data tab](https://jeandet.github.io/PRISM/widget_gallery.html) is such a source:
+The [gallery's Data tab](https://prism-gui.github.io/PRISM/widget_gallery.html) is such a source:
 10,000 rows computed from the row number, a checkbox column and an editable note column.
 
 ## The handle

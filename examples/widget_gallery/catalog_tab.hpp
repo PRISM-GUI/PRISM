@@ -62,7 +62,7 @@ struct Samples {
                                                              "and grows as tall as they are.", .wrap = true}};
     prism::core::Field<prism::ui::Choice> port{{.options = {"/dev/ttyUSB0", "/dev/ttyUSB1", "COM3"},
                                                 .placeholder = "Pick a port"}};
-    prism::core::Field<prism::ui::Link> link{{.text = "PRISM on GitHub", .url = "https://github.com/jeandet/PRISM"}};
+    prism::core::Field<prism::ui::Link> link{{.text = "PRISM on GitHub", .url = "https://github.com/PRISM-GUI/PRISM"}};
     prism::core::Field<prism::ui::Picture> picture{{.image = picture_of("info.svg", 64), .description = "An info sign"}};
     prism::core::Field<prism::ui::Button> toggle{{.text = "Bold", .primary = false, .checked = false}};
     prism::core::Field<prism::ui::Button> tool_open{{.text = "", .icon = icon("folder.svg"), .primary = false}};

@@ -18,7 +18,7 @@ It shows three things:
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/widget_gallery.html) — the
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/widget_gallery.html) — the
   same tabs, compiled to WebAssembly.
 - **On the desktop:** `ninja -C builddir examples/widget_gallery/widget_gallery`, then
   `builddir/examples/widget_gallery/widget_gallery`.

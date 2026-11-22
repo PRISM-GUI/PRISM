@@ -91,7 +91,7 @@ plot.add_series(Ramp{}, plot::SeriesStyle{});
 
 Before drawing, the plot reduces a series to what the screen can show, so a million points
 draw as fast as a few thousand.
-The [perf lab](https://jeandet.github.io/PRISM/perf_lab.html) plots a million points under
+The [perf lab](https://prism-gui.github.io/PRISM/perf_lab.html) plots a million points under
 live data.
 
 ## Using it

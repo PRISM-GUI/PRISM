@@ -18,7 +18,7 @@ There is no second copy of the value to keep in step.
 
 New to fields? Read [the model](../concepts/model.md) and [views](../concepts/views.md) first.
 Every widget below runs live in the
-[widget gallery](https://jeandet.github.io/PRISM/widget_gallery.html), in your browser.
+[widget gallery](https://prism-gui.github.io/PRISM/widget_gallery.html), in your browser.
 
 ## The families
 

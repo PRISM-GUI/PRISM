@@ -12,7 +12,7 @@ inline constexpr const char* sample_markdown = R"(# A document
 
 Write **Markdown** on the left, or edit *here*: each side follows the other.
 Select a word here and press Ctrl+B; type "## " at the start of a line for a heading.
-Inline `code`, ~~struck~~ text and [links](https://github.com/jeandet/PRISM) work too.
+Inline `code`, ~~struck~~ text and [links](https://github.com/PRISM-GUI/PRISM) work too.
 
 ## Lists
 

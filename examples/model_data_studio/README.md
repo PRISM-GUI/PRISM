@@ -22,7 +22,7 @@ The same window with each block outlined and named: every panel is one small str
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_data_studio.html).
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_data_studio.html).
   It builds the same year, so wait for the status line to say the trips are ready.
 - **On the desktop:** `ninja -C builddir examples/model_data_studio/model_data_studio`, then run
   `builddir/examples/model_data_studio/model_data_studio`. SQLite is fetched by the build if the

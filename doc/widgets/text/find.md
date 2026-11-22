@@ -47,5 +47,5 @@ Any ranges work, not only search hits: an error's position from a parser, a SQL 
 
 ## See also
 
-- [The gallery's Code tab](https://jeandet.github.io/PRISM/widget_gallery.html) has a find
+- [The gallery's Code tab](https://prism-gui.github.io/PRISM/widget_gallery.html) has a find
   and replace bar over its editor.

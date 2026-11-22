@@ -21,7 +21,7 @@ The same window with each block outlined and named: every panel is one small str
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_synth_rack.html).
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_synth_rack.html).
   Browsers start audio only after a click, so press **Power**.
 - **On the desktop:** `ninja -C builddir examples/model_synth_rack/model_synth_rack`, then run
   `builddir/examples/model_synth_rack/model_synth_rack`. With no sound card it still runs: the same

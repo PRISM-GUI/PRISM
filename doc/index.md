@@ -25,7 +25,7 @@ int main() {
 
 <img src="screenshots/counter.svg" alt="The counter app: a number and a text field" width="400"/>
 
-**Try it without installing anything:** the [live demos](https://jeandet.github.io/PRISM/) run the
+**Try it without installing anything:** the [live demos](https://prism-gui.github.io/PRISM/) run the
 real examples, compiled to WebAssembly.
 
 Where to start:
@@ -33,7 +33,7 @@ Where to start:
 - New here? Read [Why PRISM](start/why.md), then [Your first app](start/first-app.md).
 - Want to build it? [Install](start/install.md).
 - Looking for a widget? The [widget reference](widgets/index.md) has every one, with an example;
-  the [widget gallery](https://jeandet.github.io/PRISM/) lets you try them in the browser.
+  the [widget gallery](https://prism-gui.github.io/PRISM/) lets you try them in the browser.
 
 ```{toctree}
 :caption: Getting started

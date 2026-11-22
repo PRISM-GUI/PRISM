@@ -116,5 +116,5 @@ button to dock it back. On the desktop, floating panels are always real windows.
 
 - [Tabs and pages](layout/tabs.md): tabs the app arranges.
 - [Rows, columns and splits](layout/stacks.md).
-- The [system monitor](https://jeandet.github.io/PRISM/model_system_monitor.html) and the
-  [gallery's Docking tab](https://jeandet.github.io/PRISM/widget_gallery.html) are built on a dock.
+- The [system monitor](https://prism-gui.github.io/PRISM/model_system_monitor.html) and the
+  [gallery's Docking tab](https://prism-gui.github.io/PRISM/widget_gallery.html) are built on a dock.

@@ -18,7 +18,7 @@ It shows three things:
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/perf_lab.html): the same
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/perf_lab.html): the same
   workloads, built for the web.
 - **On the desktop:** `ninja -C builddir examples/perf_lab/perf_lab`, then
   `builddir/examples/perf_lab/perf_lab`.

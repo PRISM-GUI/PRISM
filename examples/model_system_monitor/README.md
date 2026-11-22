@@ -18,7 +18,7 @@ It shows three things:
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_system_monitor.html).
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_system_monitor.html).
   There is no `/proc` there, so it watches the simulated machine.
 - **On the desktop:** `ninja -C builddir examples/model_system_monitor/model_system_monitor`, then
   run `builddir/examples/model_system_monitor/model_system_monitor`.

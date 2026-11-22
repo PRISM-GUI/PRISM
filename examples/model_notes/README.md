@@ -19,7 +19,7 @@ It shows three things:
 
 ## Running the example
 
-- **In the browser:** open the [live demo](https://jeandet.github.io/PRISM/model_notes.html). A page
+- **In the browser:** open the [live demo](https://prism-gui.github.io/PRISM/model_notes.html). A page
   has no disk, so the build bundles PRISM's own sources and the tree opens on them.
 - **On the desktop:** `ninja -C builddir examples/model_notes/model_notes`, then
   `builddir/examples/model_notes/model_notes`. It reopens the file you had open last time and roots

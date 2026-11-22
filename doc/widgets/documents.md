@@ -58,7 +58,7 @@ A hard line break inside a paragraph becomes a space, and an image shows its alt
 | Enter in a list item | the next item; Enter on an empty item leaves the list |
 | Backspace at a block's start | the block becomes a paragraph again |
 
-The [gallery's Document tab](https://jeandet.github.io/PRISM/widget_gallery.html) shows
+The [gallery's Document tab](https://prism-gui.github.io/PRISM/widget_gallery.html) shows
 Markdown on the left and the rendering on the right, each editable and each following the
 other: the source is a code editor, the rendering a rich editor, and `to_markdown` writes one
 into the other.

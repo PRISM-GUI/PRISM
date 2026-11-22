@@ -1,7 +1,7 @@
 # Examples
 
 Eight complete apps, each with its own README. All of them also run in the browser, compiled to
-WebAssembly: see the [live demos](https://jeandet.github.io/PRISM/).
+WebAssembly: see the [live demos](https://prism-gui.github.io/PRISM/).
 
 New to PRISM? Read the [tour](tour/) first: five programs of 20 to 40 lines, one idea each, in
 order. Each one ends by pointing at the app below that does the same thing at scale.

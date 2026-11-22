@@ -21,7 +21,7 @@ NOTES = """# Notes
 Type **Markdown** here; it is rendered on the right as you type.
 
 - lists, *emphasis*, `code`
-- [links](https://github.com/jeandet/PRISM)
+- [links](https://github.com/PRISM-GUI/PRISM)
 
 ```python
 print("code blocks keep their language")
