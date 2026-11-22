@@ -306,21 +306,24 @@ void BasicCanvas<P>::fill_column(int x, float lo, float hi, Color c) {
 // centre lies within the strip's vertical half-extent of the line at the column's centre. That
 // is the centre rule the quad path applies, evaluated once per column instead of once per
 // segment and row (the digital oscilloscope's one run per column, for a thick line).
-// simplify: the ends are cut vertically instead of square, and no joins are drawn. A vertical
-// segment (a step in the data) is its own column's run from one end to the other. Upgrade:
-// coverage-weighted runs (anti-aliasing) if traces ever need to be smooth.
+// Only for segments rising or falling at most one pixel per pixel: a steeper strip is as tall as
+// the segment, so a run by the formula would overshoot its ends, and the quad path is cheap there
+// (a few rows). Those, and vertical steps, are drawn as lines.
+// simplify: a gentle segment's strip ends are cut at the column edges instead of square, and joins
+// are not drawn (the strips of two segments just meet). Upgrade: coverage-weighted runs
+// (anti-aliasing) if traces ever need to be smooth.
 template <class P>
 void BasicCanvas<P>::thick_trace(std::span<const Point> pts, Color c, float thickness) {
-    const float half = thickness / 2.f;
+    const float reach_base = thickness / 2.f;
     for (std::size_t i = 1; i < pts.size(); ++i) {
         const float x0 = pts[i - 1].x.raw(), y0 = pts[i - 1].y.raw();
         const float x1 = pts[i].x.raw(), y1 = pts[i].y.raw();
-        if (x1 <= x0) {
-            fill_column(static_cast<int>(std::floor(x0)), std::min(y0, y1) - half, std::max(y0, y1) + half, c);
+        const float slope = x1 > x0 ? (y1 - y0) / (x1 - x0) : 0.f;
+        if (!(x1 > x0) || std::abs(slope) > 1.f) {
+            line(pts[i - 1], pts[i], c, thickness);
             continue;
         }
-        const float slope = (y1 - y0) / (x1 - x0);
-        const float reach = half * std::sqrt(1.f + slope * slope);
+        const float reach = reach_base * std::sqrt(1.f + slope * slope);
         const int k0 = std::max(span_begin(x0), clip_.x0), k1 = std::min(span_end(x1), clip_.x1);
         for (int k = k0; k < k1; ++k) {
             const float y = y0 + slope * (static_cast<float>(k) + 0.5f - x0);

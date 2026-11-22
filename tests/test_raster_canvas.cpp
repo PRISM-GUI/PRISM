@@ -303,6 +303,22 @@ TEST_CASE("a steep rise in a thick polyline leaves no gap") {
     }
 }
 
+TEST_CASE("a steep spike in a thick polyline does not overshoot its end points") {
+    const Color white = Color::rgba(255, 255, 255);
+    for (const float thickness : {1.5f, 2.f, 4.f}) {
+        Fb<30, 80> fb;
+        fb.canvas.polyline(Pts{pt(5.f, 20.f), pt(10.f, 20.f), pt(11.f, 60.f), pt(12.f, 20.f), pt(20.f, 20.f)},
+                           white, thickness);
+        int lowest = -1, highest = 80;
+        for (int y = 0; y < 80; ++y)
+            for (int x = 0; x < 30; ++x)
+                if (fb.touched(x, y)) { lowest = std::max(lowest, y); highest = std::min(highest, y); }
+        CAPTURE(thickness);
+        CHECK(lowest <= 60 + thickness);
+        CHECK(highest >= 20 - thickness);
+    }
+}
+
 TEST_CASE("a polyline that goes back in x is its segments, pixel for pixel") {
     const Color white = Color::rgba(255, 255, 255);
     const Pts pts{pt(10.f, 10.f), pt(60.f, 30.f), pt(30.f, 45.f), pt(90.f, 50.f), pt(70.f, 5.f)};
