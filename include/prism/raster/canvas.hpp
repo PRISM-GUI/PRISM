@@ -118,6 +118,8 @@ private:
     [[nodiscard]] std::pair<int, int> clip_rows(int y0, int y1) const;  // [y0, y1) cut to the clip
     [[nodiscard]] pixel* row(int y) const;                // frame row y in the buffer
     void fill_span(int y, int xa, int xb, Color c);       // row y, pixels [xa, xb), clip applied
+    void fill_column(int x, float lo, float hi, Color c); // column x, the rows whose centre is in [lo, hi)
+    void thick_trace(std::span<const Point> pts, Color c, float thickness);  // polyline() fast path
     void fill_xspan(int y, float xa, float xb, Color c);  // centre rule on a float x span
     // x span (floats, centre rule) of the rounded rect at row y; nullopt when the row misses it.
     [[nodiscard]] std::optional<std::pair<float, float>> rounded_span(int y, Rect r, float radius) const;

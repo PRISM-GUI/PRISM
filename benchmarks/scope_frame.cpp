@@ -22,6 +22,7 @@
 namespace {
 
 constexpr int W = 800, H = 480;
+constexpr float kScale = 1.5f;   // the board's FrameOptions::ui_scale (CONFIG_PRISM_UI_SCALE_PERCENT)
 using Clock = std::chrono::steady_clock;
 
 double ms_since(Clock::time_point t0)
@@ -59,6 +60,7 @@ double draw_banded(const prism::render::SceneSnapshot& snap, const prism::raster
     constexpr int kRepeats = 50;
     std::vector<std::uint32_t> band_pixels(std::size_t(W) * kBandRows);
     prism::raster::Canvas band{band_pixels, W, kBandRows, W, 0};
+    band.set_ui_scale(kScale);
     const auto t0 = Clock::now();
     for (int r = 0; r < kRepeats; ++r)
         for (int y = 0; y < H; y += kBandRows) {
@@ -82,6 +84,7 @@ int main()
     tree.set_text_measurer(&fonts);
     std::vector<std::uint32_t> pixels(std::size_t(W) * H);
     prism::raster::Canvas canvas{pixels, W, H, W};
+    canvas.set_ui_scale(kScale);
 
     constexpr int kFrames = 50;
     double tick = 0, record = 0, draw = 0;
@@ -93,7 +96,7 @@ int main()
         prism_examples::scope_tick(model, state);   // new samples: both plots change
         tick += ms_since(t0);
         t0 = Clock::now();
-        snap = tree.build_snapshot(float(W), float(H), 1);
+        snap = tree.build_snapshot(float(W) / kScale, float(H) / kScale, 1);
         tree.clear_dirty();
         record += ms_since(t0);
         t0 = Clock::now();

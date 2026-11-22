@@ -254,6 +254,73 @@ TEST_CASE("a band canvas clips to its rows and retargets to the next band") {
     CHECK(c.clip().origin.y.raw() == 14.f);
 }
 
+namespace {
+
+using Pts = std::vector<Point>;
+
+Pts sine_trace(float amplitude, float step) {
+    Pts pts;
+    for (float x = 4.f; x < 196.f; x += step)
+        pts.push_back(pt(x, 30.f + amplitude * std::sin(x * 0.15f)));
+    return pts;
+}
+
+// The same points drawn one segment at a time: what a polyline is defined as.
+template <class F>
+void draw_segments(F& fb, const Pts& pts, Color c, float thickness) {
+    for (std::size_t i = 1; i < pts.size(); ++i) fb.canvas.line(pts[i - 1], pts[i], c, thickness);
+}
+
+} // namespace
+
+TEST_CASE("a thick polyline that only goes right covers the pixels of its segments, within a margin") {
+    const Color white = Color::rgba(255, 255, 255);
+    for (const float thickness : {1.5f, 2.f, 3.f}) {
+        for (const float step : {0.5f, 1.f, 3.f}) {
+            const Pts pts = sine_trace(20.f, step);
+            Fb<200, 60> whole, apart;
+            whole.canvas.polyline(pts, white, thickness);
+            draw_segments(apart, pts, white, thickness);
+            int differ = 0;
+            for (int y = 0; y < 60; ++y)
+                for (int x = 0; x < 200; ++x) differ += whole.touched(x, y) != apart.touched(x, y);
+            CAPTURE(thickness);
+            CAPTURE(step);
+            CHECK(differ <= apart.count_touched() / 8);
+        }
+    }
+}
+
+TEST_CASE("a steep rise in a thick polyline leaves no gap") {
+    const Color white = Color::rgba(255, 255, 255);
+    Fb<40, 60> fb;
+    fb.canvas.polyline(Pts{pt(5.f, 5.f), pt(20.f, 5.f), pt(21.f, 50.f), pt(35.f, 50.f)}, white, 2.f);
+    for (int y = 6; y < 50; ++y) {
+        bool any = false;
+        for (int x = 18; x < 24; ++x) any = any || fb.touched(x, y);
+        CAPTURE(y);
+        CHECK(any);
+    }
+}
+
+TEST_CASE("a polyline that goes back in x is its segments, pixel for pixel") {
+    const Color white = Color::rgba(255, 255, 255);
+    const Pts pts{pt(10.f, 10.f), pt(60.f, 30.f), pt(30.f, 45.f), pt(90.f, 50.f), pt(70.f, 5.f)};
+    Fb<100, 60> whole, apart;
+    whole.canvas.polyline(pts, white, 2.f);
+    draw_segments(apart, pts, white, 2.f);
+    CHECK(whole.px == apart.px);
+}
+
+TEST_CASE("a thin polyline (one pixel or less) is its segments, pixel for pixel") {
+    const Color white = Color::rgba(255, 255, 255);
+    const Pts pts = sine_trace(20.f, 1.f);
+    Fb<200, 60> whole, apart;
+    whole.canvas.polyline(pts, white, 1.f);
+    draw_segments(apart, pts, white, 1.f);
+    CHECK(whole.px == apart.px);
+}
+
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
 // The bounds check is always on, so the child is a fork whose death is inspected with waitpid.
 namespace {
