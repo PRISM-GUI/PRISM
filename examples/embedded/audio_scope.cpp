@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdio>
+#include <fmt/format.h>
 #include <numeric>
 #include <string>
 
@@ -35,14 +35,11 @@ struct LogBinSource {
 std::string hz_label(double log10_hz)
 {
     const double hz = std::pow(10.0, log10_hz);
-    char text[16];
     if (hz < 1000.0)
-        std::snprintf(text, sizeof text, "%.0f", hz);
-    else if (std::abs(hz / 1000.0 - std::round(hz / 1000.0)) < 0.05)
-        std::snprintf(text, sizeof text, "%.0fk", hz / 1000.0);
-    else
-        std::snprintf(text, sizeof text, "%.1fk", hz / 1000.0);
-    return text;
+        return fmt::format("{:.0f}", hz);
+    if (std::abs(hz / 1000.0 - std::round(hz / 1000.0)) < 0.05)
+        return fmt::format("{:.0f}k", hz / 1000.0);
+    return fmt::format("{:.1f}k", hz / 1000.0);
 }
 
 AxisRange fixed(double min, double max) { return {.min = min, .max = max, .auto_fit = false}; }
@@ -194,21 +191,23 @@ void scope_show_stats(ScopeModel &model, ScopeState &state, std::string_view lin
 void ScopeState::show_level(ScopeModel &model)
 {
     const char *name = source_.name();
-    int n = 0;
+    // Into the fixed buffer, not a std::string: the title is redone every second, and a board's
+    // steady state allocates nothing.
+    auto &buf = title_text_;
+    const auto limit = buf.size() - 1;
+    fmt::format_to_n_result<char *> out{};
     if (samples_since_report_ == 0)
-        n = std::snprintf(title_text_.data(), title_text_.size(), "PRISM · %s · no samples", name);
+        out = fmt::format_to_n(buf.data(), limit, "PRISM · {} · no samples", name);
     else if (peak_since_report_ == 0.f)
-        n = std::snprintf(title_text_.data(), title_text_.size(), "PRISM · %s · %zu S/s · silent",
-                          name, samples_since_report_);
+        out = fmt::format_to_n(buf.data(), limit, "PRISM · {} · {} S/s · silent", name, samples_since_report_);
     else
     {
         // + 0.0 turns a rounded -0.00 into 0.00.
         const double dc = std::round(sum_since_report_ / double(samples_since_report_) * 100.0) / 100.0 + 0.0;
-        n = std::snprintf(title_text_.data(), title_text_.size(),
-                          "PRISM · %s · %zu S/s · dc %+.2f · peak %.0f dBFS", name, samples_since_report_, dc,
-                          20.0 * std::log10(double(peak_since_report_)));
+        out = fmt::format_to_n(buf.data(), limit, "PRISM · {} · {} S/s · dc {:+.2f} · peak {:.0f} dBFS", name,
+                               samples_since_report_, dc, 20.0 * std::log10(double(peak_since_report_)));
     }
-    const std::string_view text(title_text_.data(), std::size_t(std::clamp(n, 0, int(title_text_.size()) - 1)));
+    const std::string_view text(buf.data(), std::min(out.size, limit));
     model.title.mutate([text](prism::ui::Label<> &label) { label.value.assign(text); });
     samples_since_report_ = 0;
     peak_since_report_ = 0.f;

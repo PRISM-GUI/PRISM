@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cmath>
-#include <cstdio>
+#include <fmt/format.h>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -38,9 +38,7 @@ Color from_hsv(Hsv c, uint8_t alpha) {
 }
 
 std::string to_hex(Color c) {
-    char buf[8];
-    std::snprintf(buf, sizeof buf, "#%02X%02X%02X", c.r, c.g, c.b);
-    return buf;
+    return fmt::format("#{:02X}{:02X}{:02X}", c.r, c.g, c.b);
 }
 
 std::optional<Color> parse_hex(std::string_view s) {

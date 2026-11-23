@@ -7,7 +7,7 @@
 #include <array>
 #include <cctype>
 #include <charconv>
-#include <cstdio>
+#include <fmt/format.h>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -17,10 +17,8 @@ namespace prism::ui {
 namespace date_detail {
 
 std::string to_iso(year_month_day d) {
-    char buf[16];
-    std::snprintf(buf, sizeof buf, "%04d-%02u-%02u", static_cast<int>(d.year()), static_cast<unsigned>(d.month()),
-                  static_cast<unsigned>(d.day()));
-    return buf;
+    return fmt::format("{:04}-{:02}-{:02}", static_cast<int>(d.year()), static_cast<unsigned>(d.month()),
+                       static_cast<unsigned>(d.day()));
 }
 
 std::optional<year_month_day> parse_iso(std::string_view s) {

@@ -4,7 +4,7 @@
 
 #include <cctype>
 #include <charconv>
-#include <cstdio>
+#include <fmt/format.h>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,9 +14,7 @@ namespace prism::ui {
 namespace time_detail {
 
 std::string to_text(TimeOfDay t) {
-    char buf[8];
-    std::snprintf(buf, sizeof buf, "%02d:%02d", t.hour, t.minute);
-    return buf;
+    return fmt::format("{:02}:{:02}", t.hour, t.minute);
 }
 
 std::optional<TimeOfDay> parse(std::string_view s) {
