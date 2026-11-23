@@ -80,7 +80,13 @@ struct SizeHint {
 };
 
 namespace layout_detail {
-    inline const Theme layout_default_theme = default_theme();
+    // Made on first use, not as a global: a Theme allocates (its node families' names), and a
+    // global initializer would run before main -- on a board, before the RAM the heap lives in
+    // is up (the STM32F746 hard-faulted there).
+    inline const Theme& layout_default_theme() {
+        static const Theme theme = default_theme();
+        return theme;
+    }
 }
 
 struct LayoutNode {
@@ -107,7 +113,7 @@ struct LayoutNode {
     size_t table_column_count = 0;
     Height table_header_h{0};
     std::vector<float> split_sizes;  // main-axis size per pane; meaningful only for Kind::Row/Column when split mode is engaged
-    const Theme* theme = &layout_detail::layout_default_theme;
+    const Theme* theme = &layout_detail::layout_default_theme();
     float spacer_size = 0.f;   // Kind::Spacer: 0 stretches, more is a fixed gap
     std::optional<float> canvas_min_width;   // only meaningful for Kind::Canvas
     std::optional<float> canvas_min_height;  // only meaningful for Kind::Canvas
