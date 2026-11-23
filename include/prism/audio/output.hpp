@@ -6,6 +6,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <string_view>
 
 // Sound out: a playback device that calls a render function on its own thread. The render
 // function fills one block of interleaved float samples; it runs on a real-time thread, so it
@@ -13,8 +14,9 @@
 //
 // When no device opens (no sound card, a headless machine, a browser that has not started audio
 // yet) a timer thread calls the same function at the block rate instead: exactly one thread
-// renders either way, so whatever reads the samples stays live. playing() and error() say which.
-// The SDL implementation lives in the software backend's library (src/backends/sdl_audio.cpp).
+// renders either way, so whatever reads the samples stays live. state() and error() say which.
+// Devices come from the platform backends (prism/audio/backend.hpp): SDL on the desktop, the
+// board's codec and Bluetooth stack in prism-esp32. None registered: the timer.
 namespace prism::audio {
 
 inline constexpr int kMaxBlockFrames = 2048;   // the largest block one call renders
@@ -54,19 +56,35 @@ void convert(std::span<const std::int16_t> in, std::span<float> out, float gain 
 void apply_gain(std::span<float> samples, float gain);
 void apply_gain(std::span<std::int16_t> samples, float gain);
 
+// What an Output is doing: rendering on its device, rendering on the timer instead because no
+// device opened, or lost because its device went away or never opened. Lost is sticky.
+enum class State { playing, timer, lost };
+
 class Output {
 public:
     // Starts rendering at once, on a device or, failing that, on the timer.
     Output(Format format, RenderFn render);
+    // The same, for a render function that fills s16 blocks (a decoded track): converted to the
+    // device's own sample type.
+    Output(Format format, SampleRenderFn<std::int16_t> render);
+    // Plays on the device `id`: one that is missing, refuses `format` or fails to open leaves the
+    // Output lost instead of falling back to the timer.
+    Output(std::string_view id, Format format, RenderFn render);
+    Output(std::string_view id, Format format, SampleRenderFn<std::int16_t> render);
     ~Output();   // stops the thread that renders; render is never called after it returns
 
     Output(const Output&) = delete;
     Output& operator=(const Output&) = delete;
 
-    [[nodiscard]] bool playing() const;              // false: the timer renders, silently
-    [[nodiscard]] const std::string& error() const;  // why no device opened
+    [[nodiscard]] State state() const;
+    [[nodiscard]] bool playing() const;              // state() == State::playing
+    [[nodiscard]] const std::string& error() const;  // why no device opened, or why it was lost
     [[nodiscard]] Format format() const;
     [[nodiscard]] Load load() const;
+
+    // 0..1. The device applies it when it can (hardware volume); otherwise Output scales the
+    // samples on their way out.
+    void set_volume(float volume);
 
     struct Impl;
 
