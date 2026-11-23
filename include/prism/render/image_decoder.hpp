@@ -13,7 +13,7 @@
 #include <vector>
 
 // Image files (PNG, JPEG, SVG, ...) decoded into an Image. The decoders are registered backends,
-// like the audio devices: SDL3_image registers one as it loads, a board registers its hardware
+// like the audio devices: SDL3_image's is there from the start, a board registers its hardware
 // JPEG engine, and a build with none reports "no image decoder". Safe to call from any thread.
 namespace prism::render {
 

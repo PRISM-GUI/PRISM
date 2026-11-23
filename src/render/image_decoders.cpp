@@ -1,5 +1,9 @@
 #include <prism/render/image_decoder.hpp>
 
+#if defined(PRISM_SDL_BACKENDS)
+#include "../backends/sdl_registered.hpp"
+#endif
+
 #include <algorithm>
 #include <exception>
 #include <fstream>
@@ -20,8 +24,18 @@ std::shared_mutex& registry_mutex() {
     return mutex;
 }
 
+// SDL_image's decoder is there from the start when the software backend is built: named here, not
+// registered from a static object, which a static link would drop (backends/sdl_registered.hpp).
+std::vector<ImageDecoder*> initial_decoders() {
+#if defined(PRISM_SDL_BACKENDS)
+    return {&sdl_image_decoder()};
+#else
+    return {};
+#endif
+}
+
 std::vector<ImageDecoder*>& registry() {
-    static std::vector<ImageDecoder*> registered;
+    static std::vector<ImageDecoder*> registered = initial_decoders();
     return registered;
 }
 

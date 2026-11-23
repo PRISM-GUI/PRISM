@@ -1,5 +1,9 @@
 #include <prism/audio/backend.hpp>
 
+#if defined(PRISM_SDL_BACKENDS)
+#include "../backends/sdl_registered.hpp"
+#endif
+
 #include <algorithm>
 #include <iterator>
 #include <mutex>
@@ -17,9 +21,20 @@ std::mutex& registry_mutex()
     return mutex;
 }
 
+// SDL's devices are there from the start when the software backend is built: named here, not
+// registered from a static object, which a static link would drop (backends/sdl_registered.hpp).
+std::vector<DeviceBackend*> initial_backends()
+{
+#if defined(PRISM_SDL_BACKENDS)
+    return {&sdl_audio_backend()};
+#else
+    return {};
+#endif
+}
+
 std::vector<DeviceBackend*>& registry()
 {
-    static std::vector<DeviceBackend*> backends;
+    static std::vector<DeviceBackend*> backends = initial_backends();
     return backends;
 }
 

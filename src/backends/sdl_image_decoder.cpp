@@ -1,7 +1,9 @@
-// The SDL3_image decoder, registered as this library loads: a program that links the SDL backend
-// reads PNG, JPEG, SVG and the rest with no call of its own.
+// The SDL3_image decoder, in the registry from the start (render/image_decoders.cpp): a program that
+// links the SDL backend reads PNG, JPEG, SVG and the rest with no call of its own.
 #include <prism/render/image_decoder.hpp>
 #include <prism/render/image_ops.hpp>
+
+#include "sdl_registered.hpp"
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -71,11 +73,12 @@ public:
     }
 };
 
-SdlImageDecoder decoder;
-
-struct Registered {
-    Registered() { register_decoder(decoder); }
-} registered;
-
 } // namespace
+
+// One decoder for the process, made on first use: render/image_decoders.cpp starts with it.
+ImageDecoder& sdl_image_decoder() {
+    static SdlImageDecoder decoder;
+    return decoder;
+}
+
 } // namespace prism::render

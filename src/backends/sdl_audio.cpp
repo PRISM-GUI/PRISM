@@ -1,5 +1,7 @@
 #include <prism/audio/backend.hpp>
 
+#include "sdl_registered.hpp"
+
 #include <SDL3/SDL.h>
 
 #include <algorithm>
@@ -162,13 +164,13 @@ public:
     }
 };
 
-// The software backend library is loaded once per process, so a static object registers SDL's
-// devices before the first Output is built. It stays registered for the life of the library.
-SdlBackend backend;
-
-struct Registered {
-    Registered() { register_backend(backend); }
-} registered;
-
 } // namespace
+
+// One backend for the process, made on first use: audio/registry.cpp starts with it.
+DeviceBackend& sdl_audio_backend()
+{
+    static SdlBackend backend;
+    return backend;
+}
+
 } // namespace prism::audio
