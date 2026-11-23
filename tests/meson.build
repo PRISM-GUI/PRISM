@@ -174,6 +174,7 @@ headless_tests = {
   'raster_fonts' : files('test_raster_fonts.cpp'),
   'raster_pixel' : files('test_raster_pixel.cpp'),
   'spsc_ring' : files('test_spsc_ring.cpp'),
+  'audio_convert' : files('test_audio_convert.cpp'),
 }
 
 foreach name, src : headless_tests

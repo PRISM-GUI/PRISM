@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -32,8 +33,26 @@ struct Load {
     float budget_ms = 0.f;   // how long one block takes to play
 };
 
+// The two sample types a device block holds: float, or 16-bit signed scaled to [-1, 1].
+enum class SampleType { s16, f32 };
+
+template <class T>
+concept Sample = std::same_as<T, float> || std::same_as<T, std::int16_t>;
+
 // `interleaved` holds frames * channels samples, frames <= kMaxBlockFrames.
-using RenderFn = std::function<void(std::span<float> interleaved)>;
+template <Sample T>
+using SampleRenderFn = std::function<void(std::span<T> interleaved)>;
+
+using RenderFn = SampleRenderFn<float>;
+
+// Copies min(in.size(), out.size()) samples, scaling by `gain` first. Full scale is 1.f and the
+// s16 side clamps, so a gain over 1 saturates instead of wrapping.
+void convert(std::span<const float> in, std::span<std::int16_t> out, float gain = 1.f);
+void convert(std::span<const std::int16_t> in, std::span<float> out, float gain = 1.f);
+
+// Scales samples in place; the s16 overload saturates at the ends of its range.
+void apply_gain(std::span<float> samples, float gain);
+void apply_gain(std::span<std::int16_t> samples, float gain);
 
 class Output {
 public:
