@@ -694,10 +694,10 @@ TEST_CASE("a band sink's frame equals a frame sink's frame")
         MemoryBandSink<prism::raster::Rgb565> banded;
         run_one_frame(banded);
         REQUIRE(banded.presents >= 1);
-        int far = 0;
+        int off = 0;
         for (std::size_t i = 0; i < whole.pixels.size(); ++i)
-            far += !near_565(banded.frame[i], to_rgb565(whole.pixels[i]));
-        CHECK(far == 0);
+            off += !near_565(banded.frame[i], to_rgb565(whole.pixels[i]));
+        CHECK(off == 0);
         CHECK(banded.frame.front() == to_rgb565(whole.pixels.front()));
     }
 }
