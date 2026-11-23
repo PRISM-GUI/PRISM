@@ -174,6 +174,7 @@ headless_tests = {
   'raster_fonts' : files('test_raster_fonts.cpp'),
   'raster_pixel' : files('test_raster_pixel.cpp'),
   'image_ops' : files('test_image_ops.cpp'),
+  'paint_image' : files('test_paint_image.cpp'),
   'spsc_ring' : files('test_spsc_ring.cpp'),
   'audio_convert' : files('test_audio_convert.cpp'),
   'audio_render_gate' : files('test_audio_render_gate.cpp'),
