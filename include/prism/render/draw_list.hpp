@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <span>
 #include <memory>
 #include <expected>
@@ -113,9 +114,14 @@ struct FilledPolygon {
     bool operator==(const FilledPolygon&) const = default;
 };
 
-// Immutable RGBA8 pixels (row-major, 4 bytes per pixel, straight alpha). Shared by pointer: draw
-// lists hand them to the render thread, and each backend uploads an image once, keyed by id().
-// Format-free: files (PNG, SVG, ...) are decoded into it by render/image_decoder.hpp.
+// How an Image's pixels are stored. rgba8888 is four bytes a pixel, straight alpha; rgb565 is one
+// native-endian uint16_t a pixel, packed as raster::Rgb565::pack does. Resizing and converting
+// between them is render/image_ops.hpp.
+enum class PixelFormat : std::uint8_t { rgba8888, rgb565 };
+
+// Immutable pixels, row-major, in `format()`. Shared by pointer: draw lists hand them to the render
+// thread, and each backend uploads an image once, keyed by id(). Files (PNG, SVG, ...) are decoded
+// into it by render/image_decoder.hpp.
 class Image {
 public:
     static std::expected<std::shared_ptr<const Image>, std::string>
@@ -123,11 +129,22 @@ public:
         if (width <= 0 || height <= 0) return std::unexpected("image size must be positive");
         if (rgba.size() != static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4)
             return std::unexpected("pixel data does not match width x height x 4");
-        return std::shared_ptr<const Image>(new Image(width, height, std::move(rgba)));
+        return std::shared_ptr<const Image>(new Image(width, height, PixelFormat::rgba8888, std::move(rgba)));
+    }
+
+    static std::expected<std::shared_ptr<const Image>, std::string>
+    from_rgb565(int width, int height, std::vector<std::uint16_t> pixels) {
+        if (width <= 0 || height <= 0) return std::unexpected("image size must be positive");
+        if (pixels.size() != static_cast<std::size_t>(width) * static_cast<std::size_t>(height))
+            return std::unexpected("pixel data does not match width x height");
+        std::vector<std::uint8_t> bytes(pixels.size() * 2);
+        std::memcpy(bytes.data(), pixels.data(), bytes.size());
+        return std::shared_ptr<const Image>(new Image(width, height, PixelFormat::rgb565, std::move(bytes)));
     }
 
     int width() const { return width_; }
     int height() const { return height_; }
+    PixelFormat format() const { return format_; }
     std::span<const std::uint8_t> pixels() const { return pixels_; }
     std::uint64_t id() const { return id_; }
     // A one-color icon, stored white: widgets draw it in the color of their text (see symbolic()).
@@ -137,18 +154,20 @@ public:
     std::shared_ptr<const Image> as_symbolic() const {
         auto px = pixels_;
         for (std::size_t i = 0; i + 3 < px.size(); i += 4) px[i] = px[i + 1] = px[i + 2] = 255;
-        auto img = std::shared_ptr<Image>(new Image(width_, height_, std::move(px)));
+        auto img = std::shared_ptr<Image>(new Image(width_, height_, format_, std::move(px)));
         img->symbolic_ = true;
         return img;
     }
 
 private:
-    Image(int w, int h, std::vector<std::uint8_t> px) : width_(w), height_(h), pixels_(std::move(px)) {}
+    Image(int w, int h, PixelFormat format, std::vector<std::uint8_t> px)
+        : width_(w), height_(h), format_(format), pixels_(std::move(px)) {}
     static std::uint64_t next_id() {
         static std::atomic<std::uint64_t> counter{1};
         return counter.fetch_add(1, std::memory_order_relaxed);
     }
     int width_, height_;
+    PixelFormat format_;
     std::vector<std::uint8_t> pixels_;
     std::uint64_t id_ = next_id();
     bool symbolic_ = false;

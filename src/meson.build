@@ -51,6 +51,7 @@ prism_lib_sources = [
   'audio/convert.cpp',
   'core/shared_state.cpp',
   'render/damage.cpp',
+  'render/image_ops.cpp',
   'render/scene_snapshot.cpp',
   'render/view_transform.cpp',
   'nodes/board_view.cpp',
