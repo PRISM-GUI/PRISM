@@ -13,6 +13,8 @@
 #include <prism/core/field.hpp>
 #include <prism/input/input_event.hpp>
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <any>
 #include <cmath>
@@ -759,15 +761,19 @@ namespace delegate_detail {
 // As many decimals as the step has: 0.1 -> 1, 0.05 -> 2, 50 -> 0. A continuous float slider: 2.
 template <Numeric T>
 std::string slider_value_text(T value, T step, std::string_view unit) {
-    char buf[48];
-    std::to_chars_result r;
-    if constexpr (std::integral<T>) r = std::to_chars(buf, buf + sizeof buf, value);
-    else {
-        int decimals = step == T{0} ? 2
+    std::string out;
+    if constexpr (std::integral<T>) {
+        char buf[48];
+        const std::to_chars_result r = std::to_chars(buf, buf + sizeof buf, value);
+        out.assign(buf, r.ptr);
+    } else {
+        // fmt, not std::to_chars: libstdc++'s floating-point to_chars drags in ~113 KiB of
+        // power-of-ten tables plus the locale facets (~145 KiB), which the embedded builds cannot
+        // afford, and fmt's float formatting is already in every build that shows a number.
+        const int decimals = step == T{0} ? 2
                      : std::clamp(static_cast<int>(std::ceil(-std::log10(static_cast<double>(step)) - 1e-9)), 0, 6);
-        r = std::to_chars(buf, buf + sizeof buf, static_cast<double>(value), std::chars_format::fixed, decimals);
+        out = fmt::format("{:.{}f}", static_cast<double>(value), decimals);
     }
-    std::string out(buf, r.ptr);
     if (!unit.empty()) out.append(" ").append(unit);
     return out;
 }

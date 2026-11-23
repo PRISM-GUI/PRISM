@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <format>
+#include <fmt/format.h>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -73,7 +73,7 @@ std::string waveform_text(const std::vector<double>& samples) {
     for (const double sample : samples) {
         peak = std::max(peak, std::abs(sample));
     }
-    return std::format("{} samples · peak {:.2f}", samples.size(), peak);
+    return fmt::format("{} samples · peak {:.2f}", samples.size(), peak);
 }
 
 // A value of another type shows the fallback: a probe never throws.
@@ -87,8 +87,8 @@ std::function<std::string(const std::any&)> guarded(std::string fallback, Fn fn)
 
 std::function<std::string(const std::any&)> builtin_formatter(std::string_view name) {
     const std::string fallback{name};
-    if (name == "number") return guarded<double>(fallback, [](double n) { return std::format("{:.3g}", n); });
-    if (name == "integer") return guarded<int>(fallback, [](int n) { return std::format("{}", n); });
+    if (name == "number") return guarded<double>(fallback, [](double n) { return fmt::format("{:.3g}", n); });
+    if (name == "integer") return guarded<int>(fallback, [](int n) { return fmt::format("{}", n); });
     if (name == "boolean") return guarded<bool>(fallback, [](bool b) { return std::string(b ? "true" : "false"); });
     if (name == "text") return guarded<std::string>(fallback, quote_and_cut);
     if (name == "waveform") return guarded<std::vector<double>>(fallback, waveform_text);
