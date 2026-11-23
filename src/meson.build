@@ -6,6 +6,13 @@ if host_machine.system() == 'none'
 else
   fmt_dep = dependency('fmt', fallback : ['fmt', 'fmt_dep'])
 endif
+# Header-only {fmt} instantiates its localized-formatting path (write_loc) in every translation
+# unit that formats, and that path constructs a std::locale: libstdc++'s locale facets and
+# wide-char streams follow it into the image (~184 KiB), which a 1 MiB Cortex-M part cannot pay.
+# With fmt_locale=false {fmt} ignores the L flag instead; nothing in PRISM formats with it.
+if not get_option('fmt_locale')
+  fmt_dep = declare_dependency(dependencies : fmt_dep, compile_args : ['-DFMT_USE_LOCALE=0'])
+endif
 
 if not has_reflection
   # test=false here, not as -Dmagic_enum:test=false on the command line: with reflection the

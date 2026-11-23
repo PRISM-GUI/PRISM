@@ -25,3 +25,5 @@ option('profiling_events', type : 'integer', value : 65536, min : 1,
        description : 'Events in each thread ring of the global profile recorder (with -Dprofiling=enabled)')
 option('profiling_threads', type : 'integer', value : 32, min : 1,
        description : 'Thread rings of the global profile recorder (with -Dprofiling=enabled)')
+option('fmt_locale', type : 'boolean', value : true,
+       description : 'Keep {fmt}\'s localized {{:L}} formatting. Off defines FMT_USE_LOCALE=0: {fmt} then ignores the L flag, and libstdc++\'s locale facets and wide-char streams leave the image (~184 KiB on the Cortex-M builds)')
