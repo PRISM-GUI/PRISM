@@ -175,7 +175,6 @@ headless_tests = {
   'raster_pixel' : files('test_raster_pixel.cpp'),
   'spsc_ring' : files('test_spsc_ring.cpp'),
   'audio_convert' : files('test_audio_convert.cpp'),
-  'audio_device' : files('test_audio_device.cpp'),
 }
 
 foreach name, src : headless_tests
@@ -373,6 +372,8 @@ endif
 test_audio_output = executable('test_audio_output', files('test_audio_output.cpp'),
   dependencies : [prism_software_backend_dep, doctest_dep],
 )
+test('audio_device', executable('test_audio_device', files('test_audio_device.cpp'),
+  dependencies : [prism_software_backend_dep, doctest_dep]))
 test('audio_output_device', test_audio_output, args : ['-tc=device:*'],
      env : {'SDL_AUDIO_DRIVER' : 'dummy'})
 test('audio_output_timer', test_audio_output, args : ['-tc=timer:*'],

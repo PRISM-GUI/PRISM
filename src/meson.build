@@ -49,9 +49,6 @@ prism_lib_sources = [
   'app/view_builder.cpp',
   'app/widget_tree.cpp',
   'audio/convert.cpp',
-  'audio/manual_device.cpp',
-  'audio/output.cpp',
-  'audio/registry.cpp',
   'core/shared_state.cpp',
   'render/damage.cpp',
   'render/scene_snapshot.cpp',
@@ -85,6 +82,15 @@ prism_lib_sources = [
   # ports drive a Recorder directly, with or without PRISM_PROFILING.
   'profile/recorder.cpp',
 ]
+
+# Output, its device registry and ManualDevice live with the platform's audio backend: on the
+# desktop in the SDL backend's library, so a program that makes an Output links SDL's devices too
+# (a registration in a library nothing references would be dropped by --as-needed); without SDL
+# (bare metal, ESP-IDF) in libprism, where the board registers its own devices.
+prism_audio_sources = ['audio/manual_device.cpp', 'audio/output.cpp', 'audio/registry.cpp']
+if not sdl_enabled
+  prism_lib_sources += prism_audio_sources
+endif
 # The global recorder behind the PRISM_PROFILE_* marks: only with -Dprofiling=enabled, which
 # also puts -DPRISM_PROFILING/-DPRISM_PROFILING_EVENTS/-DPRISM_PROFILING_THREADS on
 # prism_header_args (meson.build).
@@ -224,6 +230,7 @@ endif
 sdl_webgpu_src = prism_webgpu_dep.found() ? 'backends/sdl_webgpu.cpp' : 'backends/sdl_webgpu_stub.cpp'
 
 prism_software_backend_lib = library('prism-software-backend',
+  prism_audio_sources,
   'backend.cpp',
   'backends/software_backend.cpp',
   'backends/sdl_window.cpp',

@@ -5,8 +5,10 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
 
+#include <prism/audio/backend.hpp>
 #include <prism/audio/output.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -49,7 +51,26 @@ audio::RenderFn counting_render(Calls& calls, int channels) {
     };
 }
 
-void wait_for(const Calls& calls, int n) {
+struct S16Calls {
+    std::atomic<int> count{0};
+    std::atomic<bool> wrong_size{false};
+};
+
+// The other render type: a player hands over its own s16 samples, so the device path must carry
+// them too.
+audio::SampleRenderFn<std::int16_t> counting_s16_render(S16Calls& calls, int channels) {
+    return [&calls, channels](std::span<std::int16_t> out) {
+        counting = true;
+        if (out.empty() || out.size() % static_cast<std::size_t>(channels) != 0
+            || out.size() > static_cast<std::size_t>(channels * audio::kMaxBlockFrames))
+            calls.wrong_size = true;
+        std::ranges::fill(out, std::int16_t{0});
+        calls.count.fetch_add(1);
+    };
+}
+
+template <class Counts>
+void wait_for(const Counts& calls, int n) {
     for (auto waited = 0ms; calls.count.load() < n && waited < 3000ms; waited += 5ms)
         std::this_thread::sleep_for(5ms);
 }
@@ -98,3 +119,27 @@ void check_no_allocation_between_blocks() {
 
 TEST_CASE("timer: nothing allocates on the rendering thread between blocks") { check_no_allocation_between_blocks(); }
 TEST_CASE("device: nothing allocates on the rendering thread between blocks") { check_no_allocation_between_blocks(); }
+
+TEST_CASE("device: devices lists SDL's default device") {
+    const auto all = audio::devices();
+    const auto found = std::ranges::find_if(all, [](const audio::DeviceInfo& info) { return info.is_default; });
+    REQUIRE(found != all.end());
+    CHECK(found->id == "sdl:default");
+    CHECK(found->native == audio::SampleType::f32);
+    CHECK(found->rates.empty());   // SDL converts whatever rate it is asked for
+    CHECK(found->max_channels >= 2);
+    CHECK(found->accepts({.sample_rate = 44100, .channels = 2, .block_frames = 512}));
+}
+
+TEST_CASE("device: an s16 render plays on SDL's device") {
+    S16Calls calls;
+    audio::Output out{{.sample_rate = 48000, .channels = 2, .block_frames = 512}, counting_s16_render(calls, 2)};
+    INFO("SDL: ", out.error());
+    CHECK(out.state() == audio::State::playing);
+    CHECK(out.error().empty());
+    wait_for(calls, 5);
+    CHECK(calls.count.load() >= 5);
+    CHECK_FALSE(calls.wrong_size.load());
+    CHECK(out.load().calls > 0);
+}
+
