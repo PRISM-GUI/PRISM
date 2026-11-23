@@ -1,6 +1,7 @@
 #pragma once
 
 #include <prism/render/draw_list.hpp>
+#include <prism/render/image_ops.hpp>
 #include <prism/render/png_encode.hpp>
 #include <prism/render/scene_snapshot.hpp>
 
@@ -85,10 +86,12 @@ struct SvgEmitter {
         return out;
     }
 
-    // The pixels themselves, as an embedded PNG (render/png_encode.hpp).
+    // The pixels themselves, as an embedded PNG (render/png_encode.hpp). PNG is 8-bit rgba, so an
+    // rgb565 image is converted once here rather than making tint() format-aware.
     void emit(const ImageCmd& c) {
         if (!c.image) return;
-        auto png = encode_png(c.image->width(), c.image->height(), tinted(c.image->pixels(), c.tint));
+        const auto image = converted(c.image, PixelFormat::rgba8888);
+        auto png = encode_png(image->width(), image->height(), tinted(image->pixels(), c.tint));
         out << "<image x=\"" << fmt_float(c.rect.origin.x.raw()) << "\" y=\"" << fmt_float(c.rect.origin.y.raw())
             << "\" width=\"" << fmt_float(c.rect.extent.w.raw()) << "\" height=\"" << fmt_float(c.rect.extent.h.raw())
             << "\" preserveAspectRatio=\"none\"";

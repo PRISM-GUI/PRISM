@@ -174,4 +174,22 @@ std::shared_ptr<const Image> converted(const std::shared_ptr<const Image>& image
     return fit_pixels(view_of(*image), box, format);
 }
 
+// Whitening is a per-pixel loop over four bytes, so an rgb565 image becomes rgba8888 first: doing
+// it in place would touch its neighbours' bytes.
+std::shared_ptr<const Image> Image::as_symbolic() const {
+    std::vector<std::uint8_t> px;
+    if (format_ == PixelFormat::rgba8888) {
+        px = pixels_;
+    } else {
+        const core::Size box{core::Width{static_cast<float>(width_)}, core::Height{static_cast<float>(height_)}};
+        const auto rgba = fit_pixels(view_of(*this), box, PixelFormat::rgba8888);
+        if (!rgba) return nullptr;
+        px.assign(rgba->pixels().begin(), rgba->pixels().end());
+    }
+    for (std::size_t i = 0; i + 3 < px.size(); i += 4) px[i] = px[i + 1] = px[i + 2] = 255;
+    auto image = std::shared_ptr<Image>(new Image(width_, height_, PixelFormat::rgba8888, std::move(px)));
+    image->symbolic_ = true;
+    return image;
+}
+
 } // namespace prism::render

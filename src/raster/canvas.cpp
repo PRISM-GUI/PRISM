@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 #include <limits>
 #include <cstdint>
+#include <type_traits>
 
 namespace prism::raster {
 using namespace prism::core;
@@ -383,28 +385,71 @@ void BasicCanvas<P>::filled_polygon(std::span<const Point> pts, Color c) {
     }
 }
 
+namespace {
+
+// rgb565's 5- and 6-bit channels, replicated into 8 bits the way raster::Rgb565::pack's inverse
+// would (unpack is private to the pixel type: this is its one public use).
+constexpr std::uint8_t expand5(std::uint16_t v) { return static_cast<std::uint8_t>((v << 3) | (v >> 2)); }
+constexpr std::uint8_t expand6(std::uint16_t v) { return static_cast<std::uint8_t>((v << 2) | (v >> 4)); }
+
+// One image pixel as straight-alpha rgba; rgb565 has no alpha channel, so it is opaque there.
+Color image_pixel(std::span<const std::uint8_t> px, std::size_t at, prism::render::PixelFormat format) {
+    if (format == prism::render::PixelFormat::rgb565) {
+        std::uint16_t word;
+        std::memcpy(&word, px.data() + at, sizeof word);
+        return Color::rgba(expand5((word >> 11) & 0x1F), expand6((word >> 5) & 0x3F), expand5(word & 0x1F), 255);
+    }
+    return Color::rgba(px[at], px[at + 1], px[at + 2], px[at + 3]);
+}
+
+} // namespace
+
 template <class P>
 void BasicCanvas<P>::image(const Image& img, Rect dest, std::uint8_t alpha, Color tint) {
     const float dx0 = dest.origin.x.raw(), dy0 = dest.origin.y.raw();
     const float dw = dest.extent.w.raw(), dh = dest.extent.h.raw();
     if (dw <= 0.f || dh <= 0.f) return;
     const int iw = img.width(), ih = img.height();
+    const int px0 = span_begin(dx0), px1 = span_end(dx0 + dw);
+    const int py0 = span_begin(dy0), py1 = span_end(dy0 + dh);
+    const int x0 = std::max(px0, clip_.x0), x1 = std::min(px1, clip_.x1);
+    const auto [y0, y1] = clip_rows(py0, py1);
+    if (x0 >= x1 || y0 >= y1) return;
+
+    // rgb565 into an rgb565 canvas, pixel for pixel, opaque and untinted: every clipped row is a
+    // row of the image. Board covers are drawn this way, and a copy is the point of the format.
+    if constexpr (std::is_same_v<P, Rgb565>) {
+        // Whole pixels, no sub-pixel offset: otherwise the row copy would land half a pixel off.
+        const bool aligned = dx0 == static_cast<float>(px0) && dy0 == static_cast<float>(py0);
+        if (aligned && img.format() == prism::render::PixelFormat::rgb565 && alpha == 255 &&
+            tint.r == 255 && tint.g == 255 && tint.b == 255 && ui_scale_ == 1.f && px1 - px0 == iw &&
+            py1 - py0 == ih) {
+            const auto* source = img.pixels().data();
+            const auto row_bytes = static_cast<std::size_t>(iw) * 2;
+            for (int y = y0; y < y1; ++y) {
+                const auto* from = source + static_cast<std::size_t>(y - py0) * row_bytes +
+                                   static_cast<std::size_t>(x0 - px0) * 2;
+                std::memcpy(row(y) + x0, from, static_cast<std::size_t>(x1 - x0) * 2);
+            }
+            return;
+        }
+    }
+
     const std::span<const std::uint8_t> px = img.pixels();
-    const int x0 = std::max(span_begin(dx0), clip_.x0), x1 = std::min(span_end(dx0 + dw), clip_.x1);
-    const auto [y0, y1] = clip_rows(span_begin(dy0), span_end(dy0 + dh));
+    const auto bpp = static_cast<std::size_t>(img.format() == prism::render::PixelFormat::rgb565 ? 2 : 4);
     for (int y = y0; y < y1; ++y) {
         const float v = (static_cast<float>(y) + 0.5f - dy0) / dh;
         const int sy = std::clamp(static_cast<int>(v * ih), 0, ih - 1);
         for (int x = x0; x < x1; ++x) {
             const float u = (static_cast<float>(x) + 0.5f - dx0) / dw;
             const int sx = std::clamp(static_cast<int>(u * iw), 0, iw - 1);
-            const std::uint8_t* t = px.data() + (static_cast<std::size_t>(sy) * iw + sx) * 4;
-            const int sa = (static_cast<int>(t[3]) * alpha + 127) / 255;
+            const Color source = image_pixel(px, (static_cast<std::size_t>(sy) * iw + sx) * bpp, img.format());
+            const int sa = (source.a * alpha + 127) / 255;
             if (sa == 0) continue;
             blend_pixel(x, y,
-                        Color::rgba(static_cast<std::uint8_t>((t[0] * tint.r + 127) / 255),
-                                    static_cast<std::uint8_t>((t[1] * tint.g + 127) / 255),
-                                    static_cast<std::uint8_t>((t[2] * tint.b + 127) / 255),
+                        Color::rgba(static_cast<std::uint8_t>((source.r * tint.r + 127) / 255),
+                                    static_cast<std::uint8_t>((source.g * tint.g + 127) / 255),
+                                    static_cast<std::uint8_t>((source.b * tint.b + 127) / 255),
                                     static_cast<std::uint8_t>(sa)));
         }
     }

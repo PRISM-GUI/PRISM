@@ -150,14 +150,9 @@ public:
     // A one-color icon, stored white: widgets draw it in the color of their text (see symbolic()).
     bool symbolic() const { return symbolic_; }
 
-    // The same shape, white, marked symbolic (render::symbolic is the public spelling).
-    std::shared_ptr<const Image> as_symbolic() const {
-        auto px = pixels_;
-        for (std::size_t i = 0; i + 3 < px.size(); i += 4) px[i] = px[i + 1] = px[i + 2] = 255;
-        auto img = std::shared_ptr<Image>(new Image(width_, height_, format_, std::move(px)));
-        img->symbolic_ = true;
-        return img;
-    }
+    // The same shape, white, marked symbolic (render::symbolic is the public spelling). Defined in
+    // render/image_ops.cpp: whitening needs rgba8888 pixels, and converting needs the ops below.
+    std::shared_ptr<const Image> as_symbolic() const;
 
 private:
     Image(int w, int h, PixelFormat format, std::vector<std::uint8_t> px)

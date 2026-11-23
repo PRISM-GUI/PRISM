@@ -11,6 +11,7 @@
 #include <prism/backends/sdl_text_measurer.hpp>
 #include <prism/backends/sdl_window.hpp>
 #include <prism/nodes/graph.hpp>
+#include <prism/render/image_ops.hpp>
 #ifdef PRISM_TEST_WEBGPU
 #include <prism/backends/wgpu_renderer.hpp>
 #endif
@@ -423,4 +424,41 @@ TEST_CASE("the board's grid is a dot every 20 units at zoom 1, and every 10 at z
     CHECK(on_grid(half, grid, bg, 240, 280, sh));
     CHECK(on_grid(half, grid, bg, 250, 280, sh));       // dots 10 px apart reach here too
     CHECK_FALSE(on_grid(half, grid, bg, 245, 280, sh));
+}
+
+namespace {
+struct PictureModel {
+    Field<Picture> picture;
+    void view(WidgetTree::ViewBuilder& vb) { vb.widget(picture); }
+};
+} // namespace
+
+// The SDL texture upload has to know how many bytes a pixel is: an rgb565 image read as rgba8888
+// reads past every row and draws garbage.
+TEST_CASE("an rgb565 image and its rgba8888 conversion render the same pixels") {
+    // A checkerboard of two colours the 565 packing keeps apart, at the picture's own size.
+    std::vector<std::uint16_t> words;
+    for (int y = 0; y < 16; ++y)
+        for (int x = 0; x < 16; ++x)
+            words.push_back(static_cast<std::uint16_t>((x < 8) == (y < 8) ? 0xF800 : 0x07E0));
+    const auto packed = *Image::from_rgb565(16, 16, std::move(words));
+    const auto rgba = converted(packed, PixelFormat::rgba8888);
+    REQUIRE(rgba);
+    REQUIRE(rgba->format() == PixelFormat::rgba8888);
+
+    Rig rig;
+    PictureModel packed_page{.picture = {{.image = packed}}};
+    WidgetTree packed_tree{packed_page};
+    const Frame packed_frame = rig.render<PictureModel>(packed_tree, 1.f, "rgb565-picture");
+
+    PictureModel rgba_page{.picture = {{.image = rgba}}};
+    WidgetTree rgba_tree{rgba_page};
+    const Frame rgba_frame = rig.render<PictureModel>(rgba_tree, 1.f, "rgba-picture");
+
+    REQUIRE(packed_frame.w == rgba_frame.w);
+    REQUIRE(packed_frame.h == rgba_frame.h);
+    int differing = 0;
+    for (int y = 0; y < packed_frame.h; ++y)
+        for (int x = 0; x < packed_frame.w; ++x) differing += packed_frame.differs(rgba_frame, x, y, 3) ? 1 : 0;
+    CHECK(differing == 0);
 }

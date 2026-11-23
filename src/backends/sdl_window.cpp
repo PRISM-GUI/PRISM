@@ -539,9 +539,12 @@ void SdlWindow::render_cmd(const ImageCmd& cmd) {
     if (auto* hit = image_cache_.find(key)) {
         tex = *hit;
     } else {   // first use in this window: upload once
-        tex = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, img.width(), img.height());
+        // rgb565 travels as itself: the texture knows its format, so the painter converts nothing.
+        const bool packed = img.format() == PixelFormat::rgb565;
+        tex = SDL_CreateTexture(renderer_, packed ? SDL_PIXELFORMAT_RGB565 : SDL_PIXELFORMAT_RGBA32,
+                                SDL_TEXTUREACCESS_STATIC, img.width(), img.height());
         if (!tex) return;
-        SDL_UpdateTexture(tex, nullptr, img.pixels().data(), img.width() * 4);
+        SDL_UpdateTexture(tex, nullptr, img.pixels().data(), img.width() * (packed ? 2 : 4));
         SDL_SetTextureBlendMode(tex, SDL_BLENDMODE_BLEND);
         image_cache_.insert(std::move(key), tex);
     }

@@ -145,6 +145,92 @@ TEST_CASE("image scaled 2x maps texels (nearest neighbour)") {
 
 namespace {
 
+// The other storage a frame can have: 16-bit pixels, no alpha.
+template <int W, int H>
+struct Fb565 {
+    std::vector<std::uint16_t> px = std::vector<std::uint16_t>(W * H);
+    prism::raster::Canvas565 canvas{px, W, H, W};
+    Fb565() { canvas.clear(Color::rgba(0, 0, 0)); }
+    std::uint16_t at(int x, int y) const { return px[static_cast<std::size_t>(y) * W + x]; }
+};
+
+std::shared_ptr<const prism::render::Image> rgb565_image(int w, int h, std::vector<std::uint16_t> px) {
+    return *prism::render::Image::from_rgb565(w, h, std::move(px));
+}
+
+} // namespace
+
+TEST_CASE("an rgb565 image drawn 1:1 is a row copy into an Rgb565 canvas") {
+    const std::vector<std::uint16_t> words{0xF800, 0x07E0, 0x001F, 0xFFE0};   // red, green, blue, yellow
+    const auto img = rgb565_image(2, 2, words);
+    Fb565<4, 4> fb;
+    fb.canvas.image(*img, rect(0, 0, 2, 2), 255, Color::rgba(255, 255, 255));
+    CHECK(fb.at(0, 0) == 0xF800);
+    CHECK(fb.at(1, 0) == 0x07E0);
+    CHECK(fb.at(0, 1) == 0x001F);
+    CHECK(fb.at(1, 1) == 0xFFE0);
+    CHECK(fb.at(2, 0) == 0x0000);   // outside the dest rect
+}
+
+TEST_CASE("an rgb565 image on a band canvas writes that band's rows") {
+    std::vector<std::uint16_t> words;
+    for (int y = 0; y < 4; ++y)
+        for (int x = 0; x < 4; ++x) words.push_back(static_cast<std::uint16_t>(y * 0x100 + x));
+    const auto img = rgb565_image(4, 4, words);
+    std::vector<std::uint16_t> band(4 * 2);
+    prism::raster::Canvas565 canvas{band, 4, 2, 4, 2};   // frame rows 2 and 3
+    canvas.image(*img, rect(0, 0, 4, 4), 255, Color::rgba(255, 255, 255));
+    for (int y = 0; y < 2; ++y)
+        for (int x = 0; x < 4; ++x) CHECK(band[static_cast<std::size_t>(y) * 4 + x] == words[(y + 2) * 4 + x]);
+}
+
+TEST_CASE("an rgb565 image drawn at 2x covers each source pixel with a 2x2 block") {
+    const std::vector<std::uint16_t> words{0xF800, 0x07E0, 0x001F, 0xFFE0};
+    const auto img = rgb565_image(2, 2, words);
+    Fb565<8, 8> fb;
+    fb.canvas.image(*img, rect(0, 0, 4, 4), 255, Color::rgba(255, 255, 255));
+    CHECK(fb.at(0, 0) == 0xF800);
+    CHECK(fb.at(1, 1) == 0xF800);
+    CHECK(fb.at(2, 0) == 0x07E0);
+    CHECK(fb.at(3, 1) == 0x07E0);
+    CHECK(fb.at(0, 2) == 0x001F);
+    CHECK(fb.at(3, 3) == 0xFFE0);
+}
+
+TEST_CASE("an rgb565 image tinted half grey has its channels halved, within rounding") {
+    const auto img = rgb565_image(1, 1, {0xF800});   // full red: 31, 0, 0 in 565
+    Fb<4, 4> fb;
+    fb.canvas.image(*img, rect(0, 0, 1, 1), 255, Color::rgba(128, 128, 128));
+    const std::uint32_t px = fb.at(0, 0);
+    const int r = static_cast<int>((px >> 16) & 0xFF);
+    const int g = static_cast<int>((px >> 8) & 0xFF);
+    const int b = static_cast<int>(px & 0xFF);
+    CHECK(r == 128);   // 31 expands to 255 (high bits replicated), and 255 * 128 / 255 = 128
+    CHECK(g == 0);
+    CHECK(b == 0);
+    CHECK((px >> 24) == 255);   // rgb565 has no alpha, so the pixel is opaque
+}
+
+TEST_CASE("symbolic() of an rgb565 image is white rgba8888") {
+    const auto img = rgb565_image(2, 1, {0xF800, 0x07E0});
+    const auto white = prism::render::symbolic(img);
+    REQUIRE(white);
+    CHECK(white->format() == prism::render::PixelFormat::rgba8888);
+    CHECK(white->width() == 2);
+    CHECK(white->height() == 1);
+    CHECK(white->symbolic());
+    const auto px = white->pixels();
+    REQUIRE(px.size() == 8U);
+    for (std::size_t i = 0; i < px.size(); i += 4) {
+        CHECK(px[i] == 255);
+        CHECK(px[i + 1] == 255);
+        CHECK(px[i + 2] == 255);
+        CHECK(px[i + 3] == 255);   // rgb565 has no alpha: it comes back opaque
+    }
+}
+
+namespace {
+
 constexpr int kFrameW = 120, kFrameH = 100, kBandH = 48;
 
 const prism::raster::Fonts& test_fonts() {

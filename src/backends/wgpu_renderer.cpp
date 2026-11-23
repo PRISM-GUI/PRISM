@@ -1,5 +1,6 @@
 #include <prism/backends/wgpu_renderer.hpp>
 
+#include <prism/render/image_ops.hpp>
 #include <prism/render/tessellate.hpp>
 
 #ifndef __EMSCRIPTEN__
@@ -333,14 +334,16 @@ const WgpuRenderer::Texture* WgpuRenderer::text_texture(const render::TextCmd& c
     return &text_cache_.insert(key_, upload(bitmap->width, bitmap->height, bitmap->rgba.data()));
 }
 
-// Uploaded on first use, keyed by the image's id (images are immutable).
+// Uploaded on first use, keyed by the image's id (images are immutable). The GPU reads rgba8888,
+// so an rgb565 image is converted once, here; converting is idempotent, so rgba ones are untouched.
 const WgpuRenderer::Texture* WgpuRenderer::image_texture(const render::ImageCmd& cmd) {
     const auto& img = *cmd.image;
     std::uint64_t id = img.id();
     key_.assign(sizeof id, '\0');
     std::memcpy(key_.data(), &id, sizeof id);
     if (auto* hit = image_cache_.find(key_)) return hit;
-    return &image_cache_.insert(key_, upload(img.width(), img.height(), img.pixels().data()));
+    const auto rgba = render::converted(cmd.image, render::PixelFormat::rgba8888);
+    return &image_cache_.insert(key_, upload(rgba->width(), rgba->height(), rgba->pixels().data()));
 }
 
 void WgpuRenderer::render(std::span<const Layer> layers, WGPUTextureView target, int width_px, int height_px,
