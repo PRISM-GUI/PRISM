@@ -60,6 +60,7 @@ public:
         max_ms_.store(window_max_ms_, std::memory_order_relaxed);
         mean_ms_.store(window_sum_ms_ / static_cast<float>(window_calls_), std::memory_order_relaxed);
         calls_.store(window_calls_, std::memory_order_relaxed);
+        block_frames_.store(frames, std::memory_order_relaxed);
         if (window_frames_ >= sample_rate_) {
             window_max_ms_ = window_sum_ms_ = 0.f;
             window_calls_ = 0;
@@ -67,8 +68,12 @@ public:
         }
     }
 
+    // The budget is the block the device last asked for: a device pulls its own size (the Korvo's
+    // speaker 1024 frames), not the Format's block_frames, which only the timer uses.
     Load read(float budget) const
     {
+        if (const auto frames = block_frames_.load(std::memory_order_relaxed); frames > 0)
+            budget = 1000.f * static_cast<float>(frames) / static_cast<float>(sample_rate_);
         return {.max_ms = max_ms_.load(std::memory_order_relaxed),
                 .mean_ms = mean_ms_.load(std::memory_order_relaxed),
                 .calls = calls_.load(std::memory_order_relaxed),
@@ -80,6 +85,7 @@ private:
     std::atomic<float> max_ms_{0.f};
     std::atomic<float> mean_ms_{0.f};
     std::atomic<std::uint32_t> calls_{0};
+    std::atomic<int> block_frames_{0};
     float window_max_ms_ = 0.f;
     float window_sum_ms_ = 0.f;
     int window_frames_ = 0;
