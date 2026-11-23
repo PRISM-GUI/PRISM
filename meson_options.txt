@@ -27,3 +27,7 @@ option('profiling_threads', type : 'integer', value : 32, min : 1,
        description : 'Thread rings of the global profile recorder (with -Dprofiling=enabled)')
 option('fmt_locale', type : 'boolean', value : true,
        description : 'Keep {fmt}\'s localized {{:L}} formatting. Off defines FMT_USE_LOCALE=0: {fmt} then ignores the L flag, and libstdc++\'s locale facets and wide-char streams leave the image (~184 KiB on the Cortex-M builds)')
+option('line_breaking', type : 'combo', choices : ['unicode', 'simple'], value : 'unicode',
+       description : 'Where a line may break (ui/text_segmentation.hpp): "unicode" uses libunibreak\'s UAX #14 tables, "simple" a table-free rule set (spaces, hyphens, CJK ideographs). "simple" drops libunibreak from the link (~100 KiB on the Cortex-M builds) and loses the finer Unicode rules')
+option('embedded_bold_face', type : 'boolean', value : true,
+       description : 'Compile the bold embedded face into the rasterizer (Noto Sans Bold Latin, ~20 KiB). Off: bold text is measured and drawn with the regular face')

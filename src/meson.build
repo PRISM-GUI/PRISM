@@ -25,8 +25,14 @@ endif
 
 # Unicode text boundaries (ui/text_segmentation.hpp): graphemes and line breaks.
 # Static: it links into our libraries, so a wheel needs no extra shared library to bundle.
-unibreak_dep = dependency('libunibreak', fallback : ['libunibreak', 'unibreak_dep'],
-                          default_options : ['tests=disabled', 'default_library=static'])
+# With line_breaking=simple the header carries its own table-free rules instead, and libunibreak
+# (its 64 KiB BMP line-break table and its grapheme tables, ~100 KiB on a Cortex-M) is not used.
+if get_option('line_breaking') == 'unicode'
+  unibreak_dep = dependency('libunibreak', fallback : ['libunibreak', 'unibreak_dep'],
+                            default_options : ['tests=disabled', 'default_library=static'])
+else
+  unibreak_dep = declare_dependency(compile_args : ['-DPRISM_SIMPLE_SEGMENTATION'])
+endif
 
 # Bidirectional text (ui/text_bidi.hpp): visual runs of a line. Static, like libunibreak.
 sheenbidi_dep = dependency('sheenbidi', fallback : ['sheenbidi', 'sheenbidi_dep'])
@@ -153,12 +159,18 @@ embedded_font_sources = [
     output : 'embedded_noto_sans_latin.cpp',
     command : [find_program('python3'), embed_py, '@INPUT@', '@OUTPUT@', 'noto_sans_latin'],
   ),
-  custom_target('embedded_noto_sans_bold_latin',
+]
+# The bold face costs ~20 KiB of flash. With embedded_bold_face=off it is not compiled in: a small
+# file stands in for the generated one and Fonts draws bold text with the regular face.
+if get_option('embedded_bold_face')
+  embedded_font_sources += custom_target('embedded_noto_sans_bold_latin',
     input : files(embedded_fonts_dir / 'NotoSans-Bold-Latin.ttf'),
     output : 'embedded_noto_sans_bold_latin.cpp',
     command : [find_program('python3'), embed_py, '@INPUT@', '@OUTPUT@', 'noto_sans_bold_latin'],
-  ),
-]
+  )
+else
+  embedded_font_sources += files('raster/embedded_bold_none.cpp')
+endif
 prism_raster_lib = static_library('prism-raster',
   'raster/canvas.cpp',
   'raster/draw_snapshot.cpp',

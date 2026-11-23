@@ -61,7 +61,9 @@ Fonts::Fonts() : Fonts(embedded::noto_sans_latin(), embedded::noto_sans_bold_lat
 Fonts::Fonts(std::span<const std::uint8_t> regular, std::span<const std::uint8_t> bold)
     : impl_(std::make_unique<Impl>()) {
     impl_->data[kRegular] = regular;
-    impl_->data[kBold] = bold;
+    // With the meson option embedded_bold_face=off only the regular face is compiled in: bold
+    // text is measured and drawn with it (anything the caller adds for weight still applies).
+    impl_->data[kBold] = bold.empty() ? regular : bold;
     for (int f = 0; f < 2; ++f) {
         const std::span<const std::uint8_t> d = impl_->data[f];
         if (d.empty()) continue;

@@ -190,6 +190,11 @@ endforeach
 # The Orbit solver sweep flies thousands of probe paths: unoptimised it took 11 s natively and over
 # the 30 s timeout in node on a loaded CI runner. Pure arithmetic, so -O2 loses nothing a debug
 # build checks; asserts stay on unless the build sets NDEBUG.
+# The table-free segmentation: headers only, so the Unicode variant libprism holds stays out.
+test('text_segmentation_simple', executable('test_text_segmentation_simple',
+  files('test_text_segmentation_simple.cpp'),
+  include_directories : prism_inc, dependencies : [doctest_dep]))
+
 test('orbit_scene', executable('test_orbit_scene', files('test_orbit_scene.cpp'),
   dependencies : [prism_core_dep, doctest_dep],
   override_options : ['optimization=2'],
