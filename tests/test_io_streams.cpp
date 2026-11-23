@@ -117,6 +117,7 @@ TEST_CASE("a serial port opens at 921600 baud") {
     char name[128]{};
     REQUIRE(openpty(&controller, &device, name, nullptr, nullptr) == 0);
     const auto port = io::SerialPort::open(name, {.baud = 921600});
+    INFO((port ? std::string{} : port.error().message()));
     CHECK(port.has_value());
     ::close(device);
     ::close(controller);

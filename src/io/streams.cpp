@@ -7,6 +7,7 @@
 #if defined(__APPLE__)
 #include <IOKit/serial/ioss.h>
 #include <sys/ioctl.h>
+#include <termios.h>
 #include <cerrno>
 #endif
 
@@ -140,18 +141,27 @@ void TcpListener::close() {
     impl_->acceptor.close(ignored);
 }
 
-// macOS's termios stops at B230400, so Asio refuses 921600 and up; IOSSIOSPEED sets any rate
-// (what pyserial does). It must come after the other options: tcsetattr would reset the speed.
+// macOS's termios has no B921600, so Asio refuses 921600 and up. IOSSIOSPEED sets any rate on a
+// serial driver (what pyserial does). A pseudo-terminal has no such driver and refuses the ioctl,
+// but on macOS speed_t is the rate itself, so termios takes it there. Either must come after the
+// other options: a later tcsetattr would reset the speed.
 namespace {
+#if defined(__APPLE__)
+std::error_code set_any_baud(int fd, unsigned baud) {
+    speed_t speed = baud;
+    if (::ioctl(fd, IOSSIOSPEED, &speed) == 0) return {};
+    termios tio{};
+    if (::tcgetattr(fd, &tio) == -1 || ::cfsetspeed(&tio, speed) == -1 || ::tcsetattr(fd, TCSANOW, &tio) == -1)
+        return {errno, std::system_category()};
+    return {};
+}
+#endif
+
 std::error_code set_baud(asio::serial_port& port, unsigned baud) {
     std::error_code ec;
     port.set_option(asio::serial_port_base::baud_rate(baud), ec);
 #if defined(__APPLE__)
-    if (ec == asio::error::invalid_argument) {
-        speed_t speed = baud;
-        if (::ioctl(port.native_handle(), IOSSIOSPEED, &speed) == -1) return {errno, std::system_category()};
-        return {};
-    }
+    if (ec == asio::error::invalid_argument) return set_any_baud(port.native_handle(), baud);
 #endif
     return ec;
 }
