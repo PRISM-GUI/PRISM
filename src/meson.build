@@ -92,6 +92,13 @@ prism_audio_sources = ['audio/manual_device.cpp', 'audio/output.cpp', 'audio/reg
 if not sdl_enabled
   prism_lib_sources += prism_audio_sources
 endif
+# The image decoder registry and the two decode entry points follow the same rule: with SDL the
+# platform's decoder sits beside them, without it libprism carries the registry and a board
+# registers its own (a hardware JPEG engine, say).
+prism_image_sources = ['render/image_decoders.cpp']
+if not sdl_enabled
+  prism_lib_sources += prism_image_sources
+endif
 # The global recorder behind the PRISM_PROFILE_* marks: only with -Dprofiling=enabled, which
 # also puts -DPRISM_PROFILING/-DPRISM_PROFILING_EVENTS/-DPRISM_PROFILING_THREADS on
 # prism_header_args (meson.build).
@@ -232,6 +239,7 @@ sdl_webgpu_src = prism_webgpu_dep.found() ? 'backends/sdl_webgpu.cpp' : 'backend
 
 prism_software_backend_lib = library('prism-software-backend',
   prism_audio_sources,
+  prism_image_sources,
   'backend.cpp',
   'backends/software_backend.cpp',
   'backends/sdl_window.cpp',

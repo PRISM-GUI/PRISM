@@ -376,6 +376,9 @@ test_audio_output = executable('test_audio_output', files('test_audio_output.cpp
 )
 test('audio_device', executable('test_audio_device', files('test_audio_device.cpp'),
   dependencies : [prism_software_backend_dep, doctest_dep]))
+# The image decoder registry: its own fakes, and SDL's decoder as the platform's.
+test('image_decoder_registry', executable('test_image_decoder_registry', files('test_image_decoder_registry.cpp'),
+  dependencies : [prism_software_backend_dep, doctest_dep]))
 test('audio_output_device', test_audio_output, args : ['-tc=device:*'],
      env : {'SDL_AUDIO_DRIVER' : 'dummy'})
 test('audio_output_timer', test_audio_output, args : ['-tc=timer:*'],

@@ -1,54 +1,81 @@
-// render/image_decoder.hpp with SDL3_image.
+// The SDL3_image decoder, registered as this library loads: a program that links the SDL backend
+// reads PNG, JPEG, SVG and the rest with no call of its own.
 #include <prism/render/image_decoder.hpp>
+#include <prism/render/image_ops.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
-#include <fstream>
-#include <iterator>
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace prism::render {
-
 namespace {
 
-// RGBA8, straight alpha, row by row: what Image holds.
+// SDL's surface as an Image: four bytes a pixel, straight alpha, one row at a time past the pitch.
 std::expected<std::shared_ptr<const Image>, std::string> to_image(SDL_Surface* decoded) {
-    if (!decoded) return std::unexpected(std::string(SDL_GetError()));
     SDL_Surface* rgba = SDL_ConvertSurface(decoded, SDL_PIXELFORMAT_RGBA32);
     SDL_DestroySurface(decoded);
-    if (!rgba) return std::unexpected(std::string(SDL_GetError()));
-    std::vector<std::uint8_t> pixels(static_cast<std::size_t>(rgba->w) * static_cast<std::size_t>(rgba->h) * 4);
-    for (int y = 0; y < rgba->h; ++y) {
-        auto* row = static_cast<const std::uint8_t*>(rgba->pixels) + static_cast<std::ptrdiff_t>(y) * rgba->pitch;
-        std::copy(row, row + rgba->w * 4, pixels.begin() + static_cast<std::ptrdiff_t>(y) * rgba->w * 4);
+    if (!rgba) return std::unexpected(std::string{SDL_GetError()});
+    const int width = rgba->w;
+    const int height = rgba->h;
+    const auto row = static_cast<std::size_t>(width) * 4;
+    std::vector<std::uint8_t> pixels(row * static_cast<std::size_t>(height));
+    const auto* source = static_cast<const std::uint8_t*>(rgba->pixels);
+    for (int y = 0; y < height; ++y) {
+        std::memcpy(pixels.data() + static_cast<std::size_t>(y) * row,
+                    source + static_cast<std::size_t>(y) * static_cast<std::size_t>(rgba->pitch), row);
     }
-    int w = rgba->w, h = rgba->h;
     SDL_DestroySurface(rgba);
-    return Image::from_rgba(w, h, std::move(pixels));
+    return Image::from_rgba(width, height, std::move(pixels));
 }
+
+class SdlImageDecoder final : public ImageDecoder {
+public:
+    std::shared_ptr<const Image> decode(std::span<const std::byte> bytes, const DecodeOptions& options,
+                                        std::string& error) override {
+        SDL_IOStream* io = SDL_IOFromConstMem(bytes.data(), bytes.size());
+        if (!io) {
+            error = SDL_GetError();
+            return nullptr;
+        }
+        SDL_Surface* decoded = nullptr;
+        if (options.fit && IMG_isSVG(io)) {
+            // A vector image drawn at the size asked for keeps lines sharp; scaling it afterwards
+            // would blur what the SVG could have drawn afresh.
+            decoded = IMG_LoadSizedSVG_IO(io, static_cast<int>(options.fit->w.raw()),
+                                          static_cast<int>(options.fit->h.raw()));
+            SDL_CloseIO(io); // LoadSizedSVG_IO leaves the stream to its caller
+        } else {
+            SDL_SeekIO(io, 0, SDL_IO_SEEK_SET); // the probe above may have read ahead
+            decoded = IMG_Load_IO(io, true);    // this one closes the stream
+        }
+        if (!decoded) {
+            error = SDL_GetError();
+            return nullptr;
+        }
+        const auto image = to_image(decoded);
+        if (!image) {
+            error = image.error();
+            return nullptr;
+        }
+        const auto fitted = options.fit ? scaled(*image, *options.fit) : *image;
+        if (!fitted) {
+            error = "cannot scale the image";
+            return nullptr;
+        }
+        return converted(fitted, options.format);
+    }
+};
+
+SdlImageDecoder decoder;
+
+struct Registered {
+    Registered() { register_decoder(decoder); }
+} registered;
 
 } // namespace
-
-std::expected<std::shared_ptr<const Image>, std::string>
-decode_image(std::span<const std::byte> bytes, std::optional<core::Size> svg_size) {
-    SDL_IOStream* io = SDL_IOFromConstMem(bytes.data(), bytes.size());
-    if (!io) return std::unexpected(std::string(SDL_GetError()));
-    if (svg_size && IMG_isSVG(io)) {
-        auto w = static_cast<int>(svg_size->w.raw()), h = static_cast<int>(svg_size->h.raw());
-        SDL_Surface* svg = IMG_LoadSizedSVG_IO(io, w, h);   // does not close io: we do
-        SDL_CloseIO(io);
-        return to_image(svg);
-    }
-    return to_image(IMG_Load_IO(io, true));   // closes io
-}
-
-std::expected<std::shared_ptr<const Image>, std::string>
-load_image(const std::filesystem::path& path, std::optional<core::Size> svg_size) {
-    std::ifstream in(path, std::ios::binary);
-    if (!in) return std::unexpected("cannot read " + path.string());
-    std::vector<char> data{std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
-    return decode_image(std::as_bytes(std::span{data}), svg_size);
-}
-
 } // namespace prism::render
