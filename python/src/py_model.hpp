@@ -2,6 +2,7 @@
 // PyModel along with the binding templates and the error hub its members are registered with.
 
 #include "common.hpp"
+#include <iostream>
 
 // A dragged Python object. Held through a shared_ptr so that copies of the drag value (std::any,
 // on the logic thread) never touch Python reference counts; the holder releases it GIL-safely.
