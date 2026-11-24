@@ -105,11 +105,13 @@ project. Existing tests that check theme values or pixels pin the classic themes
 the switch of default changes no test's meaning. `follow_system_theme()` picks modern light or
 dark.
 
-### 5. Prerequisite: the theme-switch layout bug
+### 5. Prerequisite: screenshots that cannot be stale
 
-A theme set from an app's setup (`AppContext::set_theme`) left layout sizes from the previous
-theme (found by the spike: a checkbox row measured 16 px instead of 30). It is fixed first, with
-a test through the app path, since every app sets its theme that way.
+The spike once showed a wrong layout that turned out to be an old screenshot: a showcase SVG is
+re-made when its program changes, not when PRISM's library does, so a change to a widget's
+drawing in libprism left the SVG from before it. Every check in this project is a screenshot, so
+the showcase targets also depend on PRISM's libraries. (A theme set from an app's setup lays out
+exactly like one set before the first frame: tests/test_model_app.cpp pins it.)
 
 ## Checking it
 
