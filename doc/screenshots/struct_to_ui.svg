@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 401" width="858" height="401" role="img" aria-label="Each field of a C++ struct becomes a widget: a string a text field, an int a number field, a bool a checkbox, an enum a dropdown, a double a number field.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 401" width="858" height="401" role="img" aria-label="A plain C++ struct and the UI PRISM makes from it: a string becomes a text field, an int and a double number fields, a bool a checkbox, an enum a dropdown.">
 <style>
   .hl { opacity: 0; animation: walk 8s infinite; }
   @keyframes walk { 0% { opacity: 0 } 3% { opacity: 1 } 17.00% { opacity: 1 } 20.00% { opacity: 0 } 100% { opacity: 0 } }
@@ -11,7 +11,7 @@
 <text x="38" y="82" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">enum class Theme { Light, Dark, System };</text>
 <text x="38" y="102" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve"></text>
 <text x="38" y="122" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">struct Profile {</text>
-<text x="38" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    std::string name = "Ada Lovelace";</text>
+<text x="38" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    std::string name = &quot;Ada Lovelace&quot;;</text>
 <text x="38" y="162" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    int age = 36;</text>
 <text x="38" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    bool newsletter = true;</text>
 <text x="38" y="202" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    Theme theme = Theme::Dark;</text>

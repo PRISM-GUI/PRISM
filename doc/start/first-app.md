@@ -52,6 +52,8 @@ A struct with a `view()` always uses it, reflection or not, so `view()` is also 
 
 ## 2. The type picks the widget
 
+<img src="../screenshots/struct_widgets.svg" alt="A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes" width="900"/>
+
 A plain `int` or `std::string` is shown as read-only text.
 To get a control, put a widget type in the field:
 

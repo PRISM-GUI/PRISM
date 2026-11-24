@@ -50,8 +50,8 @@ struct_to_ui_exe = executable('showcase_struct_to_ui', 'showcase_struct_to_ui.cp
   dependencies : [prism_dep],
 )
 custom_target('svg_struct_to_ui',
-  output : 'struct_to_ui.svg',
-  command : [struct_to_ui_exe, '@OUTPUT@', files('showcase_struct_to_ui.cpp')],
+  output : ['struct_to_ui.svg', 'struct_annotations.svg', 'struct_widgets.svg'],
+  command : [struct_to_ui_exe, files('showcase_struct_to_ui.cpp'), '@OUTPUT0@', '@OUTPUT1@', '@OUTPUT2@'],
   depends : struct_to_ui_exe,
   build_by_default : true,
 )

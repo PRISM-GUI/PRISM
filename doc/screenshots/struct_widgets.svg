@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1082.2 266" width="1082.2" height="266" role="img" aria-label="A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes.">
+<style>
+  .hl { opacity: 0; animation: walk 6.4s infinite; }
+  @keyframes walk { 0% { opacity: 0 } 3% { opacity: 1 } 22.00% { opacity: 1 } 25.00% { opacity: 0 } 100% { opacity: 0 } }
+  @media (prefers-reduced-motion: reduce) { .hl { animation: none; opacity: 0.55; } }
+</style>
+<rect width="1082.2" height="266" fill="#ffffff"/>
+<text x="24" y="42" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#1f2328">Or pick the widget yourself: a Field holds it</text>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d1242f"/></marker>
+<rect x="24" y="64" width="644.2" height="144" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="38" y="82" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">struct Player {</text>
+<text x="38" y="102" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Label&lt;&gt;&gt; title{{.value = &quot;Now playing&quot;, .heading = true}};</text>
+<text x="38" y="122" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Slider&lt;&gt;&gt; volume{{.value = 0.6, .label = &quot;volume&quot;}};</text>
+<text x="38" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Checkbox&gt; shuffle{{.checked = true, .label = &quot;shuffle&quot;}};</text>
+<text x="38" y="162" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Button&gt; play{{.text = &quot;Play&quot;}};</text>
+<text x="38" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">};</text>
+<rect x="757.2" y="63" width="302" height="152" rx="8" fill="none" stroke="#d0d7de"/>
+<g transform="translate(758.2,64)"><svg width="300" height="150" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150">
+<rect width="300" height="150" fill="rgba(250,250,252,1)"/>
+<clipPath id="clip-0"><rect x="0" y="0" width="300" height="30"/></clipPath>
+<g clip-path="url(#clip-0)">
+<rect x="0" y="0" width="300" height="30" fill="rgba(0,0,0,0)"/>
+<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="17" fill="rgba(30,30,35,1)" dominant-baseline="hanging">Now playing</text>
+</g>
+<clipPath id="clip-1"><rect x="0" y="30" width="300" height="48"/></clipPath>
+<g clip-path="url(#clip-1)">
+<text xml:space="preserve" x="4" y="32" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(85,85,95,1)" dominant-baseline="hanging">volume</text>
+<text xml:space="preserve" x="271" y="32" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(30,30,35,1)" dominant-baseline="hanging">0.60</text>
+<rect x="0" y="62" width="300" height="6" fill="rgba(215,217,224,1)"/>
+<rect x="172.8" y="50" width="12" height="30" fill="rgba(47,111,222,1)"/>
+</g>
+<clipPath id="clip-2"><rect x="0" y="78" width="300" height="30"/></clipPath>
+<g clip-path="url(#clip-2)">
+<rect x="0" y="78" width="300" height="30" fill="rgba(236,237,242,1)"/>
+<rect x="8" y="85" width="16" height="16" fill="rgba(47,111,222,1)"/>
+<text xml:space="preserve" x="10" y="86" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
+<rect x="8" y="85" width="16" height="16" stroke="rgba(190,192,200,1)" fill="none" stroke-width="1.5"/>
+<text xml:space="preserve" x="32" y="85" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">shuffle</text>
+</g>
+<clipPath id="clip-3"><rect x="0" y="108" width="300" height="32"/></clipPath>
+<g clip-path="url(#clip-3)">
+<rect x="0" y="108" width="300" height="32" fill="rgba(30,100,190,1)"/>
+<rect x="0" y="108" width="300" height="32" stroke="rgba(60,130,220,1)" fill="none" stroke-width="1"/>
+<text xml:space="preserve" x="8" y="115" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Play</text>
+</g>
+</svg>
+</g>
+<g class="hl" style="animation-delay: 0.00s"><rect x="30" y="89" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="61" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,99 C707.2,99 707.2,79 752.2,79" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="93" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,119 C707.2,119 707.2,120 752.2,120" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="139" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,139 C707.2,139 707.2,157 752.2,157" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="169" width="306" height="38" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,159 C707.2,159 707.2,188 752.2,188" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<text x="24" y="246" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">A Field of a widget type is that widget: a label, a slider, a checkbox, a button.</text>
+</svg>

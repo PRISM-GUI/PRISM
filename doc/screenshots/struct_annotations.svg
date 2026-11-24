@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1066.4 378" width="1066.4" height="378" role="img" aria-label="A struct with annotations: label renames a caption, range and unit turn a double into a slider, readonly shows a value without an editor, section adds a header, skip hides a member.">
+<style>
+  .hl { opacity: 0; animation: walk 6.4s infinite; }
+  @keyframes walk { 0% { opacity: 0 } 3% { opacity: 1 } 22.00% { opacity: 1 } 25.00% { opacity: 0 } 100% { opacity: 0 } }
+  @media (prefers-reduced-motion: reduce) { .hl { animation: none; opacity: 0.55; } }
+</style>
+<rect width="1066.4" height="378" fill="#ffffff"/>
+<text x="24" y="42" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#1f2328">Annotations change how a member is shown</text>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d1242f"/></marker>
+<rect x="24" y="64" width="628.4" height="164" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
+<text x="38" y="82" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">struct Bench {</text>
+<text x="38" y="102" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    [[=core::label&lt;&quot;Sample rate&quot;&gt;]] int rate = 48000;</text>
+<text x="38" y="122" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    [[=core::range&lt;0.0, 30.0, 0.5&gt;, =core::unit&lt;&quot;V&quot;&gt;]] double supply = 12.0;</text>
+<text x="38" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    [[=core::readonly]] std::string serial = &quot;PX-0042&quot;;</text>
+<text x="38" y="162" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    [[=core::section&lt;&quot;Output&quot;&gt;]] bool enabled = true;</text>
+<text x="38" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    [[=core::skip]] int build_number = 1187;</text>
+<text x="38" y="202" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">};</text>
+<rect x="741.4" y="63" width="302" height="264" rx="8" fill="none" stroke="#d0d7de"/>
+<g transform="translate(742.4,64)"><svg width="300" height="262" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 262">
+<rect width="300" height="262" fill="rgba(250,250,252,1)"/>
+<clipPath id="clip-0"><rect x="0" y="0" width="300" height="24"/></clipPath>
+<g clip-path="url(#clip-0)">
+<rect x="0" y="0" width="300" height="24" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">Sample rate</text>
+</g>
+<clipPath id="clip-1"><rect x="0" y="24" width="300" height="30"/></clipPath>
+<g clip-path="url(#clip-1)">
+<rect x="0" y="24" width="300" height="30" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="28" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">48000</text>
+</g>
+<clipPath id="clip-2"><rect x="0" y="54" width="300" height="48"/></clipPath>
+<g clip-path="url(#clip-2)">
+<text xml:space="preserve" x="4" y="56" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(85,85,95,1)" dominant-baseline="hanging">supply</text>
+<text xml:space="preserve" x="259" y="56" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(30,30,35,1)" dominant-baseline="hanging">12.0 V</text>
+<rect x="0" y="86" width="300" height="6" fill="rgba(215,217,224,1)"/>
+<rect x="115.2" y="74" width="12" height="30" fill="rgba(47,111,222,1)"/>
+</g>
+<clipPath id="clip-3"><rect x="0" y="102" width="300" height="24"/></clipPath>
+<g clip-path="url(#clip-3)">
+<rect x="0" y="102" width="300" height="24" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="106" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">serial</text>
+</g>
+<clipPath id="clip-4"><rect x="0" y="126" width="300" height="30"/></clipPath>
+<g clip-path="url(#clip-4)">
+<rect x="0" y="126" width="300" height="30" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="130" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">PX-0042</text>
+</g>
+<clipPath id="clip-5"><rect x="0" y="156" width="300" height="24"/></clipPath>
+<g clip-path="url(#clip-5)">
+<rect x="0" y="156" width="300" height="24" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="160" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">Output</text>
+</g>
+<clipPath id="clip-6"><rect x="0" y="180" width="300" height="24"/></clipPath>
+<g clip-path="url(#clip-6)">
+<rect x="0" y="180" width="300" height="24" fill="rgba(236,237,242,1)"/>
+<text xml:space="preserve" x="4" y="184" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">enabled</text>
+</g>
+<clipPath id="clip-7"><rect x="0" y="204" width="300" height="30"/></clipPath>
+<g clip-path="url(#clip-7)">
+<rect x="0" y="204" width="300" height="30" fill="rgba(236,237,242,1)"/>
+<rect x="8" y="211" width="16" height="16" fill="rgba(47,111,222,1)"/>
+<text xml:space="preserve" x="10" y="212" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
+<rect x="8" y="211" width="16" height="16" stroke="rgba(190,192,200,1)" fill="none" stroke-width="1.5"/>
+</g>
+</svg>
+</g>
+<g class="hl" style="animation-delay: 0.00s"><rect x="30" y="89" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="61" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,99 C691.4,99 691.4,91 736.4,91" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="117" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,119 C691.4,119 691.4,144 736.4,144" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="163" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,139 C691.4,139 691.4,193 736.4,193" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="241" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,159 C691.4,159 691.4,271 736.4,271" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<text x="24" y="358" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">label renames the caption, range and unit make a slider, readonly shows the value without an editor, section adds a header, skip hides it.</text>
+</svg>

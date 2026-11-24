@@ -42,6 +42,8 @@ later with `-freflection`.
 
 ### What each member becomes
 
+<img src="../screenshots/struct_to_ui.svg" alt="A plain C++ struct and the Inspector's rows: a string a text field, ints and doubles number fields, a bool a checkbox, an enum a dropdown" width="860"/>
+
 | Member type | Row |
 |---|---|
 | A number (`int`, `float`, `double`...) | Its value, as text. Not editable: give it a `range` to edit it. |
@@ -54,6 +56,8 @@ later with `-freflection`.
 The editable rows are the sliders, the checkboxes and the drop-downs.
 
 ### Annotations
+
+<img src="../screenshots/struct_annotations.svg" alt="The same kind of struct with annotations: label renames a caption, range and unit make a slider, readonly shows a value without an editor, section adds a header, skip hides a member" width="900"/>
 
 Annotations tune one member without changing its type. Put them before the member, between
 `[[=` and `]]`; separate several with commas.
