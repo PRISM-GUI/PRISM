@@ -98,6 +98,10 @@ void derived_attach_dep(std::shared_ptr<SlotDerived<T>> slot, nb::object dep) {
     if (connect_field((BoundButton*)nullptr)) return;
     if (connect_field((BoundComboBox*)nullptr)) return;
     if (connect_field((BoundPopup*)nullptr)) return;
+    if (connect_field((BoundLabel*)nullptr)) return;
+    if (connect_field((BoundTextArea*)nullptr)) return;
+    if (connect_field((BoundTextField*)nullptr)) return;
+    if (connect_field((BoundPassword*)nullptr)) return;
     if (connect_shared((BoundShared<int>*)nullptr)) return;
     if (connect_shared((BoundShared<double>*)nullptr)) return;
     if (connect_shared((BoundShared<std::string>*)nullptr)) return;

@@ -5123,3 +5123,60 @@ def test_markdown_notes_rendering_follows_the_source():
         expected = "Changed\nnew text" if prism.has_markdown else "# Changed\n\nnew *text*"
         app.wait_until(lambda: notes.rendered.text == expected)
         assert notes.status.value.startswith("4 words")
+
+
+def test_derived_follows_label_text_area_and_text_field():
+    """derived() must accept the text widgets as deps: label(), text_area() and
+    text_field() (and a password) are BoundLabel/BoundTextArea/BoundTextField/
+    BoundPassword handles, not BoundField<T>, and derived_attach_dep listed none
+    of them ("derived: unsupported dependency handle type")."""
+
+    class M(Model):
+        title = prism.label("a")
+        body = prism.text_area("b")
+        name = prism.text_field("c")
+        secret = prism.text_field("d", password=True)
+        all_text = prism.derived(
+            lambda self: self.title.value
+            + self.body.value
+            + self.name.value
+            + self.secret.value,
+            title,
+            body,
+            name,
+            secret,
+        )
+
+    m = M()
+    assert m.all_text.value == "abcd"
+    m.title.value = "A"
+    assert m.all_text.value == "Abcd"
+    m.body.value = "B"
+    assert m.all_text.value == "ABcd"
+    m.name.value = "C"
+    assert m.all_text.value == "ABCd"
+    m.secret.value = "D"
+    assert m.all_text.value == "ABCD"
+
+
+def test_derived_without_deps_follows_label_text_area_and_text_field():
+    """The implicit deps a derived() with no dep list discovers may be text
+    widgets too: reading .value of a label, a text area or a text field must
+    make the derived follow it."""
+
+    class M(Model):
+        title = prism.label("a")
+        body = prism.text_area("b")
+        typed = prism.text_field("c")
+        joined = prism.derived(
+            lambda self: self.title.value + self.body.value + self.typed.value
+        )
+
+    m = M()
+    assert m.joined.value == "abc"
+    m.typed.value = "C"
+    assert m.joined.value == "abC"
+    m.title.value = "A"
+    assert m.joined.value == "AbC"
+    m.body.value = "B"
+    assert m.joined.value == "ABC"
