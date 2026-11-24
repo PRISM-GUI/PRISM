@@ -135,7 +135,6 @@ TEST_CASE("clearing the list empties the selection") {
     model.items.clear();
     CHECK(model.picked.get().empty());
 }
-#endif // __cpp_impl_reflection
 
 TEST_CASE("a row moved past the others keeps the selection ascending") {
     RowsModel model;
@@ -145,3 +144,5 @@ TEST_CASE("a row moved past the others keeps the selection ascending") {
     model.items.move(5, 0);
     CHECK(model.picked.get() == std::vector<size_t>{0, 3});
 }
+
+#endif // __cpp_impl_reflection
