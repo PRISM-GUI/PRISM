@@ -9,7 +9,9 @@
 
 namespace prism::core {
 
-class Connection {
+// [[nodiscard]]: a discarded Connection disconnects at the end of the statement, so the reaction
+// it was meant to install never fires. Keep it, or `static_cast<void>(...)` to say you meant it.
+class [[nodiscard]] Connection {
 public:
     Connection() = default;
 
