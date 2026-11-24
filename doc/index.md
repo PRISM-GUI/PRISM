@@ -31,7 +31,8 @@ real examples, compiled to WebAssembly.
 Where to start:
 
 - New here? Read [Why PRISM](start/why.md), then [Your first app](start/first-app.md).
-- Want to build it? [Install](start/install.md).
+- Want to build it? [Install](start/install.md). Starting a project of your own?
+  [The `prism` tool](start/tooling.md) writes it.
 - Looking for a widget? The [widget reference](widgets/index.md) has every one, with an example;
   the [widget gallery](https://prism-gui.github.io/PRISM/) lets you try them in the browser.
 - Writing in Python? [The Python SDK](integrations/python.md).
@@ -45,6 +46,7 @@ start/why
 start/install
 start/first-app
 start/examples
+start/tooling
 ```
 
 ```{toctree}

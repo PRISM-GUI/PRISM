@@ -97,6 +97,28 @@ pays.
 PRISM builds from source inside your project. There is no `meson install` step and no
 pkg-config file: it is a subproject, and your build compiles it.
 
+### The template writes it for you
+
+From a PRISM checkout, install the tool and generate a project:
+
+```bash
+uv tool install --from ./tools/prism-cli prism-cli
+prism new hello_prism
+cd hello_prism
+meson setup builddir
+meson compile -C builddir
+./builddir/hello_prism
+```
+
+`prism new` writes the wrap file, the `meson.build`, a model with a few widgets, a test, and a
+README. Without `--defaults` it asks what to name the app, which licence to use, and whether to add
+a board target.
+
+[The `prism` tool](tooling.md) has every command, including `prism update` for keeping the project
+in step with the template.
+
+### By hand
+
 Three files and two commands.
 
 ```text
