@@ -4,6 +4,7 @@
 #include <prism/ui/context.hpp>
 #include <prism/core/field.hpp>
 #include <prism/app/widget_tree.hpp>
+#include <prism/ui/text_metrics.hpp>
 namespace prism::core {} namespace prism::render {} namespace prism::input {}
 namespace prism::ui {} namespace prism::app {} namespace prism::plot {}
 namespace prism {
@@ -220,4 +221,75 @@ TEST_CASE("the dark theme is the board's look A") { check_look(prism::dark_theme
 TEST_CASE("the light theme is the board's look B") {
     check_look(prism::light_theme(), look_b);
     CHECK(prism::light_theme().accent == rgba(47, 111, 222));   // #2f6fde, with the waveform wire
+}
+
+namespace {
+struct OneCheckbox {
+    prism::Field<prism::ui::Checkbox> notify{{.checked = true, .label = "Mail notification"}};
+    prism::Field<prism::ui::Checkbox> beta{{.checked = false, .label = "Beta"}};
+    void view(prism::app::ViewBuilder& vb) {
+        vb.hstack([&] {
+            vb.widget(notify);
+            vb.gap(16.f);
+            vb.widget(beta);
+        });
+    }
+};
+
+float checkbox_height(const prism::ui::Theme& theme) {
+    OneCheckbox model;
+    prism::WidgetTree tree{model};
+    tree.set_theme(theme);
+    const auto snap = tree.build_snapshot(300, 100, 1);
+    REQUIRE(snap != nullptr);
+    // The checkbox's own rect: the first leaf named after its member.
+    for (const auto& [id, rect] : snap->geometry)
+        if (rect.extent.w.raw() > 100.f && rect.extent.w.raw() < 250.f) return rect.extent.h.raw();
+    return 0.f;
+}
+} // namespace
+
+// A rounded theme draws no surface behind a checkbox's row; the row keeps its height anyway.
+TEST_CASE("a checkbox is as tall in a rounded theme as in the classic one") {
+    CHECK(checkbox_height(prism::ui::dark_theme()) == doctest::Approx(30.f));
+    CHECK(checkbox_height(prism::ui::modern_dark_theme()) == doctest::Approx(30.f));
+}
+
+// An app sets its theme after the window's first frame (model_app's setup): the layout must
+// follow the new theme's drawing, not keep the sizes the old one gave.
+TEST_CASE("switching to a rounded theme after a first frame keeps the checkbox's height") {
+    OneCheckbox model;
+    prism::WidgetTree tree{model};
+    REQUIRE(tree.build_snapshot(300, 100, 1) != nullptr);
+    tree.set_theme(prism::ui::modern_dark_theme());
+    const auto snap = tree.build_snapshot(300, 100, 2);
+    REQUIRE(snap != nullptr);
+    float h = 0.f;
+    for (const auto& [id, rect] : snap->geometry)
+        if (rect.extent.w.raw() > 100.f && rect.extent.w.raw() < 250.f) h = rect.extent.h.raw();
+    CHECK(h == doctest::Approx(30.f));
+}
+
+// A widget whose measured size depends on the theme (here its text measurer) must be measured
+// again after a switch made once a first frame is cached, as if the theme had been there at the start.
+TEST_CASE("a measurer set after a first frame re-measures the cached layout") {
+    struct TenPerChar final : prism::TextMeasurer {
+        float width(std::string_view s, float, prism::FontStyle) const override { return 10.f * float(s.size()); }
+    } fonts;
+    OneCheckbox model;
+    prism::WidgetTree tree{model};
+    REQUIRE(tree.build_snapshot(300, 100, 1) != nullptr);
+    tree.set_text_measurer(&fonts);
+    const auto switched = tree.build_snapshot(300, 100, 2);
+
+    OneCheckbox fresh_model;
+    prism::WidgetTree fresh{fresh_model};
+    fresh.set_text_measurer(&fonts);
+    const auto fresh_snap = fresh.build_snapshot(300, 100, 1);
+    REQUIRE(switched != nullptr);
+    REQUIRE(fresh_snap != nullptr);
+    REQUIRE(switched->geometry.size() == fresh_snap->geometry.size());
+    for (std::size_t i = 0; i < fresh_snap->geometry.size(); ++i)
+        CHECK(switched->geometry[i].second.extent.w.raw()
+              == doctest::Approx(fresh_snap->geometry[i].second.extent.w.raw()));
 }

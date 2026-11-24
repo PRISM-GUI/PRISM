@@ -23,7 +23,10 @@ void Widget<Checkbox>::record(DrawList& dl, const Field<Checkbox>& field, Widget
     auto& t = node_theme(node);
     auto& cb = field.get();
 
-    delegate_detail::fill_widget_bg(dl, node, widget_h);
+    // A rounded theme draws a checkbox as its box and label alone, no surface behind the row; the
+    // clear rect still gives the widget its size (a leaf is measured from what it draws).
+    if (t.corner_radius == 0.f) delegate_detail::fill_widget_bg(dl, node, widget_h);
+    else dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, delegate_detail::widget_w(node), widget_h), Color::rgba(0, 0, 0, 0));
 
     Y box_y{(widget_h.raw() - box_size.raw()) / 2.f};
     draw_check_box(dl, X{8}, box_y, cb.checked, vs, t);
@@ -49,7 +52,8 @@ void Widget<bool>::record(DrawList& dl, const Field<bool>& field, WidgetNode& no
     constexpr Height widget_h{30.f};
     constexpr Height box_size{16.f};
 
-    delegate_detail::fill_widget_bg(dl, node, widget_h);
+    if (t.corner_radius == 0.f) delegate_detail::fill_widget_bg(dl, node, widget_h);
+    else dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, delegate_detail::widget_w(node), widget_h), Color::rgba(0, 0, 0, 0));
 
     Y box_y{(widget_h.raw() - box_size.raw()) / 2.f};
     draw_check_box(dl, X{8}, box_y, field.get(), vs, t);
@@ -176,9 +180,24 @@ void draw_slider(DrawList& dl, const SliderLook& look, const WidgetNode& node) {
     float top = look.label.empty() ? 0.f : slider_caption_h;
     if (top > 0.f) draw_slider_caption(dl, look, t);
     Y track_y{top + (slider_widget_extent - slider_track_thick) / 2.f};
-    dl.filled_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg);
     X thumb_x{look.ratio * (look.track_len - slider_thumb_len)};
-    dl.filled_rect(make_rect(thumb_x, Y{top}, Width{slider_thumb_len}, Height{slider_widget_extent}), thumb_color);
+    if (t.corner_radius > 0.f) {
+        // A pill track, the part up to the thumb in the accent, and a round thumb ringed in white.
+        constexpr float pill = slider_track_thick / 2.f;
+        dl.rounded_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg, pill);
+        dl.rounded_rect(make_rect(X{0}, track_y, Width{thumb_x.raw() + slider_thumb_len / 2.f}, Height{slider_track_thick}),
+                        thumb_color, pill);
+        constexpr float knob = 18.f;
+        const Point centre{X{thumb_x.raw() + slider_thumb_len / 2.f}, Y{track_y.raw() + slider_track_thick / 2.f}};
+        const Rect ring{Point{X{centre.x.raw() - knob / 2.f}, Y{centre.y.raw() - knob / 2.f}}, Size{Width{knob}, Height{knob}}};
+        dl.rounded_rect(ring, Color::rgba(255, 255, 255), knob / 2.f);
+        const Rect dot{Point{X{centre.x.raw() - knob / 2.f + 3.f}, Y{centre.y.raw() - knob / 2.f + 3.f}},
+                       Size{Width{knob - 6.f}, Height{knob - 6.f}}};
+        dl.rounded_rect(dot, thumb_color, (knob - 6.f) / 2.f);
+    } else {
+        dl.filled_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg);
+        dl.filled_rect(make_rect(thumb_x, Y{top}, Width{slider_thumb_len}, Height{slider_widget_extent}), thumb_color);
+    }
     if (vs.focused)
         draw_focus_ring(dl, Width{look.track_len}, Height{top + slider_widget_extent}, t);
 }
@@ -207,8 +226,12 @@ void Widget<Button>::record(DrawList& dl, const Field<Button>& field, WidgetNode
     bool down = vs.pressed || b.checked.value_or(false);
     Color bg = b.primary ? (down ? t.primary_active : vs.hovered ? t.primary_hover : t.primary)
                          : (down ? t.surface_active : vs.hovered ? t.surface_hover : t.surface);
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, Height{32}), bg);
-    if (b.primary) dl.rect_outline(delegate_detail::make_rect(X{0}, Y{0}, w, Height{32}), t.primary_outline, 1.0f);
+    const Rect box = delegate_detail::make_rect(X{0}, Y{0}, w, Height{32});
+    delegate_detail::fill_box(dl, box, bg, t.corner_radius);
+    if (b.primary || t.corner_radius > 0.f)
+        delegate_detail::outline_box(dl, delegate_detail::make_rect(X{0.5f}, Y{0.5f}, w - Width{1.f}, Height{31}),
+                                     b.primary ? t.primary_outline : (vs.hovered ? t.border_hover : t.border), 1.0f,
+                                     t.corner_radius);
     float x = 8.f;
     Color fg = b.primary ? t.text_on_primary : t.text;
     if (b.icon) {

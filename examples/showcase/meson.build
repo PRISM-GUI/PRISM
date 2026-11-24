@@ -1,3 +1,10 @@
+# A showcase SVG is re-made when its program changes and also when PRISM's libraries do: a change
+# to a widget's drawing lands in libprism, which the program is not relinked against.
+showcase_libs = [prism_lib]
+if is_variable('prism_software_backend_lib')
+  showcase_libs += prism_software_backend_lib
+endif
+
 showcases = {
   'counter':  'showcase_counter.cpp',
   'slider':   'showcase_slider.cpp',
@@ -40,7 +47,7 @@ foreach name, src : showcases
   custom_target('svg_' + name,
     output : name + '.svg',
     command : [exe, '@OUTPUT@'],
-    depends : exe,
+    depends : [exe] + showcase_libs,
     build_by_default : true,
   )
 endforeach
@@ -52,6 +59,17 @@ struct_to_ui_exe = executable('showcase_struct_to_ui', 'showcase_struct_to_ui.cp
 custom_target('svg_struct_to_ui',
   output : ['struct_to_ui.svg', 'struct_annotations.svg', 'struct_widgets.svg'],
   command : [struct_to_ui_exe, files('showcase_struct_to_ui.cpp'), '@OUTPUT0@', '@OUTPUT1@', '@OUTPUT2@'],
-  depends : struct_to_ui_exe,
+  depends : [struct_to_ui_exe] + showcase_libs,
   build_by_default : true,
 )
+
+# The modern look (spike): one program, both palettes.
+modern_exe = executable('showcase_modern', 'showcase_modern.cpp', dependencies : [prism_dep])
+foreach variant : ['dark', 'light']
+  custom_target('svg_modern_' + variant,
+    output : 'modern_' + variant + '.svg',
+    command : [modern_exe, '@OUTPUT@', variant],
+    depends : [modern_exe] + showcase_libs,
+    build_by_default : true,
+  )
+endforeach

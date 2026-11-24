@@ -489,19 +489,41 @@ inline Height widget_h(const WidgetNode& node) {
     return sz.h.raw() > 0 ? sz.h : default_widget_h;
 }
 
+// A box and its outline in the theme's shape: square at corner radius 0 (the classic look),
+// rounded otherwise. The one place a widget's box shape is decided.
+inline void fill_box(DrawList& dl, Rect r, Color c, float radius) {
+    if (radius > 0.f) dl.rounded_rect(r, c, radius);
+    else dl.filled_rect(r, c);
+}
+inline void outline_box(DrawList& dl, Rect r, Color c, float thickness, float radius) {
+    if (radius > 0.f) dl.rounded_rect(r, c, radius, thickness);
+    else dl.rect_outline(r, c, thickness);
+}
+
+// A text field's, a dropdown's or a popup's box: the fill and, in a rounded theme, a light border.
+// A clear fill (read-only text) draws nothing at all.
+inline void draw_field_box(DrawList& dl, Rect box, Color bg, const Theme& t, bool hovered) {
+    if (bg.a == 0) return;
+    fill_box(dl, box, bg, t.corner_radius);
+    if (t.corner_radius > 0.f)
+        outline_box(dl, Rect{Point{X{box.origin.x.raw() + 0.5f}, Y{box.origin.y.raw() + 0.5f}},
+                             Size{Width{box.extent.w.raw() - 1.f}, Height{box.extent.h.raw() - 1.f}}},
+                    hovered ? t.border_hover : t.border, 1.f, t.corner_radius);
+}
+
 // Shared surface/hover background fill used by the box-style delegates.
 inline void fill_widget_bg(DrawList& dl, const WidgetNode& node, Height h) {
     auto& vs = node_vs(node);
     auto& t = node_theme(node);
     auto bg = vs.hovered ? t.surface_hover : t.surface;
-    dl.filled_rect(make_rect(X{0}, Y{0}, widget_w(node), h), bg);
+    fill_box(dl, make_rect(X{0}, Y{0}, widget_w(node), h), bg, t.corner_radius);
 }
 
 // Inset inside the widget's own box on purpose: Leaf measurement sizes widgets from
 // draws.bounding_box(), so a ring painted outside the box feeds back into layout and
 // grows the widget on every publish (see commit 9d0e78c).
 inline void draw_focus_ring(DrawList& dl, Width w, Height h, const Theme& t) {
-    dl.rect_outline(make_rect(X{1}, Y{1}, w - Width{2.f}, h - Height{2.f}), t.focus_ring, 2.0f);
+    outline_box(dl, make_rect(X{1}, Y{1}, w - Width{2.f}, h - Height{2.f}), t.focus_ring, 2.0f, t.corner_radius);
 }
 
 // The framework's activation gesture: mouse press, or space/enter.
@@ -599,17 +621,16 @@ inline void draw_check_box(DrawList& dl, X x, Y y, bool checked,
         auto fill = vs.pressed  ? t.accent_active
                   : vs.hovered  ? t.accent_hover
                   :               t.accent;
-        dl.filled_rect(delegate_detail::make_rect(x, y, box_w, box_h), fill);
+        delegate_detail::fill_box(dl, delegate_detail::make_rect(x, y, box_w, box_h), fill, std::min(t.corner_radius, 4.f));
         dl.text("\xe2\x9c\x93", delegate_detail::make_point(x + DX{2.f}, y + DY{1.f}), 13, t.text_on_primary);
     } else {
         auto fill = vs.pressed  ? t.surface_active
                   : vs.hovered  ? t.surface_hover
                   :               t.surface;
-        dl.filled_rect(delegate_detail::make_rect(x, y, box_w, box_h), fill);
+        delegate_detail::fill_box(dl, delegate_detail::make_rect(x, y, box_w, box_h), fill, std::min(t.corner_radius, 4.f));
     }
-    dl.rect_outline(delegate_detail::make_rect(x, y, box_w, box_h),
-                    vs.hovered ? t.border_hover : t.border,
-                    border);
+    delegate_detail::outline_box(dl, delegate_detail::make_rect(x, y, box_w, box_h),
+                                 vs.hovered ? t.border_hover : t.border, border, std::min(t.corner_radius, 4.f));
 }
 
 // A one-line text editor drawn over a table cell or a tree row: a field in `box`, the
@@ -619,14 +640,14 @@ inline void draw_line_editor(DrawList& dl, const TextEdit& e, bool rejected, Rec
     auto [lo, hi] = text_edit::selection(e);
     float x0 = box.origin.x.raw() + 4.f, y0 = box.origin.y.raw(), h = box.extent.h.raw();
     auto x_at = [&](size_t i) { return x0 + text_width(t.measurer, text.substr(0, i), size); };
-    dl.filled_rect(box, t.surface);
+    delegate_detail::fill_box(dl, box, t.surface, t.corner_radius);
     if (lo != hi)
         dl.filled_rect(Rect{Point{X{x_at(lo)}, Y{y0 + 3}}, Size{Width{x_at(hi) - x_at(lo)}, Height{h - 6.f}}}, t.text_selection);
     dl.text(std::string(text), Point{X{x0}, Y{y0 + (h - size) / 2 - 1.f}}, size, t.text);
     float caret = x_at(e.cursor);
     dl.line(Point{X{caret}, Y{y0 + 4}}, Point{X{caret}, Y{y0 + h - 4.f}}, t.text, 1.f);
-    dl.rect_outline(Rect{Point{X{box.origin.x.raw() + 0.5f}, Y{y0 + 0.5f}}, Size{Width{box.extent.w.raw() - 1}, Height{h - 1}}},
-                    rejected ? t.error : t.accent, 1.f);
+    delegate_detail::outline_box(dl, Rect{Point{X{box.origin.x.raw() + 0.5f}, Y{y0 + 0.5f}}, Size{Width{box.extent.w.raw() - 1}, Height{h - 1}}},
+                                 rejected ? t.error : t.accent, 1.f, t.corner_radius);
 }
 
 template <>

@@ -120,6 +120,10 @@ struct Theme {
     // Canvas clear color
     Color canvas_bg       = Color::rgba(30, 30, 30);
 
+    // Shape: the corner radius of boxes (buttons, fields, checkboxes, popups). 0 draws them
+    // square, the classic look; the modern themes round them and draw sliders as pills.
+    float corner_radius   = 0.f;
+
     // The node board (a graph of cards on a grid, src/app/node_board.cpp). A family is a kind of
     // node ("source", "math"): its colour tints the card's header and names it on the right.
     struct NodeFamily {
@@ -204,6 +208,48 @@ inline Theme light_theme() {
                        {"display", c(31, 122, 69)}};
     t.node_family_default = c(120, 126, 138);
     t.dark = false;
+    return t;
+}
+
+// The modern look (spike): rounded boxes, pill sliders, a navy base and two accents, teal-blue
+// for primary actions and violet for the controls that are "on". Light and dark share the shapes.
+inline Theme modern_dark_theme() {
+    Theme t = dark_theme();
+    auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
+    t.corner_radius = 8.f;
+    t.canvas_bg = c(24, 28, 47);
+    t.surface = c(36, 41, 66);            t.surface_hover = c(44, 50, 80);      t.surface_active = c(52, 59, 92);
+    t.primary = c(44, 160, 178);          t.primary_hover = c(58, 178, 196);    t.primary_active = c(34, 140, 158);
+    t.primary_outline = c(88, 200, 210);
+    t.accent = c(132, 98, 245);           t.accent_hover = c(150, 120, 252);    t.accent_active = c(112, 80, 225);
+    t.text = c(232, 235, 248);            t.text_muted = c(152, 160, 196);
+    t.text_placeholder = c(112, 120, 156); t.text_on_primary = c(255, 255, 255);
+    t.border = c(74, 82, 122);            t.border_hover = c(112, 122, 172);    t.focus_ring = c(150, 122, 255);
+    t.track = c(70, 78, 116);             t.track_hover = c(84, 92, 134);
+    t.popup_bg = c(34, 39, 63);           t.popup_border = c(74, 82, 122);      t.popup_highlight = c(44, 160, 178);
+    t.tab_bar_bg = c(30, 34, 56);         t.tab_active_bg = c(40, 46, 74);
+    t.tab_text = c(140, 148, 186);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(132, 98, 245);
+    t.table_row_even = c(32, 37, 60);     t.table_row_odd = c(29, 33, 55);      t.table_selected = c(60, 58, 120);
+    t.table_header = c(40, 46, 74);       t.table_header_text = c(160, 168, 220);
+    return t;
+}
+
+inline Theme modern_light_theme() {
+    Theme t = light_theme();
+    auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
+    t.corner_radius = 8.f;
+    t.canvas_bg = c(243, 245, 251);
+    t.surface = c(255, 255, 255);         t.surface_hover = c(240, 243, 251);   t.surface_active = c(228, 233, 246);
+    t.primary = c(18, 128, 146);          t.primary_hover = c(24, 142, 160);    t.primary_active = c(14, 112, 128);
+    t.primary_outline = c(40, 160, 175);
+    t.accent = c(108, 76, 230);           t.accent_hover = c(124, 94, 240);     t.accent_active = c(92, 62, 210);
+    t.text = c(26, 29, 48);               t.text_muted = c(86, 92, 122);
+    t.text_placeholder = c(140, 146, 170); t.text_on_primary = c(255, 255, 255);
+    t.border = c(206, 211, 230);          t.border_hover = c(168, 175, 206);    t.focus_ring = c(108, 76, 230);
+    t.track = c(220, 224, 240);           t.track_hover = c(204, 210, 232);
+    t.popup_bg = c(255, 255, 255);        t.popup_border = c(206, 211, 230);    t.popup_highlight = c(18, 128, 146);
+    t.tab_bar_bg = c(234, 237, 247);      t.tab_active_bg = c(255, 255, 255);
+    t.tab_text = c(96, 102, 132);         t.tab_text_active = c(26, 29, 48);    t.tab_accent = c(108, 76, 230);
     return t;
 }
 

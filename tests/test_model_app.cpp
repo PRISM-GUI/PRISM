@@ -5,6 +5,7 @@
 #include <prism/app/null_backend.hpp>
 #include <prism/app/test_backend.hpp>
 #include <prism/app/headless_window.hpp>
+#include <prism/app/capturing_backend.hpp>
 #include <prism/core/field.hpp>
 #include <prism/core/shared.hpp>
 #include <prism/input/hit_test.hpp>
@@ -1447,4 +1448,73 @@ TEST_CASE("a busy bar keeps animating with no input after it") {
     auto& window = backend.create_window({.width = 300, .height = 100});
     prism::model_app(backend, window, model);
     CHECK(raw->submits >= 5);
+}
+
+namespace {
+struct CheckboxRow {
+    prism::Field<prism::ui::TextField<>> search{{.value = "", .placeholder = "Search..."}};
+    prism::Field<prism::ui::ComboBox> output{{.value = "Speaker", .placeholder = "Output",
+                                             .options = {"Speaker", "Headset", "HDMI"}}};
+    prism::Field<prism::ui::Slider<>> volume{{.value = 62, .min = 0, .max = 100, .step = 1, .label = "Volume", .unit = "%"}};
+    prism::Field<prism::ui::ProgressBar> loading{{.value = 0.72, .label = "Loading... 72%"}};
+    prism::Field<prism::ui::Checkbox> notify{{.checked = true, .label = "Mail notification"}};
+    prism::Field<prism::ui::Checkbox> beta{{.checked = false, .label = "Beta features"}};
+    prism::Field<prism::ui::Button> save{{.text = "Save", .primary = true}};
+    void view(prism::app::ViewBuilder& vb) {
+        vb.vstack([&] {
+            vb.widget(search);
+            vb.gap(10.f);
+            vb.widget(output);
+            vb.gap(14.f);
+            vb.widget(volume);
+            vb.gap(10.f);
+            vb.widget(loading);
+            vb.gap(12.f);
+            vb.hstack([&] { vb.widget(notify); vb.gap(16.f); vb.widget(beta); });
+            vb.gap(14.f);
+            vb.widget(save);
+        });
+    }
+};
+
+std::vector<prism::Rect> capture_in_app(std::function<void(prism::AppContext&)> setup) {
+    CheckboxRow model;
+    std::shared_ptr<const prism::SceneSnapshot> snap;
+    auto fonts = prism::backends::headless_text_measurer();
+    auto backend = prism::Backend{std::make_unique<prism::CapturingBackend>(snap, fonts.get())};
+    auto& window = backend.create_window({.width = 420, .height = 340});
+    prism::model_app(backend, window, model, setup);
+    std::vector<prism::Rect> out;
+    if (snap) for (const auto& [id, r] : snap->geometry) out.push_back(r);
+    return out;
+}
+
+std::vector<prism::Rect> capture_in_tree(const prism::Theme& theme) {
+    CheckboxRow model;
+    auto fonts = prism::backends::headless_text_measurer();
+    prism::WidgetTree tree{model};
+    tree.set_text_measurer(fonts.get());
+    tree.set_theme(theme);
+    const auto snap = tree.build_snapshot(420, 340, 1);
+    std::vector<prism::Rect> out;
+    for (const auto& [id, r] : snap->geometry) out.push_back(r);
+    return out;
+}
+
+bool same_rects(const std::vector<prism::Rect>& a, const std::vector<prism::Rect>& b) {
+    return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [](auto& x, auto& y) {
+        return x.origin.x.raw() == y.origin.x.raw() && x.origin.y.raw() == y.origin.y.raw()
+            && x.extent.w.raw() == y.extent.w.raw() && x.extent.h.raw() == y.extent.h.raw();
+    });
+}
+}
+
+TEST_CASE("a theme set in setup lays out like a theme set before the first frame") {
+    const auto theme = prism::ui::modern_dark_theme();
+    const auto in_app = capture_in_app([&](prism::AppContext& ctx) { ctx.set_theme(theme); });
+    const auto in_tree = capture_in_tree(theme);
+    REQUIRE(!in_app.empty());
+    CHECK(same_rects(in_app, in_tree));
+    CHECK(std::any_of(in_app.begin(), in_app.end(),
+                      [](auto& r) { return r.extent.h.raw() == doctest::Approx(30.f); }));
 }

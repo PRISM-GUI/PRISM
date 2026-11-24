@@ -40,7 +40,7 @@ void draw_text_field(DrawList& dl, const TextFieldDraw& field, const WidgetNode&
     auto bg = vs.focused ? t.surface_active
             : vs.hovered ? t.surface_hover
             : t.surface;
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, tf_widget_h), bg);
+    delegate_detail::draw_field_box(dl, delegate_detail::make_rect(X{0}, Y{0}, w, tf_widget_h), bg, t, vs.hovered);
 
     if (vs.focused)
         delegate_detail::draw_focus_ring(dl, w, tf_widget_h, t);
@@ -228,7 +228,7 @@ void draw_text_area(DrawList& dl, const TextAreaDraw& field, WidgetNode& node) {
             : vs.focused ? t.surface_active
             : vs.hovered ? t.surface_hover
             : t.surface;
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, widget_h), bg);
+    delegate_detail::draw_field_box(dl, delegate_detail::make_rect(X{0}, Y{0}, w, widget_h), bg, t, vs.hovered);
 
     if (vs.focused)
         delegate_detail::draw_focus_ring(dl, w, widget_h, t);
@@ -362,8 +362,8 @@ void Widget<ComboBox>::record(DrawList& dl, const Field<ComboBox>& field, Widget
     float w = delegate_detail::widget_w(node).raw();
     const float top = list_top(node);
     Rect list{Point{X{0}, Y{top}}, Size{Width{w}, Height{row_h * static_cast<float>(rows.size())}}};
-    node.overlay_draws.filled_rect(list, t.popup_bg);
-    node.overlay_draws.rect_outline(list, t.popup_border, 1.f);
+    delegate_detail::fill_box(node.overlay_draws, list, t.popup_bg, t.corner_radius);
+    delegate_detail::outline_box(node.overlay_draws, list, t.popup_border, 1.f, t.corner_radius);
     for (std::size_t i = 0; i < rows.size(); ++i) {
         Y y{top + row_h * static_cast<float>(i)};
         bool hl = i == es.completion_index;

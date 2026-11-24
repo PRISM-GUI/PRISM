@@ -21,7 +21,7 @@ void dropdown_record(DrawList& dl, WidgetNode& node,
     auto bg = es.open    ? t.surface_active
             : vs.hovered ? t.surface_hover
             : t.surface;
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, dd_widget_h), bg);
+    delegate_detail::draw_field_box(dl, delegate_detail::make_rect(X{0}, Y{0}, w, dd_widget_h), bg, t, vs.hovered);
 
     dl.text(current_label, delegate_detail::make_point(X{dd_padding.raw()}, Y{7}), dd_font_size, t.text);
 
@@ -43,12 +43,10 @@ void dropdown_record(DrawList& dl, WidgetNode& node,
             popup_y = Y{place_on_axis(popup_h.raw(), top, top + box_h, node.viewport_height.raw()) - top};
         }
 
-        node.overlay_draws.filled_rect(
-            delegate_detail::make_rect(X{0}, popup_y, w, popup_h),
-            t.popup_bg);
-        node.overlay_draws.rect_outline(
-            delegate_detail::make_rect(X{0}, popup_y, w, popup_h),
-            t.popup_border, 1.0f);
+        delegate_detail::fill_box(node.overlay_draws, delegate_detail::make_rect(X{0}, popup_y, w, popup_h),
+                                  t.popup_bg, t.corner_radius);
+        delegate_detail::outline_box(node.overlay_draws, delegate_detail::make_rect(X{0}, popup_y, w, popup_h),
+                                     t.popup_border, 1.0f, t.corner_radius);
 
         for (size_t i = 0; i < resolver.count; ++i) {
             Y y{popup_y.raw() + static_cast<float>(i) * dd_option_h.raw()};
