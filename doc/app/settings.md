@@ -124,8 +124,10 @@ if (!file.load_error().empty()) std::println("{}", file.load_error());
 
 - A key the struct does not have is skipped. A file from an older or newer version still loads.
 - An enum name the code does not know is skipped: that field keeps its default.
-- A file that does not parse is renamed `settings.toml.broken`, and the app starts with the
-  defaults. `load_error()` says why.
+- A value of the wrong type is not skipped: the file does not parse. `count = "not a number"`
+  takes down every other key beside it, so a valid `volume = 0.1` in the same file is dropped
+  too. The file is renamed `settings.toml.broken`, and the app starts with the defaults.
+  `load_error()` says why.
 
 ## Pitfalls
 

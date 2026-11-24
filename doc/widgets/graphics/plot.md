@@ -75,8 +75,8 @@ data. Set `auto_fit = false` with your own `min` and `max` to fix it.
 
 ## Large series
 
-A series need not be two vectors. Any type with `size()`, `x(i)` and `y(i)` is a source,
-so a plot can read a ring buffer or a memory-mapped file in place:
+A series need not be two vectors. Any type with `size()`, `x(i)` and `y(i)` is a source
+(`plot::PlotSource`), so a plot can read a ring buffer or a memory-mapped file in place:
 
 ```cpp
 struct Ramp {
@@ -88,6 +88,18 @@ struct Ramp {
 // in PlotShowcase::setup_data() above:
 plot.add_series(Ramp{}, plot::SeriesStyle{});
 ```
+
+The three calls must agree for one scan: one scan reads `size()` once, then calls `x(i)` and
+`y(i)` for every index below that count, and nothing clamps the index. A source that shrinks in
+the middle is read past its end, and a `std::vector` aborts on the assertion in a debug build.
+
+So a source a worker thread refills needs a stable shape:
+
+- a snapshot: the worker fills a buffer of its own, and the plot is given the finished one;
+- or a ring buffer of fixed capacity that returns a default value for an index past its end.
+
+Clearing a vector and refilling it is neither: between the two calls its size changes under the
+plot.
 
 Before drawing, the plot reduces a series to what the screen can show, so a million points
 draw as fast as a few thousand.

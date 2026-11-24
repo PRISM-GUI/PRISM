@@ -21,6 +21,10 @@ using namespace prism::ui;
 using namespace prism::app;
 
 template <typename T>
+// A plot reads size() once per scan, then x(i) and y(i) for every index below that count. The
+// three calls must agree for one scan: a source that shrinks in between is read past its end.
+// A source a worker refills therefore holds a snapshot, or a ring buffer of fixed capacity that
+// returns a default value past its end.
 concept PlotSource = requires(const T& src, size_t i) {
     { src.size() } -> std::convertible_to<size_t>;
     { src.x(i) } -> std::convertible_to<double>;
