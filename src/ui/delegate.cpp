@@ -182,16 +182,25 @@ void draw_slider(DrawList& dl, const SliderLook& look, const WidgetNode& node) {
     Y track_y{top + (slider_widget_extent - slider_track_thick) / 2.f};
     X thumb_x{look.ratio * (look.track_len - slider_thumb_len)};
     if (t.corner_radius > 0.f) {
-        // A pill track, the part up to the thumb in the accent, and a round thumb ringed in white.
+        // A pill track, the part up to the thumb filled with the theme's gradient, and a round
+        // thumb ringed in white. The knob stays inside the box the layout gave the widget: at
+        // either end its centre is pulled in rather than hanging half a knob over the edge (a
+        // leaf is measured from what it draws, so an overhang also grew the slider).
         constexpr float pill = slider_track_thick / 2.f;
-        dl.rounded_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg, pill);
-        dl.rounded_rect(make_rect(X{0}, track_y, Width{thumb_x.raw() + slider_thumb_len / 2.f}, Height{slider_track_thick}),
-                        thumb_color, pill);
         constexpr float knob = 18.f;
-        const Point centre{X{thumb_x.raw() + slider_thumb_len / 2.f}, Y{track_y.raw() + slider_track_thick / 2.f}};
-        const Rect ring{Point{X{centre.x.raw() - knob / 2.f}, Y{centre.y.raw() - knob / 2.f}}, Size{Width{knob}, Height{knob}}};
-        dl.rounded_rect(ring, Color::rgba(255, 255, 255), knob / 2.f);
-        const Rect dot{Point{X{centre.x.raw() - knob / 2.f + 3.f}, Y{centre.y.raw() - knob / 2.f + 3.f}},
+        constexpr float half = knob / 2.f;
+        const float centre_x = std::clamp(thumb_x.raw() + slider_thumb_len / 2.f, half,
+                                          std::max(half, look.track_len - half));
+        // The knob is shorter than the classic thumb bar: a clear rect keeps the widget's height.
+        dl.filled_rect(make_rect(X{0}, Y{top}, Width{look.track_len}, Height{slider_widget_extent}), Color::rgba(0, 0, 0, 0));
+        dl.rounded_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg, pill);
+        delegate_detail::fill_gradient(
+            dl, make_rect(X{0}, track_y, Width{centre_x}, Height{slider_track_thick}),
+            delegate_detail::gradient_state(t.primary_fill, thumb_color, false), pill);
+        const Point centre{X{centre_x}, Y{track_y.raw() + slider_track_thick / 2.f}};
+        const Rect ring{Point{X{centre.x.raw() - half}, Y{centre.y.raw() - half}}, Size{Width{knob}, Height{knob}}};
+        dl.rounded_rect(ring, Color::rgba(255, 255, 255), half);
+        const Rect dot{Point{X{centre.x.raw() - half + 3.f}, Y{centre.y.raw() - half + 3.f}},
                        Size{Width{knob - 6.f}, Height{knob - 6.f}}};
         dl.rounded_rect(dot, thumb_color, (knob - 6.f) / 2.f);
     } else {
@@ -224,16 +233,27 @@ void Widget<Button>::record(DrawList& dl, const Field<Button>& field, WidgetNode
     Width w = delegate_detail::widget_w(node);
     const auto& b = field.get();
     bool down = vs.pressed || b.checked.value_or(false);
+    const bool on = b.checked.value_or(false);
     Color bg = b.primary ? (down ? t.primary_active : vs.hovered ? t.primary_hover : t.primary)
                          : (down ? t.surface_active : vs.hovered ? t.surface_hover : t.surface);
     const Rect box = delegate_detail::make_rect(X{0}, Y{0}, w, Height{32});
-    delegate_detail::fill_box(dl, box, bg, t.corner_radius);
+    // A primary button, and a toggle that is on, are filled with their theme's gradient; a theme
+    // without one (the classic looks) keeps the flat colours, and an ordinary button stays plain.
+    const Gradient& theme_fill = on ? t.accent_fill : t.primary_fill;
+    const Color state = on ? (down ? t.accent_active : vs.hovered ? t.accent_hover : t.accent)
+                           : (down ? t.primary_active : vs.hovered ? t.primary_hover : t.primary);
+    const bool gradient = (on || b.primary) && !theme_fill.solid();
+    if (gradient)
+        delegate_detail::fill_gradient(dl, box, delegate_detail::gradient_state(theme_fill, state, vs.pressed || vs.hovered),
+                                       t.corner_radius);
+    else
+        delegate_detail::fill_box(dl, box, bg, t.corner_radius);
     if (b.primary || t.corner_radius > 0.f)
         delegate_detail::outline_box(dl, delegate_detail::make_rect(X{0.5f}, Y{0.5f}, w - Width{1.f}, Height{31}),
                                      b.primary ? t.primary_outline : (vs.hovered ? t.border_hover : t.border), 1.0f,
                                      t.corner_radius);
     float x = 8.f;
-    Color fg = b.primary ? t.text_on_primary : t.text;
+    Color fg = b.primary || gradient ? t.text_on_primary : t.text;
     if (b.icon) {
         dl.image(b.icon, Rect{Point{X{x}, Y{(32.f - icon_size) / 2}}, Size{Width{icon_size}, Height{icon_size}}},
                  icon_tint(b.icon, fg));

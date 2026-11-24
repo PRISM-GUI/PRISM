@@ -28,7 +28,19 @@ void draw(DrawList& dl, const std::vector<std::string>& labels, std::size_t sele
         float y = pad + row_h * static_cast<float>(i);
         Point centre{X{8.f + dot_r}, Y{y + row_h / 2}};
         dl.circle(centre, dot_r, i == selected ? t.accent : t.border, 2.f);
-        if (i == selected) dl.circle(centre, dot_r - 4.f, t.accent);
+        if (i == selected) {
+            // The selected dot carries the accent fill: a gradient in the modern looks, the flat
+            // accent (same circle) where the theme has none.
+            if (t.accent_fill.solid()) {
+                dl.circle(centre, dot_r - 4.f, t.accent);
+            } else {
+                const float diameter = 2.f * (dot_r - 4.f);
+                delegate_detail::fill_gradient(
+                    dl, Rect{Point{X{centre.x.raw() - diameter / 2.f}, Y{centre.y.raw() - diameter / 2.f}},
+                             Size{Width{diameter}, Height{diameter}}},
+                    t.accent_fill, diameter / 2.f);
+            }
+        }
         dl.text(labels[i], Point{X{label_x}, Y{y + 5.f}}, font_size, t.text);
     }
     if (vs.focused) delegate_detail::draw_focus_ring(dl, delegate_detail::widget_w(node), h, t);
@@ -114,8 +126,9 @@ void Widget<ProgressBar>::record(DrawList& dl, const Field<ProgressBar>& f, Widg
         dl.rounded_rect(Rect{Point{X{x}, track.origin.y}, Size{Width{seg}, Height{track_h}}}, t.primary, track_h / 2);
         node.redraw_at = now + busy_frame;   // the tree's tick redraws it then
     } else if (float filled = fraction(p) * w; filled > 0.f) {
-        dl.rounded_rect(Rect{track.origin, Size{Width{filled}, Height{track_h}}}, t.primary,
-                        std::min(track_h, filled) / 2);
+        delegate_detail::fill_gradient(dl, Rect{track.origin, Size{Width{filled}, Height{track_h}}},
+                                       delegate_detail::gradient_state(t.primary_fill, t.primary, false),
+                                       std::min(track_h, filled) / 2);
     }
 }
 

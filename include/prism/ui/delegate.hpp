@@ -500,6 +500,22 @@ inline void outline_box(DrawList& dl, Rect r, Color c, float thickness, float ra
     else dl.rect_outline(r, c, thickness);
 }
 
+// A theme's fill in the theme's shape: a solid gradient is a plain fill, so a theme that has no
+// gradients draws exactly what it drew before.
+inline void fill_gradient(DrawList& dl, Rect r, const Gradient& g, float radius) {
+    if (g.solid()) return fill_box(dl, r, g.from, radius);
+    dl.gradient_rect(r, g, radius);
+}
+
+// The fill a control shows: its theme gradient, or the flat colour a state asks for when the
+// theme has no gradient (the classic looks). On a gradient, hover and press pull both ends
+// toward that colour, so the control keeps its shape while the pointer is over it.
+inline Gradient gradient_state(const Gradient& g, Color state, bool changed) {
+    if (g.solid()) return Gradient{state, state};
+    if (!changed) return g;
+    return Gradient{render::mix_color(g.from, state, 0.5f), render::mix_color(g.to, state, 0.5f), g.axis};
+}
+
 // A text field's, a dropdown's or a popup's box: the fill and, in a rounded theme, a light border.
 // A clear fill (read-only text) draws nothing at all.
 inline void draw_field_box(DrawList& dl, Rect box, Color bg, const Theme& t, bool hovered) {
@@ -621,7 +637,9 @@ inline void draw_check_box(DrawList& dl, X x, Y y, bool checked,
         auto fill = vs.pressed  ? t.accent_active
                   : vs.hovered  ? t.accent_hover
                   :               t.accent;
-        delegate_detail::fill_box(dl, delegate_detail::make_rect(x, y, box_w, box_h), fill, std::min(t.corner_radius, 4.f));
+        delegate_detail::fill_gradient(dl, delegate_detail::make_rect(x, y, box_w, box_h),
+                                       delegate_detail::gradient_state(t.accent_fill, fill, vs.pressed || vs.hovered),
+                                       std::min(t.corner_radius, 4.f));
         dl.text("\xe2\x9c\x93", delegate_detail::make_point(x + DX{2.f}, y + DY{1.f}), 13, t.text_on_primary);
     } else {
         auto fill = vs.pressed  ? t.surface_active
