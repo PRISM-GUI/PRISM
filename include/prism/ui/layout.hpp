@@ -115,6 +115,9 @@ struct LayoutNode {
     std::vector<float> split_sizes;  // main-axis size per pane; meaningful only for Kind::Row/Column when split mode is engaged
     const Theme* theme = &layout_detail::layout_default_theme();
     float spacer_size = 0.f;   // Kind::Spacer: 0 stretches, more is a fixed gap
+    // Kind::Row/Column: the gap left between two children, along the stack's own axis. It comes
+    // from the theme, and a stack with an explicit gap of its own keeps 0 here.
+    float spacing = 0.f;
     std::optional<float> canvas_min_width;   // only meaningful for Kind::Canvas
     std::optional<float> canvas_min_height;  // only meaningful for Kind::Canvas
     // Set by prism::app::widget_layout_detail::build_layout() for Leaf/Canvas/Handle nodes -- lets
@@ -193,9 +196,12 @@ inline void measure_linear(LayoutNode& node, LayoutAxis own_axis, LayoutAxis par
         sum += child.hint.preferred;
         max_cross = std::max(max_cross, child.hint.cross);
     }
+    // A stack leaves the theme's spacing between its children: room its own axis must report, on
+    // top of the children's preferred sizes (an explicit gap is already one of the children).
+    const float gaps = node.children.size() > 1 ? node.spacing * float(node.children.size() - 1) : 0.f;
     bool aligned = (own_axis == parent_axis);
-    node.hint.preferred = aligned ? sum : max_cross;
-    node.hint.cross = aligned ? max_cross : sum;
+    node.hint.preferred = aligned ? sum + gaps : max_cross;
+    node.hint.cross = aligned ? max_cross : sum + gaps;
     // Expansion is per axis: a row whose text field fills it horizontally must not also claim
     // spare height from its parent column.
     node.hint.expand = aligned ? has_expander : has_cross_expander;
@@ -438,7 +444,10 @@ inline void layout_arrange(LayoutNode& node, Rect available) {
             total_preferred += child.hint.preferred;
     }
 
-    float remaining = (horizontal ? available.extent.w.raw() : available.extent.h.raw()) - total_preferred;
+    // The gaps come out of the room before the expanders share what is left, and out of a
+    // non-expanding stack's own total, so the children keep their preferred sizes.
+    const float gaps = node.children.size() > 1 ? node.spacing * float(node.children.size() - 1) : 0.f;
+    float remaining = (horizontal ? available.extent.w.raw() : available.extent.h.raw()) - total_preferred - gaps;
     float expand_share = (expand_count > 0) ? std::max(0.f, remaining) / expand_count : 0;
 
     float offset = 0;
@@ -454,6 +463,7 @@ inline void layout_arrange(LayoutNode& node, Rect available) {
         }
         layout_arrange(child, child_rect);
         offset += main_size;
+        if (&child != &node.children.back()) offset += node.spacing;
     }
 }
 

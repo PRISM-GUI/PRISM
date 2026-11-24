@@ -34,6 +34,19 @@ inline TabsState* get_tabs_state_ptr(WidgetNode& node) {
     return sp ? sp->get() : nullptr;
 }
 
+// A stack leaves the theme's spacing between its children, unless it sets a gap of its own:
+// `vb.gap(n)` is a spacer child, and a stack that already places its gaps keeps only those. A
+// stretchy `vb.spacer()` takes room without choosing a gap, so it does not turn spacing off.
+inline float stack_spacing(const WidgetNode& node, const Theme* theme) {
+    using LK = LayoutKind;
+    if (!theme) return 0.f;
+    const auto is_gap = [](const WidgetNode& child) {
+        return child.layout_kind == LK::Spacer && child.spacer_size > 0.f;
+    };
+    if (std::ranges::any_of(node.children, is_gap)) return 0.f;
+    return theme->spacing;
+}
+
 struct ScrollView {
     DY& offset;
     Height viewport_h;
@@ -297,6 +310,7 @@ inline void build_layout(WidgetNode& node, LayoutNode& parent, bool keep) {
         container.id = node.id;
         container.source = &node;
         container.theme = node.theme;
+        container.spacing = stack_spacing(node, node.theme);
         if (auto* ss = std::any_cast<SplitState>(&node.edit_state); ss && ss->engaged)
             container.split_sizes = ss->pane_sizes;
         container.frame = node.frame;

@@ -490,3 +490,72 @@ TEST_CASE("a canvas's minimum width counts across a column, not only along a row
     prism::layout_measure(col, prism::LayoutAxis::Vertical);     // its height
     CHECK(col.hint.cross >= 200);
 }
+
+TEST_CASE("a column spaces its children by the layout's spacing") {
+    prism::LayoutNode col;
+    col.kind = prism::LayoutNode::Kind::Column;
+    col.spacing = 10.f;
+
+    for (float h : {40.f, 40.f, 40.f}) {
+        prism::LayoutNode leaf;
+        leaf.kind = prism::LayoutNode::Kind::Leaf;
+        leaf.draws.filled_rect(R(0, 0, 100, h), prism::Color::rgba(255, 0, 0));
+        col.children.push_back(std::move(leaf));
+    }
+
+    prism::layout_measure(col, prism::LayoutAxis::Vertical);
+    CHECK(col.hint.preferred == 140);   // 3 * 40 + 2 * 10
+
+    prism::layout_arrange(col, R(0, 0, 300, 400));
+    CHECK(col.children[0].allocated.origin.y.raw() == 0);
+    CHECK(col.children[0].allocated.extent.h.raw() == 40);
+    CHECK(col.children[1].allocated.origin.y.raw() == 50);
+    CHECK(col.children[2].allocated.origin.y.raw() == 100);
+}
+
+TEST_CASE("a row spaces its children across") {
+    prism::LayoutNode row;
+    row.kind = prism::LayoutNode::Kind::Row;
+    row.spacing = 10.f;
+
+    prism::LayoutNode a;
+    a.kind = prism::LayoutNode::Kind::Leaf;
+    a.draws.filled_rect(R(0, 0, 100, 50), prism::Color::rgba(255, 0, 0));
+
+    prism::LayoutNode b;
+    b.kind = prism::LayoutNode::Kind::Leaf;
+    b.draws.filled_rect(R(0, 0, 60, 80), prism::Color::rgba(0, 255, 0));
+
+    row.children.push_back(std::move(a));
+    row.children.push_back(std::move(b));
+
+    prism::layout_measure(row, prism::LayoutAxis::Horizontal);
+    CHECK(row.hint.preferred == 170);   // 100 + 60 + 10
+
+    prism::layout_arrange(row, R(0, 0, 300, 200));
+    CHECK(row.children[0].allocated.extent.w.raw() == 100);
+    CHECK(row.children[1].allocated.origin.x.raw() == 110);
+    CHECK(row.children[1].allocated.extent.w.raw() == 60);
+}
+
+TEST_CASE("spacing takes its room from the child that expands") {
+    prism::LayoutNode col;
+    col.kind = prism::LayoutNode::Kind::Column;
+    col.spacing = 10.f;
+
+    prism::LayoutNode fixed;
+    fixed.kind = prism::LayoutNode::Kind::Leaf;
+    fixed.draws.filled_rect(R(0, 0, 100, 40), prism::Color::rgba(255, 0, 0));
+
+    prism::LayoutNode stretchy;
+    stretchy.kind = prism::LayoutNode::Kind::Spacer;
+
+    col.children.push_back(std::move(fixed));
+    col.children.push_back(std::move(stretchy));
+
+    prism::layout_measure(col, prism::LayoutAxis::Vertical);
+    prism::layout_arrange(col, R(0, 0, 300, 400));
+
+    CHECK(col.children[1].allocated.origin.y.raw() == 50);   // 40 + 10
+    CHECK(col.children[1].allocated.extent.h.raw() == 350);  // 400 - 40 - 10
+}

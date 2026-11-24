@@ -30,6 +30,7 @@ headless_tests = {
   'pixel_buffer' : files('test_pixel_buffer.cpp'),
   'software_renderer' : files('test_software_renderer.cpp'),
   'layout' : files('test_layout.cpp'),
+  'layout_spacing' : files('test_layout_spacing.cpp'),
   'board_layout' : files('test_board_layout.cpp'),
   'hit_test' : files('test_hit_test.cpp'),
   'connection' : files('test_connection.cpp'),

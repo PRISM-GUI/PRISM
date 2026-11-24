@@ -19,27 +19,18 @@ struct ModernSample {
     core::Field<ui::Button> mute{{.text = "Mute", .primary = false, .checked = true}};
 
     void view(app::ViewBuilder& vb) {
-        // simplify: explicit gaps; a theme spacing the stacks apply is part of the design.
         vb.vstack([&] {
             vb.widget(search);
-            vb.gap(10.f);
             vb.widget(output);
-            vb.gap(14.f);
             vb.widget(volume);
-            vb.gap(10.f);
             vb.widget(loading);
-            vb.gap(12.f);
             vb.hstack([&] {
                 vb.widget(notify);
-                vb.gap(16.f);
                 vb.widget(beta);
             });
-            vb.gap(14.f);
             vb.hstack([&] {
                 vb.widget(cancel);
-                vb.gap(10.f);
                 vb.widget(mute);
-                vb.gap(10.f);
                 vb.widget(save);
             });
         });

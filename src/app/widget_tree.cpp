@@ -498,6 +498,7 @@ void WidgetTree::build_snapshot(SceneSnapshot& out, float w, float h, uint64_t v
         layout.id = root_.id;
         layout.source = &root_;
         layout.theme = &theme_;
+        layout.spacing = widget_detail::stack_spacing(root_, &theme_);
         // ViewBuilder::finalize() hoists a lone top-level Row/Column into
         // root_ itself (see its id-adoption comment), so this root layout
         // node is built by hand here rather than via build_layout()'s
