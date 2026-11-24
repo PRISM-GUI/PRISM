@@ -9,6 +9,7 @@ from typing import Sequence
 
 from prism_cli import __version__, fault, size
 from prism_cli import doctor as doctor_module
+from prism_cli import project as project_module
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -41,6 +42,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="the target whose toolchain to check",
     )
     doctor.set_defaults(handler=_doctor)
+
+    new = commands.add_parser("new", help="start a project from PRISM's template")
+    new.add_argument("name", help="the directory to create")
+    new.add_argument(
+        "--target",
+        action="append",
+        choices=project_module.TARGETS,
+        help="a target to generate; may be repeated (default: desktop)",
+    )
+    new.add_argument(
+        "--from",
+        dest="source",
+        default=project_module.DEFAULT_SOURCE,
+        help="the template to copy",
+    )
+    new.add_argument(
+        "--defaults", action="store_true", help="answer every question with its default"
+    )
+    new.set_defaults(handler=_new)
+
+    update = commands.add_parser(
+        "update", help="pull template changes into the current project"
+    )
+    update.set_defaults(handler=_update)
 
     return parser
 
@@ -83,6 +108,35 @@ def _doctor(args: argparse.Namespace) -> int:
         if not finding.ok:
             print(f"     {finding.fix}")
     return 0 if all(finding.ok for finding in findings) else 1
+
+
+def _new(args: argparse.Namespace) -> int:
+    dest = Path(args.name)
+    try:
+        project_module.new(
+            dest,
+            args.target or ["desktop"],
+            {"project_name": dest.name},
+            src=args.source,
+            defaults=args.defaults,
+        )
+    except (project_module.ProjectError, OSError) as error:
+        print(f"prism new: {error}", file=sys.stderr)
+        return 2
+
+    print(f"created {dest}")
+    return 0
+
+
+def _update(args: argparse.Namespace) -> int:
+    try:
+        project_module.update(Path("."))
+    except (project_module.ProjectError, OSError) as error:
+        print(f"prism update: {error}", file=sys.stderr)
+        return 2
+
+    print("updated")
+    return 0
 
 
 def _read_report(path: str | None) -> str:
