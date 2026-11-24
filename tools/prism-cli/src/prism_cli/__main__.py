@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Sequence
 
 from prism_cli import __version__, fault, size
+from prism_cli import doctor as doctor_module
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,6 +32,15 @@ def build_parser() -> argparse.ArgumentParser:
     size.add_argument("map", help="the GNU ld map file")
     size.add_argument("--top", type=int, default=10, help="how many sections to list")
     size.set_defaults(handler=_size)
+
+    doctor = commands.add_parser("doctor", help="check the tools a project needs")
+    doctor.add_argument(
+        "--target",
+        choices=doctor_module.TARGETS,
+        default="desktop",
+        help="the target whose toolchain to check",
+    )
+    doctor.set_defaults(handler=_doctor)
 
     return parser
 
@@ -64,6 +74,15 @@ def _size(args: argparse.Namespace) -> int:
 
     print(size.report(sections, args.top))
     return 0
+
+
+def _doctor(args: argparse.Namespace) -> int:
+    findings = doctor_module.check(args.target)
+    for finding in findings:
+        print(f"{'ok  ' if finding.ok else 'FAIL'} {finding.tool}: {finding.detail}")
+        if not finding.ok:
+            print(f"     {finding.fix}")
+    return 0 if all(finding.ok for finding in findings) else 1
 
 
 def _read_report(path: str | None) -> str:
