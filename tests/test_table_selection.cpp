@@ -4,6 +4,7 @@
 
 #include <prism/app/event_routing.hpp>
 #include <prism/app/widget_tree.hpp>
+#include <prism/core/list.hpp>
 
 #include <string>
 #include <vector>
@@ -68,4 +69,79 @@ TEST_CASE("the app selects rows by setting its field") {
     doc.picked = std::vector<size_t>{};
     CHECK_FALSE(is_selected(ts, 0));
     CHECK_FALSE(is_selected(ts, 3));
+}
+
+#if __cpp_impl_reflection
+namespace {
+struct Row {
+    std::string name;
+};
+
+// A table over a List: its rows move when the list inserts or removes, and the app's selected
+// rows are source indices, so they must move with them (as a list's selection does).
+struct RowsModel {
+    List<Row> items;
+    Field<std::vector<size_t>> picked;
+    RowsModel() {
+        for (auto name : {"a", "b", "c", "d", "e", "f"}) items.push_back(Row{name});
+    }
+    void view(WidgetTree::ViewBuilder& vb) { vb.table(items).selection(picked); }
+};
+
+void first_frame(WidgetTree& tree) { (void)tree.build_snapshot(400, 300, 1); }
+} // namespace
+
+TEST_CASE("an erase before the selected rows shifts them up") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.erase(0);
+    CHECK(model.picked.get() == std::vector<size_t>{1, 4});
+}
+
+TEST_CASE("erasing a selected row takes it out of the selection") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.erase(2);
+    CHECK(model.picked.get() == std::vector<size_t>{4});
+}
+
+TEST_CASE("an insert before the selected rows shifts them up") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.insert(0, Row{"z"});
+    CHECK(model.picked.get() == std::vector<size_t>{3, 6});
+}
+
+TEST_CASE("an append leaves the selected rows alone") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.push_back(Row{"z"});
+    CHECK(model.picked.get() == std::vector<size_t>{2, 5});
+}
+
+TEST_CASE("clearing the list empties the selection") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.clear();
+    CHECK(model.picked.get().empty());
+}
+#endif // __cpp_impl_reflection
+
+TEST_CASE("a row moved past the others keeps the selection ascending") {
+    RowsModel model;
+    WidgetTree tree{model};
+    first_frame(tree);
+    model.picked = std::vector<size_t>{2, 5};
+    model.items.move(5, 0);
+    CHECK(model.picked.get() == std::vector<size_t>{0, 3});
 }

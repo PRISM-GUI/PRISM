@@ -75,7 +75,7 @@ The [gallery's Data tab](https://prism-gui.github.io/PRISM/widget_gallery.html) 
 | `.sort(column, descending = false)` | the starting sort; the user changes it by clicking a header |
 | `.columns(field)` | a `Field<std::vector<std::size_t>>` of the columns shown, in order; empty: all |
 | `.depends_on(a, b...)` | redraws and re-sorts when any of these fields change |
-| `.selection(field)` | a `Field<std::vector<std::size_t>>` of the selected rows: the user's selection lands in it, and setting it selects rows |
+| `.selection(field)` | a `Field<std::vector<std::size_t>>` of the selected rows: the user's selection lands in it, and setting it selects rows; over a `List<T>`, a row inserted or removed moves them with their items |
 
 With `.columns(field)`, the app hides a column by leaving it out of the vector, and saves the
 user's order by saving the field. A header drag writes the new order into it.
@@ -113,6 +113,8 @@ struct Inbox {
 
 The rows are source rows (the order of your data, not the sorted order on screen), ascending.
 When the app sets the field, keep it sorted too.
+Rows inserted or removed in the `List` move the remembered indices with them, as a list's own
+selection does, so the same items stay picked.
 
 A table over a `List` hears its changes itself. A table over your own source does not know
 when your data changes: list the fields it depends on with `.depends_on(...)`.

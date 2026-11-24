@@ -81,6 +81,20 @@ void wire_list_signals(Node& container, List<T>& items) {
     };
 }
 
+// A table's selected rows are source indices, so a list that inserts, removes or moves a row
+// moves them too: the rule vb.list's single-row selection follows (ListHandle::selection).
+template <typename T>
+std::vector<Connection> follow_selected_rows(List<T>& items, Field<std::vector<size_t>>& rows) {
+    std::vector<Connection> watch;   // Connection only moves: a braced list would copy
+    watch.emplace_back(items.on_insert().connect(
+        [&rows](size_t at, const T&) { rows.set(core::indices_after_insert(rows.get(), at)); }));
+    watch.emplace_back(
+        items.on_remove().connect([&rows](size_t gone) { rows.set(core::indices_after_remove(rows.get(), gone)); }));
+    watch.emplace_back(items.on_move().connect(
+        [&rows](size_t from, size_t to) { rows.set(core::indices_after_move(rows.get(), from, to)); }));
+    return watch;
+}
+
 // A sorted table over a List re-sorts only the rows updated or appended (ui::refresh_order):
 // the List reports updated rows, and appends only ever add rows at the end.
 template <typename T>
@@ -317,7 +331,8 @@ public:
             return *this;
         }
         // The selected rows, as source row indices, ascending: the user's clicks land in `rows`,
-        // and setting `rows` selects them. The table redraws when the app sets it.
+        // and setting `rows` selects them. The table redraws when the app sets it. A table over a
+        // List<T> keeps them on the same items as rows come and go (the list's own selection rules).
         TableBuilder& selection(Field<std::vector<size_t>>& rows) {
             placed_ref.insert(&rows);
             node_ref.dependencies.push_back(view_builder_detail::adapt_on_change(rows));
@@ -328,6 +343,7 @@ public:
                         raw->selected_row.set(r.empty() ? std::nullopt : std::optional{r.front()});
                     if (raw->anchor_row && !std::ranges::binary_search(r, *raw->anchor_row)) raw->anchor_row.reset();
                 });
+                if (ts->follow_rows) ts->row_shift_watch = ts->follow_rows(rows);
             }
             return *this;
         }
@@ -926,6 +942,9 @@ public:
         state->source = wrap_row_storage(list);
         state->column_count = state->source.column_count();
         view_builder_detail::track_rows(*state, list);
+        state->follow_rows = [&list](Field<std::vector<size_t>>& rows) {
+            return view_builder_detail::follow_selected_rows(list, rows);
+        };
         container.table_state = state;
 
         view_builder_detail::wire_list_signals(container, list);

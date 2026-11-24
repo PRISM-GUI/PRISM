@@ -443,6 +443,10 @@ struct TableState {
     // selected_rows; the watch keeps the current row among them when the app sets it.
     Field<std::vector<size_t>>* app_selection = nullptr;
     Connection app_selection_watch;
+    // Set for a table over a List<T>: selection() subscribes to the list's row signals through it,
+    // so the selected rows stay on the same items (insert, remove, move).
+    std::function<std::vector<Connection>(Field<std::vector<size_t>>&)> follow_rows;
+    std::vector<Connection> row_shift_watch;
     std::optional<HeaderDrag> header_drag;
 
     std::vector<float> column_widths;  // by source column: user-resized widths; 0 or missing = auto

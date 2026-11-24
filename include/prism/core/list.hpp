@@ -99,4 +99,26 @@ inline size_t index_after_move(size_t index, size_t from, size_t to) {
     return index;
 }
 
+// The same three questions for a set of indices ascending, as a table's selected rows are: the
+// list inserted `at`, removed `gone`, or moved a row from `from` to `to`.
+inline std::vector<size_t> indices_after_insert(std::vector<size_t> indices, size_t at) {
+    for (auto& index : indices)
+        if (index >= at) ++index;
+    return indices;
+}
+
+inline std::vector<size_t> indices_after_remove(std::vector<size_t> indices, size_t gone) {
+    std::erase_if(indices, [gone](size_t index) { return index == gone; });
+    for (auto& index : indices)
+        if (index > gone) --index;
+    return indices;
+}
+
+// Ascending again afterwards: the moved row can pass the others.
+inline std::vector<size_t> indices_after_move(std::vector<size_t> indices, size_t from, size_t to) {
+    for (auto& index : indices) index = index_after_move(index, from, to);
+    std::ranges::sort(indices);
+    return indices;
+}
+
 } // namespace prism::core
