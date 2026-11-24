@@ -219,7 +219,7 @@ TEST_CASE("a draw list up to kBandMargin outside its geometry rect is drawn in i
     SceneSnapshot snap;
     snap.geometry = {{1, rect(10, 10, 20, 20)}};
     snap.draw_lists = {filled(rect(10, 25, 20, 20), Color::rgba(200, 40, 40))};
-    snap.z_order = {0};
+    snap.z_order.assign(1, 0);   // not = {0}: GCC 14 under ASan misreads it as an out-of-bounds copy
     Fonts fonts;
     check_all_formats(snap, fonts, 64, 64, 8);
 }
@@ -234,7 +234,7 @@ TEST_CASE("a list with a leading clip is drawn in every band its clip reaches") 
     dl->clip_pop();
     snap.geometry = {{1, rect(10, 10, 20, 20)}};
     snap.draw_lists = {dl};
-    snap.z_order = {0};
+    snap.z_order.assign(1, 0);
     Fonts fonts;
     check_all_formats(snap, fonts, 64, 64, 8);
 }
@@ -249,7 +249,7 @@ TEST_CASE("a list whose first clip is popped before its end falls back to its ge
     dl->filled_rect(rect(0, 40, 64, 8), Color::rgba(200, 40, 40));
     snap.geometry = {{1, rect(0, 0, 64, 48)}};
     snap.draw_lists = {dl};
-    snap.z_order = {0};
+    snap.z_order.assign(1, 0);
     Fonts fonts;
     check_all_formats(snap, fonts, 64, 64, 8);
 }
@@ -275,7 +275,7 @@ TEST_CASE("clip entries that miss a band still clip the lists drawn in it") {
 TEST_CASE("a draw list with no geometry entry is drawn in every band") {
     SceneSnapshot snap;
     snap.draw_lists = {filled(rect(0, 40, 64, 8), Color::rgba(200, 40, 40))};
-    snap.z_order = {0};
+    snap.z_order.assign(1, 0);
     Fonts fonts;
     check_all_formats(snap, fonts, 64, 64, 8);
 }

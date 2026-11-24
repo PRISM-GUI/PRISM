@@ -113,7 +113,7 @@ TEST_CASE("a UI scale draws every command that much larger") {
     dl->commands.emplace_back(prism::render::ClipPop{});
     snap.geometry.emplace_back(1, Rect{Point{X{0.f}, Y{0.f}}, Size{Width{400.f}, Height{300.f}}});
     snap.draw_lists = {dl};
-    snap.z_order = {0};
+    snap.z_order.assign(1, 0);   // not = {0}: GCC 14 under ASan misreads it as an out-of-bounds copy
     prism::raster::Fonts fonts;
     const Pixels px = full_frame(snap, fonts, 1.5f);
     const std::uint32_t red = 0xFFFF0000u;

@@ -143,9 +143,9 @@ TEST_CASE("a list with no clip and no geometry is unbounded: full damage") {
     SceneSnapshot before, after;
     before.viewport = after.viewport = Size{Width{float(W)}, Height{float(H)}};
     before.draw_lists = {hand};
-    before.z_order = {0};
+    before.z_order.assign(1, 0);   // not = {0}: GCC 14 under ASan misreads it as an out-of-bounds copy
     after.draw_lists = {std::make_shared<DrawList>(*hand)};
-    after.z_order = {0};
+    after.z_order.assign(1, 0);
     CHECK(between(&before, after).full);
 }
 
