@@ -58,8 +58,10 @@ size. Coordinates are typed: `core::X` and `core::Y` for positions, `core::Width
 | `image(image, rect, tint = white)` | an image fitted into `rect` |
 | `clip_push(origin, extent)`, `clip_pop()` | draw only inside a rectangle, until the pop |
 
-Images come from `render::load_image(path)` or `render::Image::from_rgba(w, h, pixels)`;
-see [Picture](../controls/picture.md).
+Images come from `render::load_image(path)`, `render::Image::from_rgba(w, h, pixels)`,
+`render::Image::from_rgb565(w, h, words)` (one packed `uint16_t` per pixel), or
+`raster::paint_image<P>(w, h, paint)`, which draws into a canvas and freezes it;
+see [Picture](../controls/picture.md) and [Images](../../concepts/images.md).
 
 ## When it redraws
 

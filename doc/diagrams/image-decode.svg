@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 360" width="1560" height="360" role="img" aria-label="How bytes become one Image in the format the screen reads">
+  <rect width="1560" height="360" fill="#ffffff"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="sans-serif" fill="#1a1a1a">
+    <text x="40" y="42" font-size="18" font-weight="bold">Bytes become one Image in the format the screen reads</text>
+
+    <rect x="40" y="90" width="190" height="120" rx="8" fill="#fdf3e8" stroke="#a07a3a"/>
+    <text x="60" y="120" font-size="15" font-weight="bold">bytes</text>
+    <text x="60" y="146" font-size="13">a PNG, a JPEG, an SVG</text>
+    <text x="60" y="168" font-size="13">from a file or memory</text>
+
+    <line x1="230" y1="150" x2="350" y2="150" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="290" y="138" font-size="12" fill="#3a3a3a" text-anchor="middle">decode_image() reads</text>
+
+    <rect x="350" y="90" width="220" height="120" rx="8" fill="#eef3fb" stroke="#4a6fa5"/>
+    <text x="370" y="120" font-size="15" font-weight="bold">the decoder registry</text>
+    <text x="370" y="146" font-size="13">what registered, one list</text>
+    <text x="370" y="168" font-size="13">walked newest first</text>
+
+    <line x1="570" y1="150" x2="690" y2="150" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="630" y="138" font-size="12" fill="#3a3a3a" text-anchor="middle">asked in turn</text>
+
+    <rect x="690" y="90" width="220" height="120" rx="8" fill="#eef7ee" stroke="#4a7a4a"/>
+    <text x="710" y="120" font-size="15" font-weight="bold">ImageDecoder::decode</text>
+    <text x="710" y="146" font-size="13">the first decoder that</text>
+    <text x="710" y="168" font-size="13">reads them wins</text>
+
+    <line x1="910" y1="150" x2="1030" y2="150" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="970" y="138" font-size="12" fill="#3a3a3a" text-anchor="middle">a PixelView</text>
+
+    <rect x="1030" y="90" width="180" height="120" rx="8" fill="#eef3fb" stroke="#4a6fa5"/>
+    <text x="1050" y="120" font-size="15" font-weight="bold">fit_pixels</text>
+    <text x="1050" y="146" font-size="13">area average,</text>
+    <text x="1050" y="168" font-size="13">aspect kept</text>
+
+    <line x1="1210" y1="150" x2="1330" y2="150" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="1270" y="138" font-size="12" fill="#3a3a3a" text-anchor="middle">the format asked</text>
+
+    <rect x="1330" y="90" width="190" height="120" rx="8" fill="#fdf3e8" stroke="#a07a3a"/>
+    <text x="1350" y="120" font-size="15" font-weight="bold">Image</text>
+    <text x="1350" y="146" font-size="13">rgba8888 or rgb565</text>
+    <text x="1350" y="168" font-size="13">immutable, shared</text>
+
+    <line x1="1425" y1="210" x2="1425" y2="270" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="1437" y="245" font-size="12" fill="#3a3a3a">drawn</text>
+
+    <rect x="1150" y="274" width="370" height="60" rx="8" fill="#eef7ee" stroke="#4a7a4a"/>
+    <text x="1170" y="310" font-size="13">canvas row copy at 1:1, or a GPU upload</text>
+  </g>
+</svg>

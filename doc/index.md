@@ -52,6 +52,7 @@ start/examples
 concepts/model
 concepts/views
 concepts/blocks
+concepts/images
 concepts/threads
 concepts/reference/index
 ```
@@ -89,4 +90,5 @@ integrations/python-reference
 :maxdepth: 1
 
 project/roadmap
+project/embedded
 ```

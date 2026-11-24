@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="How an audio Output finds a device and pulls blocks">
+  <rect width="1200" height="520" fill="#ffffff"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a3a3a"/>
+    </marker>
+  </defs>
+  <g font-family="sans-serif" fill="#1a1a1a">
+    <text x="40" y="42" font-size="18" font-weight="bold">How an Output finds a device, then pulls blocks from it</text>
+
+    <!-- the backend that registered itself -->
+    <rect x="40" y="90" width="260" height="110" rx="8" fill="#eef7ee" stroke="#4a7a4a"/>
+    <text x="60" y="120" font-size="15" font-weight="bold">a backend</text>
+    <text x="60" y="145" font-size="13">SDL3's audio, the board's</text>
+    <text x="60" y="165" font-size="13">speaker, the A2DP headset</text>
+    <text x="60" y="185" font-size="12" fill="#3a3a3a">register_backend(&amp;backend)</text>
+
+    <!-- registers -->
+    <line x1="300" y1="130" x2="418" y2="130" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="359" y="118" font-size="12" fill="#3a3a3a" text-anchor="middle">registers once</text>
+    <!-- open -->
+    <line x1="430" y1="175" x2="312" y2="175" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="371" y="195" font-size="12" fill="#3a3a3a" text-anchor="middle">open(id, format)</text>
+
+    <!-- the registry -->
+    <rect x="430" y="90" width="200" height="110" rx="8" fill="#eef3fb" stroke="#4a6fa5"/>
+    <text x="450" y="120" font-size="15" font-weight="bold">the registry</text>
+    <text x="450" y="145" font-size="13">what registered,</text>
+    <text x="450" y="165" font-size="13">in one list</text>
+    <text x="450" y="185" font-size="12" fill="#3a3a3a">devices(), open_device()</text>
+
+    <!-- asks for a device -->
+    <line x1="830" y1="130" x2="642" y2="130" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="736" y="118" font-size="12" fill="#3a3a3a" text-anchor="middle">open_device(id, format)</text>
+    <line x1="640" y1="175" x2="818" y2="175" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="729" y="195" font-size="12" fill="#3a3a3a" text-anchor="middle">the stream, or an error</text>
+
+    <!-- the Output -->
+    <rect x="830" y="90" width="300" height="110" rx="8" fill="#fdf3e8" stroke="#a07a3a"/>
+    <text x="850" y="120" font-size="15" font-weight="bold">audio::Output</text>
+    <text x="850" y="145" font-size="13">opens one device per track,</text>
+    <text x="850" y="165" font-size="13">converts, applies the volume</text>
+    <text x="850" y="185" font-size="12" fill="#3a3a3a">state(), set_volume()</text>
+
+    <!-- pulls -->
+    <line x1="980" y1="200" x2="980" y2="312" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="968" y="250" font-size="12" fill="#3a3a3a" text-anchor="end">pull(block, frames)</text>
+
+    <!-- the device stream -->
+    <rect x="830" y="320" width="300" height="110" rx="8" fill="#eef7ee" stroke="#4a7a4a"/>
+    <text x="850" y="350" font-size="15" font-weight="bold">the device stream</text>
+    <text x="850" y="375" font-size="13">its own thread pulls blocks</text>
+    <text x="850" y="395" font-size="13">as the hardware plays them</text>
+    <text x="850" y="415" font-size="12" fill="#3a3a3a">lost() on a disconnect</text>
+
+    <!-- the render function -->
+    <line x1="830" y1="375" x2="682" y2="375" stroke="#3a3a3a" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="756" y="363" font-size="12" fill="#3a3a3a" text-anchor="middle">render (float or s16)</text>
+
+    <rect x="430" y="320" width="240" height="110" rx="8" fill="#fdf3e8" stroke="#a07a3a"/>
+    <text x="450" y="350" font-size="15" font-weight="bold">your render function</text>
+    <text x="450" y="375" font-size="13">fills the block it is handed</text>
+    <text x="450" y="395" font-size="13">for exactly those frames</text>
+
+    <text x="40" y="480" font-size="13" fill="#3a3a3a">Nothing registered: a timer thread pulls instead, so the same render function still runs.</text>
+  </g>
+</svg>

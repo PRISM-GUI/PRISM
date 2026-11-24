@@ -26,12 +26,17 @@ struct Splash {
 
 - `render::load_image(path)` reads a PNG, JPEG or SVG file. It returns a
   `std::expected<std::shared_ptr<const render::Image>, std::string>`: the image, or why it failed.
-  Pass a size as its second argument to draw an SVG at that size.
-- `render::decode_image(bytes)` does the same from bytes in memory, a download say.
+  Pass a box as its second argument to draw an SVG in it; any other image is scaled down into that box.
+- `render::decode_image(bytes)` does the same from bytes in memory, a download say. Both decode calls take `render::DecodeOptions`: `fit` is the box to scale into and `format` is `rgba8888` or `rgb565`, the format the destination reads without converting.
 - `render::Image::from_rgba(width, height, pixels)` wraps pixels you computed: 4 bytes per
   pixel, row after row. It returns a `std::expected` too.
+- `render::Image::from_rgb565(width, height, words)` wraps one packed `uint16_t` per pixel:
+  half the memory, no alpha, for a panel that reads 565 directly.
+- `prism::raster::paint_image<P>(width, height, paint)` draws into a canvas and freezes it as
+  an image, in P's format.
 
-The two file loaders are safe to call from any thread.
+The file loaders are safe to call from any thread: a decode holds the decoder registry's lock
+shared, so decodes run side by side, and a decoder that is not reentrant serialises itself.
 
 ## Using it
 
