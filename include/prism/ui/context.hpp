@@ -30,6 +30,20 @@ inline Color mix(Color a, Color b, float t) {
     return Color::rgba(channel(a.r, b.r), channel(a.g, b.g), channel(a.b, b.b), channel(a.a, b.a));
 }
 
+// `Gradient` is the theme's fill for whatever is "on": the two ends are equal in the classic
+// themes, so they draw solid. `Axis` says which way a fill runs, across or down; it is nested so
+// that `ui::Gradient::Axis` cannot be confused with the plot's own `Axis` in a using-directive.
+struct Gradient {
+    enum class Axis { horizontal, vertical };
+
+    Color from{};
+    Color to{};
+    Axis axis = Axis::horizontal;
+
+    bool operator==(const Gradient&) const = default;
+    [[nodiscard]] bool solid() const { return from == to; }
+};
+
 struct Theme {
     // Surface backgrounds (widget fill)
     Color surface         = Color::rgba(45, 45, 55);
@@ -124,6 +138,15 @@ struct Theme {
     // square, the classic look; the modern themes round them and draw sliders as pills.
     float corner_radius   = 0.f;
 
+    // Pill controls: switches, segmented menus and sliders with fully rounded ends.
+    bool pill_controls    = false;
+    // Between the children of a vstack/hstack that set no gap of its own (an explicit gap wins).
+    float spacing         = 0.f;
+    // What a control that is primary or "on" is filled with.
+    // Solid by default (both ends the member above), as the classic look paints them.
+    Gradient primary_fill{primary, primary};   // a primary button, a progress bar, a filled slider track
+    Gradient accent_fill{accent, accent};      // a checked box, a switch that is on, a selected segment
+
     // The node board (a graph of cards on a grid, src/app/node_board.cpp). A family is a kind of
     // node ("source", "math"): its colour tints the card's header and names it on the right.
     struct NodeFamily {
@@ -163,7 +186,7 @@ struct Theme {
 
 inline Theme default_theme() { return {}; }
 
-inline Theme dark_theme() { return {}; }
+inline Theme dark_theme() { return default_theme(); }
 
 // Dark text on light surfaces; every text color keeps at least WCAG AA contrast (4.5:1) with
 // what it is drawn on (tests/test_theme.cpp checks it).
@@ -207,12 +230,21 @@ inline Theme light_theme() {
                        {"math", c(217, 130, 43)},
                        {"display", c(31, 122, 69)}};
     t.node_family_default = c(120, 126, 138);
+    t.primary_fill = Gradient{t.primary, t.primary};
+    t.accent_fill = Gradient{t.accent, t.accent};
     t.dark = false;
     return t;
 }
 
-// The modern look (spike): rounded boxes, pill sliders, a navy base and two accents, teal-blue
-// for primary actions and violet for the controls that are "on". Light and dark share the shapes.
+// Today's look, under the name the modern one leaves it: square boxes, no pills, no spacing,
+// solid fills. dark_theme() and light_theme() are these while the default is still classic.
+inline Theme classic_dark_theme() { return dark_theme(); }
+
+inline Theme classic_light_theme() { return light_theme(); }
+
+// The modern look (spike): rounded boxes, pill controls, a gap between a stack's children, a navy
+// base and two gradient fills, teal-blue for primary actions and violet for the controls that are
+// "on". Light and dark share the shapes.
 inline Theme modern_dark_theme() {
     Theme t = dark_theme();
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
@@ -231,6 +263,10 @@ inline Theme modern_dark_theme() {
     t.tab_text = c(140, 148, 186);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(132, 98, 245);
     t.table_row_even = c(32, 37, 60);     t.table_row_odd = c(29, 33, 55);      t.table_selected = c(60, 58, 120);
     t.table_header = c(40, 46, 74);       t.table_header_text = c(160, 168, 220);
+    t.pill_controls = true;
+    t.spacing = 10.f;
+    t.primary_fill = Gradient{c(44, 160, 178), c(59, 130, 246)};
+    t.accent_fill = Gradient{c(168, 140, 255), c(112, 80, 225)};
     return t;
 }
 
@@ -250,6 +286,10 @@ inline Theme modern_light_theme() {
     t.popup_bg = c(255, 255, 255);        t.popup_border = c(206, 211, 230);    t.popup_highlight = c(18, 128, 146);
     t.tab_bar_bg = c(234, 237, 247);      t.tab_active_bg = c(255, 255, 255);
     t.tab_text = c(96, 102, 132);         t.tab_text_active = c(26, 29, 48);    t.tab_accent = c(108, 76, 230);
+    t.pill_controls = true;
+    t.spacing = 10.f;
+    t.primary_fill = Gradient{c(18, 128, 146), c(37, 99, 235)};
+    t.accent_fill = Gradient{c(139, 110, 246), c(92, 62, 210)};
     return t;
 }
 

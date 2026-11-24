@@ -18,7 +18,7 @@ the theme through a few shared helpers (`fill_box`, `outline_box`, `draw_field_b
 
 - The classic themes draw exactly as before: `corner_radius = 0`, `pill_controls = false`,
   `spacing = 0`, solid fills (gradient `from == to`). Existing pixel tests stay unchanged.
-- `Gradient{Color from, Color to, Axis axis}`, `Axis::horizontal` by default; equal colours draw a
+- `Gradient{Color from, Color to, Axis axis}` with the axis enum nested (`Gradient::Axis`, a bare `ui::Axis` clashes with `plot::Axis`), `horizontal` by default; equal colours draw a
   solid fill. `DrawList::gradient_rect(Rect r, const Gradient& g, float radius = 0.f)`.
 - An explicit `vb.gap()` always wins: a stack with any explicit gap gets no theme spacing.
 - Every check is also a look: render `examples/showcase` modern light and dark to SVG and look at
@@ -55,7 +55,7 @@ tests/test_model_app.cpp)
 
 **Files:** include/prism/ui/context.hpp, tests/test_theme.cpp
 
-**Interfaces:** Produces `enum class Axis { horizontal, vertical }`, `struct Gradient { Color from, to; Axis axis = Axis::horizontal; bool operator==(const Gradient&) const = default; [[nodiscard]] bool solid() const; }`, Theme fields `bool pill_controls`, `float spacing`, `Gradient primary_fill`, `Gradient accent_fill`; functions `classic_dark_theme()`, `classic_light_theme()` (today's values).
+**Interfaces:** Produces `struct Gradient { enum class Axis { horizontal, vertical }; Color from, to; Axis axis = Axis::horizontal; bool operator==(const Gradient&) const = default; [[nodiscard]] bool solid() const; }`, Theme fields `bool pill_controls`, `float spacing`, `Gradient primary_fill`, `Gradient accent_fill`; functions `classic_dark_theme()`, `classic_light_theme()` (today's values).
 
 - [ ] **Step 1: Failing tests:** classic themes have radius 0, no pill, spacing 0, solid fills equal to `primary` / `accent`; modern themes have radius 8, pill, spacing 10, non-solid fills (teal→blue for primary, lavender→violet for accent); `Gradient{c, c}.solid()`.
 - [ ] **Step 2: Run red. Step 3: Implement. Step 4: Run green + full suite. Step 5: Commit** `feat(ui): theme shape values: pills, spacing, gradient fills`.

@@ -270,6 +270,49 @@ TEST_CASE("switching to a rounded theme after a first frame keeps the checkbox's
     CHECK(h == doctest::Approx(30.f));
 }
 
+// The modern look's shape values: rounded boxes (corner_radius), pill controls, spacing between a
+// stack's children, and two gradient fills. The classic themes keep every one of them off, so
+// they draw exactly as before.
+TEST_CASE("a gradient of one colour draws solid") {
+    const auto teal = prism::Color::rgba(44, 160, 178);
+    prism::ui::Gradient flat{teal, teal};
+    CHECK(flat.solid());
+    CHECK(flat.axis == prism::ui::Gradient::Axis::horizontal);
+    CHECK_FALSE(prism::ui::Gradient{teal, prism::Color::rgba(59, 130, 246)}.solid());
+}
+
+TEST_CASE("the classic themes keep square boxes, no pills and solid fills") {
+    for (const auto& t : {prism::ui::classic_dark_theme(), prism::ui::classic_light_theme()}) {
+        CHECK(t.corner_radius == 0.f);
+        CHECK_FALSE(t.pill_controls);
+        CHECK(t.spacing == 0.f);
+        CHECK(t.primary_fill.solid());
+        CHECK(t.primary_fill.from == t.primary);
+        CHECK(t.primary_fill.to == t.primary);
+        CHECK(t.accent_fill.from == t.accent);
+        CHECK(t.accent_fill.to == t.accent);
+    }
+    CHECK(prism::ui::classic_dark_theme().surface == prism::Color::rgba(45, 45, 55));
+}
+
+TEST_CASE("the modern themes are pills, with spacing and two gradients") {
+    for (const auto& t : {prism::ui::modern_dark_theme(), prism::ui::modern_light_theme()}) {
+        CHECK(t.corner_radius == 8.f);
+        CHECK(t.pill_controls);
+        CHECK(t.spacing == 10.f);
+        CHECK_FALSE(t.primary_fill.solid());
+        CHECK_FALSE(t.accent_fill.solid());
+        // Primary runs teal to blue: the first end green over red, the last blue over green.
+        CHECK(t.primary_fill.from.g > t.primary_fill.from.r);
+        CHECK(t.primary_fill.from.b > t.primary_fill.from.g);
+        CHECK(t.primary_fill.to.b > t.primary_fill.to.g);
+        CHECK(t.accent_fill.from.b > t.accent_fill.from.g);
+        CHECK(t.accent_fill.to.b > t.accent_fill.to.g);
+        // Accent runs lavender to violet: the first end is the lighter of the two.
+        CHECK(luminance(t.accent_fill.from) > luminance(t.accent_fill.to));
+    }
+}
+
 // A widget whose measured size depends on the theme (here its text measurer) must be measured
 // again after a switch made once a first frame is cached, as if the theme had been there at the start.
 TEST_CASE("a measurer set after a first frame re-measures the cached layout") {
