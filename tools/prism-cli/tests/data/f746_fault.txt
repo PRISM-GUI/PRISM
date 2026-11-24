@@ -1,0 +1,16 @@
+f746: boot
+f746: mpu+cache
+f746: hal
+f746: clocks
+f746: sdram ok (8 MB)
+f746: tasks
+f746: lcd clock
+f746: lcd pins
+f746: ltdc
+f746: display ready
+f746: touch
+f746: app
+
+!! fault in task app
+cfsr 0x00000000 hfsr 0x40000000 mmfar 0xe000ed34 bfar 0xe000ed38
+pc 0x0800abcd lr 0x08001234 psr 0x61000000 r0 0x00000000 r1 0x20001f00 r2 0x00000004 r3 0x00000000
