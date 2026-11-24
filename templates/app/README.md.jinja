@@ -1,0 +1,31 @@
+# {{ project_name }}
+
+{{ description }}
+
+Built with [PRISM](https://github.com/PRISM-GUI/PRISM), fetched by `meson setup` through
+`subprojects/prism.wrap`.
+
+## Build
+
+```sh
+meson setup builddir
+meson compile -C builddir
+meson test -C builddir
+```
+
+## Run
+
+```sh
+./builddir/{{ project_slug }}
+```
+
+The window comes from `src/model.hpp`. `app::run` builds it from the struct: every
+`core::Field` is a widget, and `core::Derived` is a value that follows the fields it reads.
+
+## Update the template
+
+```sh
+copier update
+```
+
+That brings PRISM's template improvements into this project.

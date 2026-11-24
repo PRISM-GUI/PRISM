@@ -1,0 +1,38 @@
+#pragma once
+
+#include <prism/prism.hpp>
+
+#include <string>
+
+using namespace prism;
+
+// The whole application: three fields, a value derived from them, and a button that resets them.
+struct {{ project_class }}Model {
+    core::Field<ui::TextField<>> name{% raw %}{{.value = "PRISM"}}{% endraw %};
+    core::Field<ui::Slider<>> volume{% raw %}{{.value = 0.6, .min = 0.0, .max = 1.0, .label = "Volume"}}{% endraw %};
+    core::Field<ui::Checkbox> mute{% raw %}{{.checked = false, .label = "Mute"}}{% endraw %};
+    core::Field<ui::Button> reset{% raw %}{{.text = "Reset"}}{% endraw %};
+
+    core::Derived<std::string> status{[this] {
+        if (value(mute)) return std::string{"Muted"};
+        return value(name) + " at " + std::to_string(static_cast<int>(value(volume) * 100.f)) + "%";
+    }};
+
+    core::Wiring wire;
+
+    {{ project_class }}Model() {
+        wire.on(reset, [this](const ui::Button&) {
+            set_value(name, "PRISM");
+            set_value(volume, 0.6f);
+            set_value(mute, false);
+        });
+    }
+
+{% if reflection == 'manual' %}
+    void view(app::ViewBuilder& vb) { vb.vstack(name, volume, mute, status, reset); }
+{% else %}
+#if !__cpp_impl_reflection
+    void view(app::ViewBuilder& vb) { vb.vstack(name, volume, mute, status, reset); }
+#endif
+{% endif %}
+};

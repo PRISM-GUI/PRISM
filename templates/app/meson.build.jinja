@@ -1,0 +1,11 @@
+project('{{ project_slug }}', 'cpp',
+  version : '0.1.0',
+  default_options : ['cpp_std=c++26', 'warning_level=3'])
+
+prism = subproject('prism', default_options : [
+  'examples=disabled', 'tests=disabled', 'benchmarks=disabled'])
+prism_dep = prism.get_variable('prism_dep')
+
+executable('{{ project_slug }}', 'src/main.cpp', dependencies : prism_dep)
+
+subdir('tests')

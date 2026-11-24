@@ -80,6 +80,38 @@ jobs:
           name: meson-testlog-gcc16-reflection
           path: builddir/meson-logs/testlog.txt
 
+  # A project made from PRISM's template (copier.yml, templates/app) builds and passes its
+  # tests against this commit: a change that breaks a fresh project fails here.
+  template:
+    runs-on: ubuntu-24.04
+    container: gcc:16-trixie
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          apt-get update
+          apt-get install -y python3-venv git pkg-config libfreetype-dev libharfbuzz-dev \
+            libudev-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl-dev libdrm-dev libgbm-dev \
+            libdbus-1-dev libasound2-dev libpulse-dev libibus-1.0-dev libpipewire-0.3-dev libwayland-bin
+          python3 -m venv /opt/venv
+          /opt/venv/bin/pip install 'meson>=1.5' ninja 'copier>=9'
+          echo /opt/venv/bin >> "$GITHUB_PATH"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Render, build and test (reflection, then a hand-written view)
+        run: |
+          for mode in auto manual; do
+            copier copy --trust --defaults --vcs-ref HEAD --data project_name=Demo \
+              --data reflection=$mode "$GITHUB_WORKSPACE" /tmp/demo-$mode
+            ln -s "$GITHUB_WORKSPACE" /tmp/demo-$mode/subprojects/prism
+            meson setup /tmp/demo-$mode/build /tmp/demo-$mode
+            ninja -C /tmp/demo-$mode/build
+            meson test -C /tmp/demo-$mode/build --print-errorlogs
+          done
+
   # Every other lane compiles PRISM's C++ with GCC. Emscripten (the wasm path) is clang +
   # libc++ only, so this lane keeps the code building there. Python is excluded: the wasm
   # build won't have it, and a libc++ extension inside a libstdc++ CPython tests nothing useful.

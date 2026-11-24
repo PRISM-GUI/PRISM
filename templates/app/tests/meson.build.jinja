@@ -1,0 +1,5 @@
+model_test = executable('test_model', 'test_model.cpp',
+  include_directories : include_directories('../src'),
+  dependencies : prism_dep)
+
+test('model', model_test)

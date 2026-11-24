@@ -1,0 +1,8 @@
+#include "model.hpp"
+
+using namespace prism;
+
+int main() {
+    {{ project_class }}Model model;
+    return app::run(model, {.title = "{{ project_name }}", .width = 480, .height = 320});
+}

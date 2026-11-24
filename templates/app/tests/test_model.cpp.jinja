@@ -1,0 +1,24 @@
+#include "model.hpp"
+
+#include <cstdio>
+
+using namespace prism;
+
+int main() {
+    {{ project_class }}Model model;
+
+    if (value(model.status) != "PRISM at 60%") {
+        std::fprintf(stderr, "status: expected \"PRISM at 60%\", got \"%s\"\n",
+                     value(model.status).c_str());
+        return 1;
+    }
+
+    set_value(model.mute, true);
+    if (value(model.status) != "Muted") {
+        std::fprintf(stderr, "status: expected \"Muted\", got \"%s\"\n",
+                     value(model.status).c_str());
+        return 1;
+    }
+
+    return 0;
+}

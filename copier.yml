@@ -1,0 +1,67 @@
+_subdirectory: templates/app
+_answers_file: .copier-answers.yml
+_envops:
+  trim_blocks: true
+  lstrip_blocks: true
+
+project_name:
+  type: str
+  help: Your project's name
+  default: My PRISM App
+  validator: >-
+    {% if not project_name.strip() %}A project name is required.{% endif %}
+
+project_slug:
+  type: str
+  help: The identifier Meson and C++ use for your project
+  default: >-
+    {%- set base = project_name | trim | lower | replace(' ', '_') | replace('-', '_') -%}
+    {%- if base and base[0].isdigit() -%}app_{{ base }}{%- else -%}{{ base }}{%- endif -%}
+  validator: >-
+    {% if not project_slug or project_slug[0].isdigit() or not (project_slug | replace('_', 'x')).isalnum() or not project_slug.isascii() %}Use ASCII letters, digits and underscores, and do not start with a digit.{% endif %}
+
+project_class:
+  type: str
+  when: false
+  default: >-
+    {{ project_slug | replace('_', ' ') | title | replace(' ', '') }}
+
+description:
+  type: str
+  help: One line about your project, for the README
+  default: A PRISM application
+
+author:
+  type: str
+  help: Your name, for the README and the license
+  default: Your Name
+
+targets:
+  type: str
+  multiselect: true
+  help: Where your project runs
+  choices:
+    Desktop: desktop
+    ESP32-S31-Korvo-1: esp32_korvo1
+  default:
+    - desktop
+
+reflection:
+  type: str
+  help: Automatic builds the window from the struct; manual writes view() by hand (GCC before 16)
+  choices:
+    Automatic: auto
+    Manual: manual
+  default: auto
+
+license:
+  type: str
+  choices:
+    MIT: MIT
+    None: none
+  default: MIT
+
+github_ci:
+  type: bool
+  help: Add a GitHub Actions workflow that builds and tests your project
+  default: true
