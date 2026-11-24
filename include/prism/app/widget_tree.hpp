@@ -516,7 +516,7 @@ public:
 
 private:
     WidgetNode root_;
-    Theme theme_;
+    Theme theme_ = default_theme();
 #if __cpp_impl_reflection
     // Address -> reflected member identifier, accumulated across every build_node_tree() call
     // (the top-level model and every nested block()) -- lives as long as the tree itself, so

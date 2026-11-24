@@ -35,6 +35,7 @@ struct TwoPaneModel {
 TEST_CASE("A Handle between two panes renders as a fixed-width bar") {
     TwoPaneModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
 
     REQUIRE(snap->geometry.size() == 3);
@@ -64,6 +65,7 @@ struct TwoPaneModelWithId {
 TEST_CASE("First drag engages split mode and resizes exactly the two adjacent panes") {
     TwoPaneModelWithId model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     REQUIRE(model.container_id != 0);
     REQUIRE(snap->geometry.size() == 3);
@@ -116,6 +118,7 @@ TEST_CASE("First drag captures a container-kind pane's real size, not just leaf 
     // leaf's rect width equals the container pane's own width.
     ContainerPaneModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     REQUIRE(snap->geometry.size() == 3);
     auto [pane0_id, pane0_rect] = snap->geometry[0];
@@ -138,6 +141,7 @@ TEST_CASE("First drag captures a container-kind pane's real size, not just leaf 
 TEST_CASE("Dragging clamps at the minimum pane size") {
     TwoPaneModelWithId model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     [[maybe_unused]] auto [pane0_id, pane0_rect] = snap->geometry[0];
     auto [handle_id, handle_rect] = snap->geometry[1];
@@ -170,6 +174,7 @@ struct ThreePaneModel {
 TEST_CASE("Dragging one handle in a 3-pane row leaves the far pane untouched") {
     ThreePaneModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     // Window sized to exactly fit 3 fixed-width (200px) panes + 2 handles
     // (6px each) = 612 -- an exact fit, like the other fixed-pane tests in
     // this file, so the Task 6 resize-rescale in update_split_state doesn't
@@ -211,6 +216,7 @@ struct ExpandingPaneModel {
 TEST_CASE("Pressing and dragging the handle through the real input pipeline resizes panes") {
     TwoPaneModelWithId model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     REQUIRE(snap->geometry.size() == 3);
 
@@ -260,6 +266,7 @@ TEST_CASE("Pressing and dragging the handle through the real input pipeline resi
 TEST_CASE("First drag captures an expanding pane's real allocated size, not a fallback") {
     ExpandingPaneModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 100, 1);
     REQUIRE(snap->geometry.size() == 3);
     auto [pane0_id, pane0_rect] = snap->geometry[0];
@@ -285,6 +292,7 @@ TEST_CASE("First drag captures an expanding pane's real allocated size, not a fa
 TEST_CASE("Resizing the window after a drag proportionally rescales pane sizes on the next frame") {
     TwoPaneModelWithId model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     [[maybe_unused]] auto [pane0_id, pane0_rect] = snap->geometry[0];
     auto [handle_id, handle_rect] = snap->geometry[1];
@@ -341,6 +349,7 @@ TEST_CASE("Dragging a handle in a vstack resizes panes along the Y axis") {
     // Task 6's resize-rescale fire on the very first post-drag frame.
     TwoPaneColumnModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(200, 66, 1);
     REQUIRE(snap->geometry.size() == 3);
 
@@ -396,6 +405,7 @@ TEST_CASE("Dragging the only handle after 3 stacked panes resizes its real neigh
     // instead of the handle's real neighbors, c and d.
     ThreeThenHandleColumnModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     // Exact fit: 4 widgets * 30px (default_widget_h) + 1 handle (6px) = 126.
     auto snap = tree.build_snapshot(200, 126, 1);
     REQUIRE(snap->geometry.size() == 5);
@@ -459,6 +469,7 @@ TEST_CASE("Dragging the handle after a PlotGroup resizes every panel together, n
     // rather than the split system itself.
     PlotGroupThenHandleModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     // Exact fit for the (buggy) fixed-120-per-panel case too: 2*120 + 6 (handle)
     // + 30 (default_widget_h) = 276 -- leaves no pre-engage slack to reclaim, so
     // the drag delta itself is the only thing changing pane sizes below,
@@ -545,6 +556,7 @@ private:
 TEST_CASE("Dragging a tree row's splitter does not collapse the widgets above it") {
     DashboardLikeModel model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap1 = tree.build_snapshot(800, 600, 1);
     REQUIRE(model.tree_row_id != 0);
 
@@ -613,11 +625,13 @@ struct NestedRememberedSplit {   // not the lone top-level container: not hoiste
 TEST_CASE("remembered pane sizes apply when the view is built, hoisted or not") {
     RememberedSplit top;
     WidgetTree t1(top);
+    t1.set_theme(classic_dark_theme());
     auto s1 = t1.build_snapshot(406, 100, 1);
     CHECK(find_widget_rect(*s1, t1.leaf_ids()[0])->extent.w.raw() == doctest::Approx(150.f));
 
     NestedRememberedSplit nested;
     WidgetTree t2(nested);
+    t2.set_theme(classic_dark_theme());
     auto s2 = t2.build_snapshot(406, 100, 1);
     CHECK(find_widget_rect(*s2, t2.leaf_ids()[1])->extent.w.raw() == doctest::Approx(100.f));
 }
@@ -625,6 +639,7 @@ TEST_CASE("remembered pane sizes apply when the view is built, hoisted or not") 
 TEST_CASE("the end of a drag writes the pane sizes back to the field") {
     RememberedSplit model;
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     auto handle = find_widget_rect(*snap, tree.leaf_ids()[1]);
     REQUIRE(handle);
@@ -640,6 +655,7 @@ TEST_CASE("sizes for another number of panes are ignored, not misapplied") {
     RememberedSplit model;
     model.sizes.set({{50.f, 60.f, 70.f}});   // a file from a layout with three panes
     WidgetTree tree(model);
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(406, 100, 1);
     CHECK(find_widget_rect(*snap, tree.leaf_ids()[0])->extent.w.raw() == doctest::Approx(200.f));
 }

@@ -58,7 +58,7 @@ std::string cmd_text(const prism::DrawCmd& cmd) {
         else if constexpr (std::is_same_v<T, prism::GradientRect>)
             return fmt::format("GradientRect rect={} from={} to={} axis={} radius={:.1f}",
                 rect_text(c.rect), color_hex(c.from), color_hex(c.to),
-                c.axis == prism::Gradient::Axis::horizontal ? "horizontal" : "vertical", c.radius);
+                c.axis == prism::render::Gradient::Axis::horizontal ? "horizontal" : "vertical", c.radius);
         else if constexpr (std::is_same_v<T, prism::Line>)
             return fmt::format("Line from=({:.1f},{:.1f}) to=({:.1f},{:.1f}) color={} thickness={:.1f}",
                 c.from.x.raw(), c.from.y.raw(), c.to.x.raw(), c.to.y.raw(),
@@ -114,7 +114,11 @@ TEST_CASE("golden: initial publish of a small multi-widget model") {
     auto backend = prism::Backend{std::move(backend_ptr)};
     auto& window = backend.create_window({.width = 300, .height = 200});
 
-    prism::model_app(backend, window, model);
+    prism::model_app(backend, window, model, [](prism::AppContext& ctx) {
+        // The goldens were captured in the classic look: name it, so a change of default is a
+        // deliberate re-capture and not a silent diff.
+        ctx.set_theme(prism::classic_dark_theme());
+    });
 
     REQUIRE(!raw->submitted().empty());
     CHECK(golden_text(*raw->submitted().back()) == R"GOLDEN([widget 3] rect=(0.0,0.0,300.0,30.0)
@@ -143,7 +147,11 @@ TEST_CASE("golden: clicking the checkbox flips its rendered state") {
     auto backend = prism::Backend{std::move(backend_ptr)};
     auto& window = backend.create_window({.width = 300, .height = 200});
 
-    prism::model_app(backend, window, model);
+    prism::model_app(backend, window, model, [](prism::AppContext& ctx) {
+        // The goldens were captured in the classic look: name it, so a change of default is a
+        // deliberate re-capture and not a silent diff.
+        ctx.set_theme(prism::classic_dark_theme());
+    });
 
     REQUIRE(!raw->submitted().empty());
     CHECK(golden_text(*raw->submitted().back()) == R"GOLDEN([widget 3] rect=(0.0,0.0,300.0,30.0)

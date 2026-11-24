@@ -30,8 +30,14 @@ struct Shopping {
 struct Fixture {
     Shopping m;
     WidgetTree tree{m};
-    std::unique_ptr<SceneSnapshot> snap = tree.build_snapshot(300, 300, 1);
+    std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
+
+    Fixture() {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(300, 300, 1);
+    }
+
     void frame() { snap = tree.build_snapshot(300, 300, ++v); }
     Rect row(std::size_t i) const {
         // rows in order on screen, top to bottom
@@ -114,6 +120,7 @@ TEST_CASE("a row moved to by key scrolls into view") {
         void view(WidgetTree::ViewBuilder& vb) { vb.list(items).selection(selected); }
     } m;
     WidgetTree tree{m};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(300, 300, 1);
     route_event(tree, snap.get(), KeyPress{keys::tab, 0});
     route_event(tree, snap.get(), KeyPress{keys::end, 0});

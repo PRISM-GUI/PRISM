@@ -284,7 +284,7 @@ using namespace prism::ui;
 using namespace prism::app;
     DrawList dl;
     Rect area{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}};
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     prism::plot::draw_background(dl, area, t);
     CHECK(dl.size() == 2);
@@ -306,7 +306,7 @@ using namespace prism::app;
         .y_range = {0.0, 100.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     auto ticks = prism::plot::compute_ticks(map);
     prism::plot::draw_grid_lines(dl, map, ticks, t);
@@ -334,7 +334,7 @@ TEST_CASE("draw_tick_labels suppresses x-axis output when draw_x_axis is false")
         .y_range = {0.0, 100.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     auto ticks = compute_ticks(map);
 
     DrawList with_x;
@@ -359,7 +359,7 @@ TEST_CASE("draw_tick_labels uses a custom x_tick_format when given one")
         .y_range = {0.0, 100.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     auto ticks = compute_ticks(map);
 
     DrawList dl;
@@ -383,7 +383,7 @@ TEST_CASE("draw_axes_labels suppresses x_label when draw_x_axis is false")
         .y_range = {0.0, 100.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     DrawList dl;
     draw_axes_labels(dl, map, compute_ticks(map), "Time", "Value", t, false);
@@ -492,7 +492,7 @@ using namespace prism::app;
         .y_range = {0.0, 10.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     CursorState cursor{5.0, 5.0, true};
     draw_cursor(dl, map, cursor, t);
@@ -519,7 +519,7 @@ using namespace prism::app;
         .y_range = {0.0, 10.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     CursorState cursor{5.0, 5.0, false};
     draw_cursor(dl, map, cursor, t);
@@ -536,7 +536,7 @@ TEST_CASE("draw_vertical_cursor emits only a vertical line when visible")
         .y_range = {0.0, 10.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     draw_vertical_cursor(dl, map, 5.0, true, t);
     REQUIRE(dl.size() == 1);
@@ -553,7 +553,7 @@ TEST_CASE("draw_vertical_cursor emits nothing when not visible")
         .y_range = {0.0, 10.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
 
     draw_vertical_cursor(dl, map, 5.0, false, t);
     CHECK(dl.size() == 0);
@@ -574,7 +574,7 @@ TEST_CASE("render_plot_panel with PlotGroupCursor draws no value readout when no
 
     DrawList dl;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -603,7 +603,7 @@ TEST_CASE("render_plot_panel with PlotGroupCursor labels each series' nearest va
 
     DrawList dl;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -638,7 +638,7 @@ TEST_CASE("route_plot_input with PlotGroupCursor sets data_x without data_y")
     Point drag_start_pixel{};
     ViewTransform drag_start_view{};
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -673,7 +673,7 @@ using namespace prism::app;
     DrawList dl;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -736,7 +736,7 @@ using namespace prism::app;
     plot.x_range.set({0.0, 10.0, false});
     plot.y_range.set({0.0, 10.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -765,7 +765,7 @@ using namespace prism::app;
     plot.x_range.set({0.0, 10.0, false});
     plot.y_range.set({0.0, 10.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -797,7 +797,7 @@ using namespace prism::app;
     plot.x_range.set({0.0, 10.0, false});
     plot.y_range.set({0.0, 10.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -866,7 +866,7 @@ using namespace prism::app;
     plot.y_range.set({0.0, 10.0, false});
     plot.view.set(ViewTransform{1.0, 2.0, 2.0, 2.0});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -893,7 +893,7 @@ TEST_CASE("PlotModel 'm' key resets view like right-click does")
     plot.y_range.set({0.0, 10.0, false});
     plot.view.set(ViewTransform{1.0, 2.0, 2.0, 2.0});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -916,7 +916,7 @@ TEST_CASE("PlotModel ignores keys other than 'm'")
     plot.x_range.set({0.0, 10.0, false});
     plot.view.set(ViewTransform{1.0, 2.0, 2.0, 2.0});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -931,7 +931,7 @@ TEST_CASE("PlotModel ignores keys other than 'm'")
 
 TEST_CASE("default_series_colors returns 8 distinct colors")
 {
-    auto colors = prism::plot::default_series_colors(prism::default_theme());
+    auto colors = prism::plot::default_series_colors(prism::classic_dark_theme());
     CHECK(colors.size() == 8);
 
     for (auto& c : colors)
@@ -959,7 +959,7 @@ TEST_CASE("PlotGroup shares x pan/zoom across panels, keeps y pan/zoom independe
     p1.y_range.set({0.0, 10.0, false});
     p2.y_range.set({0.0, 20.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -1040,7 +1040,7 @@ TEST_CASE("PlotGroup 'm' key on one panel resets the whole group, not just that 
     p2.y_range.set({0.0, 20.0, false});
     p2.y_view.set(ViewTransform{0.0, 7.0, 1.0, 4.0});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -1070,7 +1070,7 @@ TEST_CASE("PlotGroup cursor syncs data_x across panels")
     group.x_range.set({0.0, 10.0, false});
     p1.y_range.set({0.0, 10.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -1101,7 +1101,7 @@ TEST_CASE("PlotGroup labels every panel's own value at the shared cursor, hovere
     p1.add_series(XYData{{0.0, 5.0, 10.0}, {0.0, 50.0, 100.0}}, SeriesStyle{});
     p2.add_series(XYData{{0.0, 5.0, 10.0}, {0.0, 15.0, 20.0}}, SeriesStyle{});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -1147,7 +1147,7 @@ TEST_CASE("PlotGroup only the last-added panel draws the x-axis")
     p1.y_range.set({0.0, 10.0, false});
     p2.y_range.set({0.0, 10.0, false});
 
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
@@ -1188,7 +1188,7 @@ TEST_CASE("PlotPanel series management")
     p.clear_series();
     DrawList dl;
     Rect bounds{Point{X{0}, Y{0}}, Size{Width{400}, Height{300}}};
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     WidgetNode node;
     node.theme = &t;
     p.canvas(dl, bounds, node);
@@ -1453,7 +1453,7 @@ static void canvas_into(prism::plot::PlotModel& plot, prism::DrawList& dl)
 {
     prism::Rect bounds{prism::Point{prism::X{0}, prism::Y{0}},
                        prism::Size{prism::Width{400}, prism::Height{300}}};
-    prism::Theme t = prism::default_theme();
+    prism::Theme t = prism::classic_dark_theme();
     prism::app::WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -1486,7 +1486,7 @@ TEST_CASE("PlotPanel canvas reuses the auto-fit cache across renders")
     prism::DrawList dl;
     prism::Rect bounds{prism::Point{prism::X{0}, prism::Y{0}},
                        prism::Size{prism::Width{400}, prism::Height{300}}};
-    prism::Theme t = prism::default_theme();
+    prism::Theme t = prism::classic_dark_theme();
     prism::app::WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -1604,7 +1604,7 @@ static void panel_canvas_into(prism::plot::PlotPanel& panel, prism::DrawList& dl
 {
     prism::Rect bounds{prism::Point{prism::X{0}, prism::Y{0}},
                        prism::Size{prism::Width{400}, prism::Height{300}}};
-    prism::Theme t = prism::default_theme();
+    prism::Theme t = prism::classic_dark_theme();
     prism::app::WidgetNode node;
     node.theme = &t;
     node.canvas_bounds = bounds;
@@ -1732,7 +1732,7 @@ TEST_CASE("tick labels are placed using the theme's text measurer")
         .y_range = {0.0, 100.0},
         .plot_area = Rect{Point{X{60}, Y{10}}, Size{Width{300}, Height{200}}},
     };
-    Theme t = default_theme();
+    Theme t = classic_dark_theme();
     t.measurer = &m;
     TickArrays ticks{.x = {5.0}, .y = {50.0}};
     DrawList dl;

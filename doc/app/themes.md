@@ -1,6 +1,8 @@
 # Themes
 
-A theme is the set of colors every widget draws with. PRISM ships a dark theme and a light one.
+A theme is the set of colors and shapes every widget draws with. PRISM ships a modern look, in
+dark and light: rounded boxes, pill-shaped controls, gradients on whatever is "on", and space
+between the widgets of a stack. The look PRISM had before stays available as the classic themes.
 An app can follow the system's choice, pick one, or bring its own.
 
 ## Follow the system
@@ -49,19 +51,26 @@ widget repaints with the new colors in the same frame.
 
 | Call | What it does |
 |---|---|
-| `ui::dark_theme()` | The default theme: light text on dark surfaces. |
-| `ui::light_theme()` | Dark text on light surfaces. |
+| `ui::dark_theme()` | The default theme: the modern look, light text on dark surfaces. Same as `ui::modern_dark_theme()`. |
+| `ui::light_theme()` | The modern look, dark text on light surfaces. Same as `ui::modern_light_theme()`. |
+| `ui::classic_dark_theme()`, `ui::classic_light_theme()` | The look before the modern one: square boxes, flat colors, no spacing. |
 | `ctx.set_theme(const ui::Theme&)` | Every window takes this theme. Stops following the system. |
 | `ctx.follow_system_theme()` | Light or dark as the system is set, now and when it changes. Dark until the system answers. |
 | `ctx.system_prefers_dark()` | What the system asks for, last time it said. |
 | `ctx.theme()` | The theme the windows use now. |
 
-Both shipped themes keep every text at WCAG AA contrast (4.5:1) against what it is drawn on. A
-test checks it.
+Every shipped theme keeps every text at WCAG AA contrast (4.5:1) against what it is drawn on,
+both ends of the gradients included. A test checks it.
+
+The modern look in dark and light:
+
+<img src="../screenshots/modern_dark.svg" alt="The modern dark look: a pill tab bar, rounded fields, a gradient slider and buttons on navy" width="320"/>
+<img src="../screenshots/modern_light.svg" alt="The same widgets in the modern light look" width="320"/>
 
 ## Make your own
 
-A `ui::Theme` is a plain struct of colors. Start from a shipped one and change what you need:
+A `ui::Theme` is a plain struct of colors and a few shape values. Start from a shipped one and
+change what you need:
 
 ```cpp
 ui::Theme brand() {
@@ -69,7 +78,9 @@ ui::Theme brand() {
     t.primary        = core::Color::rgba(200, 60, 20);   // buttons
     t.primary_hover  = core::Color::rgba(215, 75, 35);
     t.primary_active = core::Color::rgba(180, 50, 15);
+    t.primary_fill   = ui::Gradient{core::Color::rgba(200, 60, 20), core::Color::rgba(170, 40, 60)};
     t.accent         = core::Color::rgba(200, 60, 20);   // slider thumbs, ticked boxes
+    t.accent_fill    = ui::Gradient{t.accent, t.accent}; // flat
     return t;
 }
 
@@ -103,6 +114,20 @@ widget. `_hover` and `_active` variants are used under the pointer and while pre
 
 `core::Color::rgba(r, g, b, a)` makes a color; `a` defaults to 255 (opaque).
 
+### Shapes and spacing
+
+| Member | Classic | Modern | What it does |
+|---|---|---|---|
+| `corner_radius` | `0` | `8` | The rounding of boxes: fields, buttons, cards, popups, menus, tooltips. |
+| `pill_controls` | `false` | `true` | Fully rounded ends on the tab bar and slider tracks. |
+| `spacing` | `0` | `10` | The gap a stack leaves between its children. A stack with a `vb.gap()` of its own keeps only its own gaps. |
+| `primary_fill` | `primary`, flat | teal to blue | A primary button, a progress bar, a slider's filled track, the open tab. |
+| `accent_fill` | `accent`, flat | lavender to violet | A ticked checkbox, a chosen radio button, a toggle that is on. |
+
+A fill is a `ui::Gradient{from, to}`, horizontal unless its `axis` says vertical. A gradient whose
+two colors are equal draws as a flat fill. If you change `primary` in a modern theme, change
+`primary_fill` too: the gradient is what the widgets show.
+
 ## Icons that follow the theme
 
 A one-color icon drawn in a fixed color disappears on one of the two themes. Load it as
@@ -122,7 +147,7 @@ A logo or a photo keeps its own colors: load it without `symbolic`.
 ## In Python
 
 ```python
-prism.set_theme("light")    # or "dark", or "system"
+prism.set_theme("light")    # or "dark", "system", "classic_dark", "classic_light"
 ```
 
 It may be called from any thread while an app runs.
@@ -132,4 +157,7 @@ It may be called from any thread while an app runs.
 - `set_theme` stops following the system. Call `follow_system_theme()` again to go back.
 - A custom theme made from `dark_theme()` keeps dark-theme colors in every role you leave alone.
   Check the text against its background if you change surfaces.
+- The modern themes space a stack's children 10 points apart. A layout tuned with hand-written
+  `vb.gap()` calls keeps its gaps; one that relied on widgets touching gets the spacing. Use a
+  classic theme, or set `spacing = 0`, to keep the old layout.
 - `load_image` returns an error rather than throwing: check it before calling `symbolic`.

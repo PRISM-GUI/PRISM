@@ -136,12 +136,12 @@ TEST_CASE("a new window takes the app's theme") {
     auto* b = impl.get();
     b->script.push_back([&](auto&) {
         REQUIRE(b->wait_for([&] { return b->last.contains(2); }));
-        CHECK(b->last[2]->window.background == light_theme().canvas_bg);
+        CHECK(b->last[2]->window.background == classic_light_theme().canvas_bg);
     });
     Backend backend{std::move(impl)};
     auto& window = backend.create_window({});
     model_app(backend, window, main, [&](AppContext& c) {
-        c.set_theme(light_theme());
+        c.set_theme(classic_light_theme());
         c.open_window(echo, {.title = "Echo"});
     });
 }

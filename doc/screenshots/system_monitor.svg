@@ -1,231 +1,241 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700">
-<rect width="900" height="700" fill="rgba(30,30,30,1)"/>
+<rect width="900" height="700" fill="rgba(24,28,47,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="900" height="32"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="74" height="32" fill="rgba(42,42,58,1)"/>
-<rect x="0" y="0" width="74" height="32" fill="rgba(30,30,46,1)"/>
-<text xml:space="preserve" x="16" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,240,1)" dominant-baseline="hanging">Plots</text>
-<rect x="0" y="30" width="74" height="2" fill="rgba(124,111,255,1)"/>
+<rect x="0" y="0" width="64" height="32" rx="16" fill="rgba(30,34,56,1)"/>
+<defs><linearGradient id="g-0" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(35,128,142,1)"/>
+<stop offset="1" stop-color="rgba(52,114,216,1)"/>
+</linearGradient></defs>
+<rect x="0" y="0" width="64" height="32" rx="16" fill="url(#g-0)"/>
+<text xml:space="preserve" x="16" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Plots</text>
+<rect x="877" y="14" width="9" height="9" stroke="rgba(140,148,186,1)" fill="none" stroke-width="1"/>
+<rect x="882" y="10" width="9" height="9" stroke="rgba(140,148,186,1)" fill="none" stroke-width="1"/>
 </g>
-<clipPath id="clip-1"><rect x="0" y="32" width="900" height="95"/></clipPath>
+<clipPath id="clip-1"><rect x="0" y="32" width="900" height="83.3333"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="60" y="42" width="830" height="75" fill="rgba(30,30,30,1)"/>
-<rect x="60" y="42" width="830" height="75" stroke="rgba(90,90,105,1)" fill="none" stroke-width="1"/>
-<clipPath id="clip-2"><rect x="60" y="42" width="830" height="75"/></clipPath>
+<rect x="41" y="42" width="849" height="63.3333" fill="rgba(24,28,47,1)"/>
+<rect x="41" y="42" width="849" height="63.3333" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-2"><rect x="41" y="42" width="849" height="63.3333"/></clipPath>
 <g clip-path="url(#clip-2)">
-<line x1="97.7273" y1="42" x2="97.7273" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="223.485" y1="42" x2="223.485" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="349.242" y1="42" x2="349.242" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="475" y1="42" x2="475" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="600.758" y1="42" x2="600.758" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="726.515" y1="42" x2="726.515" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="852.273" y1="42" x2="852.273" y2="117" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="108.346" x2="890" y2="108.346" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="97.8566" x2="890" y2="97.8566" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="87.3671" x2="890" y2="87.3671" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="76.8776" x2="890" y2="76.8776" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="66.3881" x2="890" y2="66.3881" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="55.8986" x2="890" y2="55.8986" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="45.4091" x2="890" y2="45.4091" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="42" x2="60" y2="117" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<line x1="60" y1="117" x2="890" y2="117" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<polygon points="97.7273,95.2343 97.7273,160.794 349.242,66.3881" fill="rgba(0,140,200,0.156863)"/>
-<polygon points="97.7273,160.794 349.242,66.3881 349.242,160.794" fill="rgba(0,140,200,0.156863)"/>
-<polygon points="349.242,66.3881 349.242,160.794 600.758,113.591" fill="rgba(0,140,200,0.156863)"/>
-<polygon points="349.242,160.794 600.758,113.591 600.758,160.794" fill="rgba(0,140,200,0.156863)"/>
-<polygon points="600.758,113.591 600.758,160.794 852.273,45.4091" fill="rgba(0,140,200,0.156863)"/>
-<polygon points="600.758,160.794 852.273,45.4091 852.273,160.794" fill="rgba(0,140,200,0.156863)"/>
-<polyline points="97.7273,95.2343 349.242,66.3881 600.758,113.591 852.273,45.4091" stroke="rgba(0,140,200,1)" fill="none" stroke-width="2"/>
+<line x1="79.5909" y1="42" x2="79.5909" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="208.227" y1="42" x2="208.227" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="336.864" y1="42" x2="336.864" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="465.5" y1="42" x2="465.5" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="594.136" y1="42" x2="594.136" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="722.773" y1="42" x2="722.773" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="851.409" y1="42" x2="851.409" y2="105.333" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="98.0256" x2="890" y2="98.0256" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="89.1678" x2="890" y2="89.1678" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="80.31" x2="890" y2="80.31" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="71.4522" x2="890" y2="71.4522" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="62.5944" x2="890" y2="62.5944" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="53.7366" x2="890" y2="53.7366" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="44.8788" x2="890" y2="44.8788" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="41" y1="42" x2="41" y2="105.333" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<line x1="41" y1="105.333" x2="890" y2="105.333" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<polygon points="79.5909,86.9534 79.5909,142.315 336.864,62.5944" fill="rgba(132,98,245,0.156863)"/>
+<polygon points="79.5909,142.315 336.864,62.5944 336.864,142.315" fill="rgba(132,98,245,0.156863)"/>
+<polygon points="336.864,62.5944 336.864,142.315 594.136,102.455" fill="rgba(132,98,245,0.156863)"/>
+<polygon points="336.864,142.315 594.136,102.455 594.136,142.315" fill="rgba(132,98,245,0.156863)"/>
+<polygon points="594.136,102.455 594.136,142.315 851.409,44.8788" fill="rgba(132,98,245,0.156863)"/>
+<polygon points="594.136,142.315 851.409,44.8788 851.409,142.315" fill="rgba(132,98,245,0.156863)"/>
+<polyline points="79.5909,86.9534 336.864,62.5944 594.136,102.455 851.409,44.8788" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
 </g>
-<line x1="55" y1="108.346" x2="60" y2="108.346" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="102.346" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">10</text>
-<line x1="55" y1="97.8566" x2="60" y2="97.8566" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="91.8566" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">12</text>
-<line x1="55" y1="87.3671" x2="60" y2="87.3671" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="81.3671" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">14</text>
-<line x1="55" y1="76.8776" x2="60" y2="76.8776" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="70.8776" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">16</text>
-<line x1="55" y1="66.3881" x2="60" y2="66.3881" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="60.3881" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">18</text>
-<line x1="55" y1="55.8986" x2="60" y2="55.8986" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="49.8986" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">20</text>
-<line x1="55" y1="45.4091" x2="60" y2="45.4091" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="39.8" y="39.4091" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">22</text>
-<text xml:space="preserve" x="10" y="79.5" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(220,220,220,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 10 79.5)">CPU %</text>
+<line x1="36" y1="98.0256" x2="41" y2="98.0256" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="92.0256" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">10</text>
+<line x1="36" y1="89.1678" x2="41" y2="89.1678" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="83.1678" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">12</text>
+<line x1="36" y1="80.31" x2="41" y2="80.31" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="74.31" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">14</text>
+<line x1="36" y1="71.4522" x2="41" y2="71.4522" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="65.4522" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">16</text>
+<line x1="36" y1="62.5944" x2="41" y2="62.5944" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="56.5944" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">18</text>
+<line x1="36" y1="53.7366" x2="41" y2="53.7366" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="47.7366" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">20</text>
+<line x1="36" y1="44.8788" x2="41" y2="44.8788" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="22" y="38.8788" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">22</text>
+<text xml:space="preserve" x="12.5" y="73.6667" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 12.5 73.6667)">CPU %</text>
 </g>
-<clipPath id="clip-3"><rect x="0" y="127" width="900" height="95"/></clipPath>
+<clipPath id="clip-3"><rect x="0" y="125.333" width="900" height="83.3333"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="60" y="137" width="830" height="75" fill="rgba(30,30,30,1)"/>
-<rect x="60" y="137" width="830" height="75" stroke="rgba(90,90,105,1)" fill="none" stroke-width="1"/>
-<clipPath id="clip-4"><rect x="60" y="137" width="830" height="75"/></clipPath>
+<rect x="53" y="135.333" width="837" height="63.3333" fill="rgba(24,28,47,1)"/>
+<rect x="53" y="135.333" width="837" height="63.3333" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-4"><rect x="53" y="135.333" width="837" height="63.3333"/></clipPath>
 <g clip-path="url(#clip-4)">
-<line x1="97.7273" y1="137" x2="97.7273" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="223.485" y1="137" x2="223.485" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="349.242" y1="137" x2="349.242" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="475" y1="137" x2="475" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="600.758" y1="137" x2="600.758" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="726.515" y1="137" x2="726.515" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="852.273" y1="137" x2="852.273" y2="212" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="207.254" x2="890" y2="207.254" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="190.543" x2="890" y2="190.543" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="173.832" x2="890" y2="173.832" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="157.12" x2="890" y2="157.12" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="140.409" x2="890" y2="140.409" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="137" x2="60" y2="212" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<line x1="60" y1="212" x2="890" y2="212" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<polyline points="97.7273,208.591 349.242,173.832 600.758,190.543 852.273,140.409" stroke="rgba(0,140,200,1)" fill="none" stroke-width="2"/>
+<line x1="91.0455" y1="135.333" x2="91.0455" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="217.864" y1="135.333" x2="217.864" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="344.682" y1="135.333" x2="344.682" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="471.5" y1="135.333" x2="471.5" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="598.318" y1="135.333" x2="598.318" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="725.136" y1="135.333" x2="725.136" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="851.955" y1="135.333" x2="851.955" y2="198.667" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="194.659" x2="890" y2="194.659" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="180.547" x2="890" y2="180.547" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="166.436" x2="890" y2="166.436" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="152.324" x2="890" y2="152.324" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="138.212" x2="890" y2="138.212" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="53" y1="135.333" x2="53" y2="198.667" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<line x1="53" y1="198.667" x2="890" y2="198.667" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<polyline points="91.0455,195.788 344.682,166.436 598.318,180.547 851.955,138.212" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
 </g>
-<line x1="55" y1="207.254" x2="60" y2="207.254" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="26.6" y="201.254" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4100</text>
-<line x1="55" y1="190.543" x2="60" y2="190.543" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="26.6" y="184.543" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4150</text>
-<line x1="55" y1="173.832" x2="60" y2="173.832" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="26.6" y="167.832" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4200</text>
-<line x1="55" y1="157.12" x2="60" y2="157.12" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="26.6" y="151.12" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4250</text>
-<line x1="55" y1="140.409" x2="60" y2="140.409" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="26.6" y="134.409" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4300</text>
-<text xml:space="preserve" x="10" y="174.5" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(220,220,220,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 10 174.5)">Mem (MB)</text>
+<line x1="48" y1="194.659" x2="53" y2="194.659" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="188.659" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4100</text>
+<line x1="48" y1="180.547" x2="53" y2="180.547" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="174.547" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4150</text>
+<line x1="48" y1="166.436" x2="53" y2="166.436" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="160.436" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4200</text>
+<line x1="48" y1="152.324" x2="53" y2="152.324" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="146.324" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4250</text>
+<line x1="48" y1="138.212" x2="53" y2="138.212" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="132.212" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4300</text>
+<text xml:space="preserve" x="12.5" y="167" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 12.5 167)">Mem (MB)</text>
 </g>
-<clipPath id="clip-5"><rect x="0" y="222" width="900" height="95"/></clipPath>
+<clipPath id="clip-5"><rect x="0" y="218.667" width="900" height="83.3333"/></clipPath>
 <g clip-path="url(#clip-5)">
-<rect x="60" y="232" width="830" height="40" fill="rgba(30,30,30,1)"/>
-<rect x="60" y="232" width="830" height="40" stroke="rgba(90,90,105,1)" fill="none" stroke-width="1"/>
-<clipPath id="clip-6"><rect x="60" y="232" width="830" height="40"/></clipPath>
+<rect x="46" y="228.667" width="844" height="47.3333" fill="rgba(24,28,47,1)"/>
+<rect x="46" y="228.667" width="844" height="47.3333" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-6"><rect x="46" y="228.667" width="844" height="47.3333"/></clipPath>
 <g clip-path="url(#clip-6)">
-<line x1="97.7273" y1="232" x2="97.7273" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="223.485" y1="232" x2="223.485" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="349.242" y1="232" x2="349.242" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="475" y1="232" x2="475" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="600.758" y1="232" x2="600.758" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="726.515" y1="232" x2="726.515" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="852.273" y1="232" x2="852.273" y2="272" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="268.906" x2="890" y2="268.906" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="262.526" x2="890" y2="262.526" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="256.147" x2="890" y2="256.147" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="249.767" x2="890" y2="249.767" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="243.388" x2="890" y2="243.388" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="237.008" x2="890" y2="237.008" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="232" x2="60" y2="272" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<line x1="60" y1="272" x2="890" y2="272" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<polyline points="97.7273,259.974 349.242,270.182 600.758,233.818 852.273,252.957" stroke="rgba(0,140,200,1)" fill="none" stroke-width="2"/>
+<line x1="84.3636" y1="228.667" x2="84.3636" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="212.242" y1="228.667" x2="212.242" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="340.121" y1="228.667" x2="340.121" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="468" y1="228.667" x2="468" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="595.879" y1="228.667" x2="595.879" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="723.758" y1="228.667" x2="723.758" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="851.636" y1="228.667" x2="851.636" y2="276" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="272.339" x2="890" y2="272.339" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="264.789" x2="890" y2="264.789" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="257.24" x2="890" y2="257.24" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="249.691" x2="890" y2="249.691" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="242.142" x2="890" y2="242.142" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="234.593" x2="890" y2="234.593" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="46" y1="228.667" x2="46" y2="276" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<line x1="46" y1="276" x2="890" y2="276" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<polyline points="84.3636,261.77 340.121,273.848 595.879,230.818 851.636,253.466" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
 </g>
-<line x1="97.7273" y1="272" x2="97.7273" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="81.2273" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:03</text>
-<line x1="223.485" y1="272" x2="223.485" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="200.385" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:02.5</text>
-<line x1="349.242" y1="272" x2="349.242" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="332.742" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:02</text>
-<line x1="475" y1="272" x2="475" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="451.9" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:01.5</text>
-<line x1="600.758" y1="272" x2="600.758" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="584.258" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:01</text>
-<line x1="726.515" y1="272" x2="726.515" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="703.415" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0:00.5</text>
-<line x1="852.273" y1="272" x2="852.273" y2="277" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="842.373" y="279" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">now</text>
-<line x1="55" y1="268.906" x2="60" y2="268.906" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="262.906" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">100</text>
-<line x1="55" y1="262.526" x2="60" y2="262.526" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="256.526" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">120</text>
-<line x1="55" y1="256.147" x2="60" y2="256.147" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="250.147" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">140</text>
-<line x1="55" y1="249.767" x2="60" y2="249.767" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="243.767" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">160</text>
-<line x1="55" y1="243.388" x2="60" y2="243.388" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="237.388" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">180</text>
-<line x1="55" y1="237.008" x2="60" y2="237.008" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="33.2" y="231.008" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">200</text>
-<text xml:space="preserve" x="10" y="252" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(220,220,220,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 10 252)">Net (KB/s)</text>
+<line x1="84.3636" y1="276" x2="84.3636" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="71.8636" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:03</text>
+<line x1="212.242" y1="276" x2="212.242" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="195.242" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:02.5</text>
+<line x1="340.121" y1="276" x2="340.121" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="327.621" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:02</text>
+<line x1="468" y1="276" x2="468" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="451" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:01.5</text>
+<line x1="595.879" y1="276" x2="595.879" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="583.379" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:01</text>
+<line x1="723.758" y1="276" x2="723.758" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="706.758" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0:00.5</text>
+<line x1="851.636" y1="276" x2="851.636" y2="281" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="840.636" y="283" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">now</text>
+<line x1="41" y1="272.339" x2="46" y2="272.339" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="266.339" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">100</text>
+<line x1="41" y1="264.789" x2="46" y2="264.789" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="258.789" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">120</text>
+<line x1="41" y1="257.24" x2="46" y2="257.24" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="251.24" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">140</text>
+<line x1="41" y1="249.691" x2="46" y2="249.691" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="243.691" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">160</text>
+<line x1="41" y1="242.142" x2="46" y2="242.142" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="236.142" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">180</text>
+<line x1="41" y1="234.593" x2="46" y2="234.593" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="228.593" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">200</text>
+<text xml:space="preserve" x="12.5" y="252.333" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 12.5 252.333)">Net (KB/s)</text>
 </g>
-<clipPath id="clip-7"><rect x="0" y="317" width="900" height="6"/></clipPath>
+<clipPath id="clip-7"><rect x="0" y="312" width="900" height="6"/></clipPath>
 <g clip-path="url(#clip-7)">
-<rect x="0" y="317" width="900" height="6" fill="rgba(90,90,100,0.627451)"/>
+<rect x="0" y="312" width="900" height="6" fill="rgba(90,90,100,0.627451)"/>
 </g>
-<clipPath id="clip-8"><rect x="0" y="323" width="900" height="32"/></clipPath>
+<clipPath id="clip-8"><rect x="0" y="328" width="900" height="32"/></clipPath>
 <g clip-path="url(#clip-8)">
-<rect x="0" y="323" width="222" height="32" fill="rgba(42,42,58,1)"/>
-<rect x="0" y="323" width="74" height="32" fill="rgba(30,30,46,1)"/>
-<text xml:space="preserve" x="16" y="331" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,240,1)" dominant-baseline="hanging">Table</text>
-<rect x="0" y="353" width="74" height="2" fill="rgba(124,111,255,1)"/>
-<rect x="74" y="323" width="65.6" height="32" fill="rgba(42,42,58,1)"/>
-<text xml:space="preserve" x="90" y="331" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,140,160,1)" dominant-baseline="hanging">Tree</text>
-<rect x="139.6" y="323" width="82.4" height="32" fill="rgba(42,42,58,1)"/>
-<text xml:space="preserve" x="155.6" y="331" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,140,160,1)" dominant-baseline="hanging">Events</text>
+<rect x="0" y="328" width="201" height="32" rx="16" fill="rgba(30,34,56,1)"/>
+<defs><linearGradient id="g-1" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(35,128,142,1)"/>
+<stop offset="1" stop-color="rgba(52,114,216,1)"/>
+</linearGradient></defs>
+<rect x="0" y="328" width="66" height="32" rx="16" fill="url(#g-1)"/>
+<text xml:space="preserve" x="16" y="336" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Table</text>
+<rect x="66" y="328" width="60" height="32" rx="16" fill="rgba(30,34,56,1)"/>
+<text xml:space="preserve" x="82" y="336" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,148,186,1)" dominant-baseline="hanging">Tree</text>
+<rect x="126" y="328" width="75" height="32" rx="16" fill="rgba(30,34,56,1)"/>
+<text xml:space="preserve" x="142" y="336" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,148,186,1)" dominant-baseline="hanging">Events</text>
+<rect x="877" y="342" width="9" height="9" stroke="rgba(140,148,186,1)" fill="none" stroke-width="1"/>
+<rect x="882" y="338" width="9" height="9" stroke="rgba(140,148,186,1)" fill="none" stroke-width="1"/>
 </g>
-<clipPath id="clip-9"><rect x="0" y="355" width="900" height="24"/></clipPath>
+<clipPath id="clip-9"><rect x="0" y="360" width="900" height="24"/></clipPath>
 <g clip-path="url(#clip-9)">
-<rect x="0" y="710" width="900" height="24" fill="rgba(42,42,74,1)"/>
-<rect x="0" y="732" width="900" height="2" fill="rgba(74,74,106,1)"/>
-<clipPath id="clip-10"><rect x="0" y="355" width="225" height="24"/></clipPath>
+<rect x="0" y="720" width="900" height="24" fill="rgba(40,46,74,1)"/>
+<rect x="0" y="742" width="900" height="2" fill="rgba(74,74,106,1)"/>
+<clipPath id="clip-10"><rect x="0" y="360" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-10)">
-<text xml:space="preserve" x="4" y="359" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(136,136,204,1)" dominant-baseline="hanging">PID</text>
+<text xml:space="preserve" x="4" y="364" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">PID</text>
 </g>
-<rect x="225" y="359" width="1" height="16" fill="rgba(74,74,106,1)"/>
-<clipPath id="clip-11"><rect x="225" y="355" width="225" height="24"/></clipPath>
+<rect x="225" y="364" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<clipPath id="clip-11"><rect x="225" y="360" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-11)">
-<text xml:space="preserve" x="229" y="359" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(136,136,204,1)" dominant-baseline="hanging">Name</text>
+<text xml:space="preserve" x="229" y="364" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">Name</text>
 </g>
-<rect x="450" y="359" width="1" height="16" fill="rgba(74,74,106,1)"/>
-<clipPath id="clip-12"><rect x="450" y="355" width="225" height="24"/></clipPath>
+<rect x="450" y="364" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<clipPath id="clip-12"><rect x="450" y="360" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-12)">
-<text xml:space="preserve" x="454" y="359" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(136,136,204,1)" dominant-baseline="hanging">CPU %</text>
-<polygon points="661,364.5 669,364.5 665,369.5" fill="rgba(136,136,204,1)"/>
+<text xml:space="preserve" x="454" y="364" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">CPU %</text>
+<polygon points="661,369.5 669,369.5 665,374.5" fill="rgba(160,168,220,1)"/>
 </g>
-<rect x="675" y="359" width="1" height="16" fill="rgba(74,74,106,1)"/>
-<clipPath id="clip-13"><rect x="675" y="355" width="225" height="24"/></clipPath>
+<rect x="675" y="364" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<clipPath id="clip-13"><rect x="675" y="360" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-13)">
-<text xml:space="preserve" x="679" y="359" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(136,136,204,1)" dominant-baseline="hanging">Mem %</text>
+<text xml:space="preserve" x="679" y="364" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">Mem %</text>
 </g>
-<rect x="900" y="359" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<rect x="900" y="364" width="1" height="16" fill="rgba(74,74,106,1)"/>
 </g>
-<clipPath id="clip-14"><rect x="0" y="379" width="900" height="261"/></clipPath>
+<clipPath id="clip-14"><rect x="0" y="384" width="900" height="246"/></clipPath>
 <g clip-path="url(#clip-14)">
-<clipPath id="clip-15"><rect x="0" y="379" width="900" height="24"/></clipPath>
+<clipPath id="clip-15"><rect x="0" y="384" width="900" height="24"/></clipPath>
 <g clip-path="url(#clip-15)">
-<rect x="0" y="379" width="900" height="24" fill="rgba(30,30,50,1)"/>
-<clipPath id="clip-16"><rect x="0" y="379" width="225" height="24"/></clipPath>
+<rect x="0" y="384" width="900" height="24" fill="rgba(32,37,60,1)"/>
+<clipPath id="clip-16"><rect x="0" y="384" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-16)">
-<text xml:space="preserve" x="4" y="383" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">42</text>
+<text xml:space="preserve" x="4" y="388" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">42</text>
 </g>
-<clipPath id="clip-17"><rect x="225" y="379" width="225" height="24"/></clipPath>
+<clipPath id="clip-17"><rect x="225" y="384" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-17)">
-<text xml:space="preserve" x="229" y="383" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">prism_demo</text>
+<text xml:space="preserve" x="229" y="388" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">prism_demo</text>
 </g>
-<rect x="225" y="379" width="1" height="24" fill="rgba(50,50,70,1)"/>
-<clipPath id="clip-18"><rect x="450" y="379" width="225" height="24"/></clipPath>
+<rect x="225" y="384" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<clipPath id="clip-18"><rect x="450" y="384" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-18)">
-<text xml:space="preserve" x="454" y="383" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">3.2</text>
+<text xml:space="preserve" x="454" y="388" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">3.2</text>
 </g>
-<rect x="450" y="379" width="1" height="24" fill="rgba(50,50,70,1)"/>
-<clipPath id="clip-19"><rect x="675" y="379" width="225" height="24"/></clipPath>
+<rect x="450" y="384" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<clipPath id="clip-19"><rect x="675" y="384" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-19)">
-<text xml:space="preserve" x="679" y="383" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">1.8</text>
+<text xml:space="preserve" x="679" y="388" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">1.8</text>
 </g>
-<rect x="675" y="379" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<rect x="675" y="384" width="1" height="24" fill="rgba(50,50,70,1)"/>
 </g>
-<clipPath id="clip-20"><rect x="0" y="403" width="900" height="24"/></clipPath>
+<clipPath id="clip-20"><rect x="0" y="408" width="900" height="24"/></clipPath>
 <g clip-path="url(#clip-20)">
-<rect x="0" y="403" width="900" height="24" fill="rgba(26,26,46,1)"/>
-<clipPath id="clip-21"><rect x="0" y="403" width="225" height="24"/></clipPath>
+<rect x="0" y="408" width="900" height="24" fill="rgba(29,33,55,1)"/>
+<clipPath id="clip-21"><rect x="0" y="408" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-21)">
-<text xml:space="preserve" x="4" y="407" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">1</text>
+<text xml:space="preserve" x="4" y="412" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">1</text>
 </g>
-<clipPath id="clip-22"><rect x="225" y="403" width="225" height="24"/></clipPath>
+<clipPath id="clip-22"><rect x="225" y="408" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-22)">
-<text xml:space="preserve" x="229" y="407" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">init</text>
+<text xml:space="preserve" x="229" y="412" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">init</text>
 </g>
-<rect x="225" y="403" width="1" height="24" fill="rgba(50,50,70,1)"/>
-<clipPath id="clip-23"><rect x="450" y="403" width="225" height="24"/></clipPath>
+<rect x="225" y="408" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<clipPath id="clip-23"><rect x="450" y="408" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-23)">
-<text xml:space="preserve" x="454" y="407" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">0.1</text>
+<text xml:space="preserve" x="454" y="412" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">0.1</text>
 </g>
-<rect x="450" y="403" width="1" height="24" fill="rgba(50,50,70,1)"/>
-<clipPath id="clip-24"><rect x="675" y="403" width="225" height="24"/></clipPath>
+<rect x="450" y="408" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<clipPath id="clip-24"><rect x="675" y="408" width="225" height="24"/></clipPath>
 <g clip-path="url(#clip-24)">
-<text xml:space="preserve" x="679" y="407" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(220,220,220,1)" dominant-baseline="hanging">0.5</text>
+<text xml:space="preserve" x="679" y="412" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">0.5</text>
 </g>
-<rect x="675" y="403" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<rect x="675" y="408" width="1" height="24" fill="rgba(50,50,70,1)"/>
 </g>
 </g>
 <clipPath id="clip-25"><rect x="0" y="640" width="900" height="28"/></clipPath>
@@ -235,11 +245,11 @@
 </g>
 <clipPath id="clip-26"><rect x="8" y="642" width="24" height="24"/></clipPath>
 <g clip-path="url(#clip-26)">
-<rect x="8" y="642" width="8" height="8" rx="4" fill="rgba(0,160,220,1)"/>
+<rect x="8" y="642" width="8" height="8" rx="4" fill="rgba(150,120,252,1)"/>
 </g>
-<clipPath id="clip-27"><rect x="32" y="642" width="411.2" height="24"/></clipPath>
+<clipPath id="clip-27"><rect x="42" y="642" width="322" height="24"/></clipPath>
 <g clip-path="url(#clip-27)">
-<rect x="32" y="642" width="411.2" height="24" fill="rgba(45,45,55,1)"/>
-<text xml:space="preserve" x="36" y="646" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(180,180,190,1)" dominant-baseline="hanging">CPU 22%  ·  memory 4.2 / 16.0 GB  ·  2 processes</text>
+<rect x="42" y="642" width="322" height="24" fill="rgba(36,41,66,1)"/>
+<text xml:space="preserve" x="46" y="646" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">CPU 22%  ·  memory 4.2 / 16.0 GB  ·  2 processes</text>
 </g>
 </svg>

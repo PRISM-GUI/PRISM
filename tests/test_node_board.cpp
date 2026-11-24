@@ -100,8 +100,14 @@ template <class Model>
 struct BasicFixture {
     Model m;
     WidgetTree tree{m};
-    std::unique_ptr<SceneSnapshot> snap = tree.build_snapshot(800, 600, 1);
+    std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
+
+    // The board was laid out and checked in the classic look: ask for it by name.
+    BasicFixture() {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(800, 600, 1);
+    }
     void frame() { snap = tree.build_snapshot(800, 600, ++v); }
 
     template <typename Cmd>
@@ -1040,6 +1046,7 @@ TEST_CASE("a fit asked for before the board was ever laid out waits for its size
     m.graph.move(m.b, P(1500, 1000));
     m.graph.request_fit();
     WidgetTree tree{m};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     snap = tree.build_snapshot(800, 600, 2);
     CHECK_FALSE(m.graph.fit_requested());
@@ -1072,6 +1079,7 @@ TEST_CASE("a fit asked for before the first frame waits for the board's size to 
     Headed m;
     m.graph.request_fit();
     WidgetTree tree{m};
+    tree.set_theme(classic_dark_theme());
     for (std::uint64_t v = 1; v <= 6; ++v) {
         auto snap = tree.build_snapshot(240, 400, v);
         static_cast<void>(snap);   // frames until well past the fit, which waits for a stable size
@@ -1666,8 +1674,8 @@ TEST_CASE("switching the theme repaints the board in the other look, keeping eve
             return r.color == surface && r.thickness == 0.f;
         });
     };
-    const auto dark = dark_theme();
-    const auto light = light_theme();
+    const auto dark = classic_dark_theme();
+    const auto light = classic_light_theme();
     const auto before = f.draws_of<FilledRect>(bg);
     REQUIRE(!before.empty());
     CHECK(before.front().color == dark.node_board_bg);
@@ -1704,13 +1712,13 @@ TEST_CASE("an app's family keeps its colour across theme switches, in the look t
     BasicFixture<AppFamily> f;
     const auto name_color = [&] { return f.text_cmd("ADA-FX")->color; };
     REQUIRE(f.text_cmd("ADA-FX"));
-    CHECK(name_color() == mix(dark_theme().text, on_dark, 0.6f));
-    f.tree.set_theme(light_theme());
+    CHECK(name_color() == mix(classic_dark_theme().text, on_dark, 0.6f));
+    f.tree.set_theme(classic_light_theme());
     f.frame();
-    CHECK(name_color() == mix(light_theme().text, on_light, 0.6f));
-    f.tree.set_theme(dark_theme());
+    CHECK(name_color() == mix(classic_light_theme().text, on_light, 0.6f));
+    f.tree.set_theme(classic_dark_theme());
     f.frame();
-    CHECK(name_color() == mix(dark_theme().text, on_dark, 0.6f));
+    CHECK(name_color() == mix(classic_dark_theme().text, on_dark, 0.6f));
 }
 
 namespace {
@@ -2471,6 +2479,7 @@ struct Cards {
 TEST_CASE("a tidy asked in the turn a node is added waits for its card: no cards overlap") {
     Growing m;
     WidgetTree tree{m};
+    tree.set_theme(classic_dark_theme());
     Clock::time_point at = Clock::now();
     tree.set_clock([&] { return at; });
     std::uint64_t v = 1;
@@ -2490,6 +2499,7 @@ TEST_CASE("a tidy asked before the first frame waits for the sizes to settle: no
     Headed m;
     m.graph.request_tidy();
     WidgetTree tree{m};
+    tree.set_theme(classic_dark_theme());
     Clock::time_point at = Clock::now();
     tree.set_clock([&] { return at; });
     for (std::uint64_t v = 1; v <= 20; ++v) {

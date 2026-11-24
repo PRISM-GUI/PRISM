@@ -35,6 +35,7 @@ std::map<prism::WidgetId, float> widths(prism::WidgetTree& tree, float w) {
 TEST_CASE("buttons take their text width; the text field takes the rest") {
     Toolbar model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     TenPerChar m;
     tree.set_text_measurer(&m);
     auto ids = tree.leaf_ids();
@@ -49,6 +50,7 @@ TEST_CASE("buttons take their text width; the text field takes the rest") {
 TEST_CASE("without a measurer the estimate is used, with the same rules") {
     Toolbar model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto ids = tree.leaf_ids();
     auto w = widths(tree, 600.f);
     CHECK(w[ids[2]] == doctest::Approx(16.f + 6.f * 0.6f * 14.f));
@@ -70,6 +72,7 @@ struct Panel {
 TEST_CASE("vstack(a, b) opens a column, even inside a row") {
     Panel panel;
     prism::WidgetTree tree(panel);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(300.f, 200.f, 1);
     std::vector<prism::Rect> leaves;
     for (auto& [id, rect] : snap->geometry) leaves.push_back(rect);

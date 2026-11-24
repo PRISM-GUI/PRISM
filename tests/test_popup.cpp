@@ -31,7 +31,12 @@ struct Settings {
 struct Fixture {
     Settings model;
     WidgetTree tree{model};
-    std::unique_ptr<SceneSnapshot> snap = tree.build_snapshot(500, 400, 1);
+    // The popups here were laid out and checked in the classic look: ask for it by name.
+    Fixture() {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(500, 400, 1);
+    }
+    std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
     void frame() { snap = tree.build_snapshot(500, 400, ++v); }
     void open(bool modal = true) {
@@ -154,6 +159,7 @@ TEST_CASE("the card fits the window and is centred for a modal popup") {
 TEST_CASE("a popup's fields count as placed, though its content is built only when it opens") {
     Settings model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     Node root;
     WidgetTree::ViewBuilder vb{tree, root};
     model.view(vb);
@@ -195,6 +201,7 @@ struct Scrolling {
 TEST_CASE("a modal popup with nothing to focus does not let typing reach the window behind") {
     Notice model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 400, 1);
     auto r = *find_widget_rect(*snap, tree.leaf_ids()[0]);
     Point in{r.origin.x + DX{5}, r.origin.y + DY{5}};
@@ -211,6 +218,7 @@ TEST_CASE("the wheel inside a modal popup never scrolls the window behind it") {
     Scrolling model;
     for (int i = 0; i < 30; ++i) model.rows[i].set({"row " + std::to_string(i)});
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 300, 1);
     auto first_row = *find_widget_rect(*snap, tree.leaf_ids()[0]);
     model.pop.set({.open = true, .modal = true});
@@ -238,6 +246,7 @@ TEST_CASE("a popup with no widgets inside is built once, not on every frame") {
     } model;
     int builds = 0;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     (void)builds;
     auto snap = tree.build_snapshot(500, 400, 1);
     auto behind = tree.leaf_ids()[0];
@@ -264,6 +273,7 @@ TEST_CASE("a widget marked focus_on_open has the focus when its popup opens") {
         }
     } model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 400, 1);
     model.pop.set({.open = true, .modal = true});
     snap = tree.build_snapshot(500, 400, 2);
@@ -286,6 +296,7 @@ TEST_CASE("a click on a scrolling text area inside a popup focuses it, not a scr
     for (int i = 0; i < 30; ++i) lines += "line\n";
     model.text.set({.value = lines, .rows = 3});
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 400, 1);
     model.pop.set({.open = true, .modal = true});
     snap = tree.build_snapshot(500, 400, 2);
@@ -320,9 +331,11 @@ struct Form {
 struct FormFixture {
     Form model;
     WidgetTree tree{model};
-    std::unique_ptr<SceneSnapshot> snap = tree.build_snapshot(600, 400, 1);
+    std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
     FormFixture() {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(600, 400, 1);
         auto d = model.ask.get();
         d.open = true;
         model.ask.set(d);
@@ -438,6 +451,7 @@ struct LongPage {
 TEST_CASE("a non-modal popup in a scrolled area opens next to where its anchor is on screen") {
     LongPage model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(400, 300, 1);
     auto scroll_id = tree.root().children[0].id;
     auto unscrolled = find_widget_rect(*snap, tree.leaf_ids()[30]);
@@ -480,6 +494,7 @@ TEST_CASE("a widget partly scrolled out of a scroll area inside a popup takes cl
     for (int i = 0; i < 40; ++i) lines += "l" + std::to_string(i) + "\n";
     model.text.set({.value = lines, .rows = 40});
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(500, 300, 1);
     model.pop.set({.open = true, .modal = true});
     snap = tree.build_snapshot(500, 300, 2);

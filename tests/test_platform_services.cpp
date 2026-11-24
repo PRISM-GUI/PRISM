@@ -216,9 +216,9 @@ TEST_CASE("a theme the app chose stays when the OS changes") {
     impl->events = {SystemTheme{true}};
     Backend backend{std::move(impl)};
     auto& window = backend.create_window({});
-    model_app(backend, window, model, [](AppContext& ctx) { ctx.set_theme(ui::light_theme()); });
+    model_app(backend, window, model, [](AppContext& ctx) { ctx.set_theme(ui::classic_light_theme()); });
     REQUIRE(b->last);
-    CHECK(b->last->window.background == ui::light_theme().canvas_bg);
+    CHECK(b->last->window.background == ui::classic_light_theme().canvas_bg);
 }
 
 TEST_CASE("remember_window_size keeps where the window was, and whether it was maximized") {

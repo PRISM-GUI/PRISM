@@ -27,7 +27,11 @@ struct Fixture {
     float w, h;
     std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
-    Fixture(float w_ = 400, float h_ = 100) : w(w_), h(h_), snap(tree.build_snapshot(w, h, 1)) {}
+
+    Fixture(float w_ = 400, float h_ = 100) : w(w_), h(h_) {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(w, h, 1);
+    }
     void frame() { snap = tree.build_snapshot(w, h, ++v); }
     void button(Point at, uint8_t b, bool pressed) { route_event(tree, snap.get(), MouseButton{at, b, pressed}); frame(); }
     void move_to(Point at) { route_event(tree, snap.get(), MouseMove{at, 1}); frame(); }

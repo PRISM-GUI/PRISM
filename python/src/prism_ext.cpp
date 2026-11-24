@@ -1004,8 +1004,9 @@ static void bind_app(nb::module_& m) {
     }, nb::arg("text"), nb::arg("title") = "", nb::arg("kind") = "info",
        "Any thread, while an app runs. The platform's message box (ignored where there is none).");
     m.def("set_theme", [](std::string name) {
-        if (name != "light" && name != "dark" && name != "system")
-            throw nb::value_error("set_theme: 'light', 'dark' or 'system'");
+        if (name != "light" && name != "dark" && name != "system" && name != "classic_dark"
+            && name != "classic_light")
+            throw nb::value_error("set_theme: 'light', 'dark', 'system', 'classic_dark' or 'classic_light'");
         wait_for_context("prism.set_theme");
         // Posted outside g_handle_mutex: posting takes it too.
         try_post_any_thread([name] {
@@ -1016,11 +1017,14 @@ static void bind_app(nb::module_& m) {
             }
             if (!ctx) return;
             if (name == "system") ctx->follow_system_theme();
+            else if (name == "classic_dark") ctx->set_theme(classic_dark_theme());
+            else if (name == "classic_light") ctx->set_theme(classic_light_theme());
             else ctx->set_theme(name == "light" ? light_theme() : dark_theme());
         });
     }, nb::arg("name"),
        "Any thread, while an app runs: 'light', 'dark', or 'system' (follow the OS, also when "
-       "it changes). Every window repaints.");
+       "it changes); 'classic_dark' or 'classic_light' for the look before the modern one. Every "
+       "window repaints.");
     m.def("_theme", []() -> std::string {
         return dispatch_sync_read<std::string>([] {
             AppContext* ctx = nullptr;

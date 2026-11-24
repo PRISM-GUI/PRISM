@@ -175,13 +175,13 @@ struct Theme {
     const UrlOpener* url_opener = nullptr;   // links open through it; null: they only count clicks
 };
 
-inline Theme default_theme() { return {}; }
-
-inline Theme dark_theme() { return default_theme(); }
+// The look PRISM shipped before the modern one, still what a plain Theme{} holds: square boxes,
+// no pills, no spacing between a stack's children, and solid fills.
+inline Theme classic_dark_theme() { return {}; }
 
 // Dark text on light surfaces; every text color keeps at least WCAG AA contrast (4.5:1) with
 // what it is drawn on (tests/test_theme.cpp checks it).
-inline Theme light_theme() {
+inline Theme classic_light_theme() {
     Theme t;
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
     t.surface = c(236, 237, 242);         t.surface_hover = c(226, 228, 235);   t.surface_active = c(214, 217, 226);
@@ -227,42 +227,36 @@ inline Theme light_theme() {
     return t;
 }
 
-// Today's look, under the name the modern one leaves it: square boxes, no pills, no spacing,
-// solid fills. dark_theme() and light_theme() are these while the default is still classic.
-inline Theme classic_dark_theme() { return dark_theme(); }
-
-inline Theme classic_light_theme() { return light_theme(); }
-
-// The modern look (spike): rounded boxes, pill controls, a gap between a stack's children, a navy
+// The modern look: rounded boxes, pill controls, a gap between a stack's children, a navy
 // base and two gradient fills, teal-blue for primary actions and violet for the controls that are
 // "on". Light and dark share the shapes.
 inline Theme modern_dark_theme() {
-    Theme t = dark_theme();
+    Theme t = classic_dark_theme();
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
     t.corner_radius = 8.f;
     t.canvas_bg = c(24, 28, 47);
     t.surface = c(36, 41, 66);            t.surface_hover = c(44, 50, 80);      t.surface_active = c(52, 59, 92);
-    t.primary = c(44, 160, 178);          t.primary_hover = c(58, 178, 196);    t.primary_active = c(34, 140, 158);
+    t.primary = c(35, 128, 142);          t.primary_hover = c(40, 138, 153);    t.primary_active = c(32, 120, 134);
     t.primary_outline = c(88, 200, 210);
     t.accent = c(132, 98, 245);           t.accent_hover = c(150, 120, 252);    t.accent_active = c(112, 80, 225);
     t.text = c(232, 235, 248);            t.text_muted = c(152, 160, 196);
     t.text_placeholder = c(112, 120, 156); t.text_on_primary = c(255, 255, 255);
     t.border = c(74, 82, 122);            t.border_hover = c(112, 122, 172);    t.focus_ring = c(150, 122, 255);
     t.track = c(70, 78, 116);             t.track_hover = c(84, 92, 134);
-    t.popup_bg = c(34, 39, 63);           t.popup_border = c(74, 82, 122);      t.popup_highlight = c(44, 160, 178);
+    t.popup_bg = c(34, 39, 63);           t.popup_border = c(74, 82, 122);      t.popup_highlight = c(35, 128, 142);
     t.tab_bar_bg = c(30, 34, 56);         t.tab_active_bg = c(40, 46, 74);
     t.tab_text = c(140, 148, 186);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(132, 98, 245);
     t.table_row_even = c(32, 37, 60);     t.table_row_odd = c(29, 33, 55);      t.table_selected = c(60, 58, 120);
     t.table_header = c(40, 46, 74);       t.table_header_text = c(160, 168, 220);
     t.pill_controls = true;
     t.spacing = 10.f;
-    t.primary_fill = Gradient{c(44, 160, 178), c(59, 130, 246)};
-    t.accent_fill = Gradient{c(168, 140, 255), c(112, 80, 225)};
+    t.primary_fill = Gradient{c(35, 128, 142), c(52, 114, 216)};
+    t.accent_fill = Gradient{c(118, 90, 226), c(88, 58, 200)};
     return t;
 }
 
 inline Theme modern_light_theme() {
-    Theme t = light_theme();
+    Theme t = classic_light_theme();
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
     t.corner_radius = 8.f;
     t.canvas_bg = c(243, 245, 251);
@@ -280,9 +274,17 @@ inline Theme modern_light_theme() {
     t.pill_controls = true;
     t.spacing = 10.f;
     t.primary_fill = Gradient{c(18, 128, 146), c(37, 99, 235)};
-    t.accent_fill = Gradient{c(139, 110, 246), c(92, 62, 210)};
+    t.accent_fill = Gradient{c(118, 90, 226), c(84, 54, 196)};
     return t;
 }
+
+// What PRISM draws with: the modern dark look. dark_theme() and light_theme() follow the system's
+// light or dark mode; classic_dark_theme() and classic_light_theme() keep the look before it.
+inline Theme default_theme() { return modern_dark_theme(); }
+
+inline Theme dark_theme() { return modern_dark_theme(); }
+
+inline Theme light_theme() { return modern_light_theme(); }
 
 // An app's own family, in the colour it has on the dark look and on the light one. Registered by
 // name, once, whatever the theme: a theme switch keeps it. A family named here wins over the

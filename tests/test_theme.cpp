@@ -5,6 +5,7 @@
 #include <prism/core/field.hpp>
 #include <prism/app/widget_tree.hpp>
 #include <prism/ui/text_metrics.hpp>
+#include <prism/input/hit_test.hpp>
 namespace prism::core {} namespace prism::render {} namespace prism::input {}
 namespace prism::ui {} namespace prism::app {} namespace prism::plot {}
 namespace prism {
@@ -14,7 +15,7 @@ using namespace ui; using namespace app; using namespace plot;
 
 
 TEST_CASE("default_theme returns consistent values") {
-    auto t = prism::default_theme();
+    auto t = prism::classic_dark_theme();
     CHECK(t.surface.r == 45);
     CHECK(t.surface.g == 45);
     CHECK(t.surface.b == 55);
@@ -30,10 +31,10 @@ TEST_CASE("default_theme returns consistent values") {
 }
 
 TEST_CASE("Theme is copy-constructible and modifiable") {
-    auto t = prism::default_theme();
+    auto t = prism::classic_dark_theme();
     t.primary = prism::Color::rgba(255, 0, 0);
     CHECK(t.primary.r == 255);
-    auto t2 = prism::default_theme();
+    auto t2 = prism::classic_dark_theme();
     CHECK(t2.primary.r == 40);
 }
 
@@ -60,8 +61,8 @@ TEST_CASE("WidgetTree propagates theme to all nodes") {
 TEST_CASE("WidgetTree theme matches default_theme") {
     ThemeTestModel model;
     prism::WidgetTree tree(model);
-    CHECK(tree.theme().primary.r == 40);
-    CHECK(tree.theme().primary.g == 105);
+    CHECK(tree.theme().primary == prism::default_theme().primary);
+    CHECK(tree.theme().surface == prism::default_theme().surface);
 }
 
 TEST_CASE("Theme has divider colors distinct from scrollbar thumb") {
@@ -109,10 +110,20 @@ std::optional<prism::Color> text_color(const prism::SceneSnapshot& snap, std::st
 
 TEST_CASE("the dark theme is the default; both themes keep text readable") {
     CHECK(prism::dark_theme().surface == prism::default_theme().surface);
-    check_readable(prism::dark_theme());
-    auto light = prism::light_theme();
+    check_readable(prism::classic_dark_theme());
+    auto light = prism::classic_light_theme();
     check_readable(light);
     CHECK(luminance(light.canvas_bg) > luminance(light.text));   // dark text on a light window
+}
+
+TEST_CASE("the modern themes keep text readable, on their gradients too") {
+    for (const auto& t : {prism::modern_dark_theme(), prism::modern_light_theme()}) {
+        check_readable(t);
+        CHECK(contrast(t.text_on_primary, t.primary_fill.from) >= 4.5);
+        CHECK(contrast(t.text_on_primary, t.primary_fill.to) >= 4.5);
+        CHECK(contrast(t.text_on_primary, t.accent_fill.from) >= 4.5);
+        CHECK(contrast(t.text_on_primary, t.accent_fill.to) >= 4.5);
+    }
 }
 
 TEST_CASE("set_theme repaints every widget, and keeps the backend's measurer") {
@@ -123,10 +134,10 @@ TEST_CASE("set_theme repaints every widget, and keeps the backend's measurer") {
     } measurer;
     tree.set_text_measurer(&measurer);
     auto snap = tree.build_snapshot(300, 200, 1);
-    CHECK(text_color(*snap, "hello") == prism::dark_theme().text_muted);   // a label is muted text
-    tree.set_theme(prism::light_theme());
+    CHECK(text_color(*snap, "hello") == prism::default_theme().text_muted);   // a label is muted text
+    tree.set_theme(prism::classic_light_theme());
     snap = tree.build_snapshot(300, 200, 2);
-    CHECK(text_color(*snap, "hello") == prism::light_theme().text_muted);
+    CHECK(text_color(*snap, "hello") == prism::classic_light_theme().text_muted);
     CHECK(tree.theme().measurer == &measurer);
 }
 
@@ -134,12 +145,12 @@ TEST_CASE("the snapshot carries the window's own colors, for the backend") {
     Labelled model;
     prism::WidgetTree tree(model);
     auto snap = tree.build_snapshot(300, 200, 1);
-    CHECK(snap->window.background == prism::dark_theme().canvas_bg);
-    tree.set_theme(prism::light_theme());
+    CHECK(snap->window.background == prism::default_theme().canvas_bg);
+    tree.set_theme(prism::classic_light_theme());
     snap = tree.build_snapshot(300, 200, 2);
-    CHECK(snap->window.background == prism::light_theme().canvas_bg);
-    CHECK(snap->window.chrome_bg == prism::light_theme().chrome_bg);
-    CHECK(snap->window.chrome_text == prism::light_theme().chrome_text);
+    CHECK(snap->window.background == prism::classic_light_theme().canvas_bg);
+    CHECK(snap->window.chrome_bg == prism::classic_light_theme().chrome_bg);
+    CHECK(snap->window.chrome_text == prism::classic_light_theme().chrome_text);
 }
 
 TEST_CASE("mix weights the second colour's every channel") {
@@ -216,11 +227,11 @@ const BoardLook look_b{
 };
 }
 
-TEST_CASE("the dark theme is the board's look A") { check_look(prism::dark_theme(), look_a); }
+TEST_CASE("the dark theme is the board's look A") { check_look(prism::classic_dark_theme(), look_a); }
 
 TEST_CASE("the light theme is the board's look B") {
-    check_look(prism::light_theme(), look_b);
-    CHECK(prism::light_theme().accent == rgba(47, 111, 222));   // #2f6fde, with the waveform wire
+    check_look(prism::classic_light_theme(), look_b);
+    CHECK(prism::classic_light_theme().accent == rgba(47, 111, 222));   // #2f6fde, with the waveform wire
 }
 
 namespace {
@@ -251,7 +262,7 @@ float checkbox_height(const prism::ui::Theme& theme) {
 
 // A rounded theme draws no surface behind a checkbox's row; the row keeps its height anyway.
 TEST_CASE("a checkbox is as tall in a rounded theme as in the classic one") {
-    CHECK(checkbox_height(prism::ui::dark_theme()) == doctest::Approx(30.f));
+    CHECK(checkbox_height(prism::ui::classic_dark_theme()) == doctest::Approx(30.f));
     CHECK(checkbox_height(prism::ui::modern_dark_theme()) == doctest::Approx(30.f));
 }
 
@@ -335,4 +346,76 @@ TEST_CASE("a measurer set after a first frame re-measures the cached layout") {
     for (std::size_t i = 0; i < fresh_snap->geometry.size(); ++i)
         CHECK(switched->geometry[i].second.extent.w.raw()
               == doctest::Approx(fresh_snap->geometry[i].second.extent.w.raw()));
+}
+
+// The fields a look is made of: the ones a screenshot would show first.
+void same_look(const prism::Theme& a, const prism::Theme& b) {
+    CHECK(a.canvas_bg == b.canvas_bg);
+    CHECK(a.surface == b.surface);
+    CHECK(a.primary == b.primary);
+    CHECK(a.corner_radius == b.corner_radius);
+    CHECK(a.pill_controls == b.pill_controls);
+    CHECK(a.spacing == b.spacing);
+    CHECK(a.primary_fill == b.primary_fill);
+    CHECK(a.accent_fill == b.accent_fill);
+}
+
+TEST_CASE("the default theme is the modern dark one") {
+    same_look(prism::default_theme(), prism::modern_dark_theme());
+    same_look(prism::dark_theme(), prism::modern_dark_theme());
+    same_look(prism::light_theme(), prism::modern_light_theme());
+}
+
+struct ThemeSwitchModel {
+    prism::Field<prism::ui::Button> apply{{.text = "Apply", .primary = true}};
+    prism::Field<prism::ui::Checkbox> sync{{.checked = true, .label = "Sync"}};
+    prism::Field<prism::ui::Slider<>> level{{.value = 0.5, .min = 0.0, .max = 1.0}};
+
+    void view(prism::WidgetTree::ViewBuilder& vb) { vb.vstack(apply, sync, level); }
+};
+
+std::size_t gradient_count(const prism::SceneSnapshot& snap) {
+    std::size_t count = 0;
+    for (const auto& list : snap.draw_lists)
+        for (const auto& cmd : list->commands)
+            if (std::holds_alternative<prism::GradientRect>(cmd)) ++count;
+    return count;
+}
+
+// A snapshot of the theme as it stands: the first pass measures, the second draws at that size.
+std::unique_ptr<prism::SceneSnapshot> settled(prism::WidgetTree& tree, std::uint64_t version) {
+    static_cast<void>(tree.build_snapshot(320, 400, version));
+    tree.clear_dirty();
+    return tree.build_snapshot(320, 400, version + 1);
+}
+
+float gap_between(const prism::SceneSnapshot& snap, prism::WidgetId above, prism::WidgetId below) {
+    const auto top = prism::find_widget_rect(snap, above);
+    const auto bottom = prism::find_widget_rect(snap, below);
+    if (!top || !bottom) return -1.f;
+    return bottom->origin.y.raw() - (top->origin.y.raw() + top->extent.h.raw());
+}
+
+TEST_CASE("switching classic, modern and back relayouts and redraws every widget") {
+    ThemeSwitchModel model;
+    prism::WidgetTree tree{model};
+    tree.set_theme(prism::classic_dark_theme());
+    const auto classic = settled(tree, 1);
+    REQUIRE(classic != nullptr);
+    REQUIRE(tree.leaf_ids().size() == 3);
+    const auto leaves = tree.leaf_ids();
+    CHECK(gradient_count(*classic) == 0);
+    CHECK(gap_between(*classic, leaves[0], leaves[1]) == 0.f);
+
+    tree.set_theme(prism::modern_dark_theme());
+    const auto modern = settled(tree, 10);
+    REQUIRE(modern != nullptr);
+    CHECK(gradient_count(*modern) >= 2);   // the primary button, the checked box
+    CHECK(gap_between(*modern, leaves[0], leaves[1]) == doctest::Approx(10.f));
+
+    tree.set_theme(prism::classic_dark_theme());
+    const auto back = settled(tree, 20);
+    REQUIRE(back != nullptr);
+    CHECK(gradient_count(*back) == 0);
+    CHECK(gap_between(*back, leaves[0], leaves[1]) == 0.f);
 }

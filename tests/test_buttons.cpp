@@ -23,8 +23,14 @@ struct Toolbar {
 struct Fixture {
     Toolbar m;
     WidgetTree tree{m};
-    std::unique_ptr<SceneSnapshot> snap = tree.build_snapshot(400, 100, 1);
+    std::unique_ptr<SceneSnapshot> snap;
     uint64_t v = 1;
+
+    Fixture() {
+        tree.set_theme(classic_dark_theme());
+        snap = tree.build_snapshot(400, 100, 1);
+    }
+
     void frame() { snap = tree.build_snapshot(400, 100, ++v); }
     void click(float x, float y) {
         route_event(tree, snap.get(), MouseButton{Point{X{x}, Y{y}}, buttons::left, true});

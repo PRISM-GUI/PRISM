@@ -1,61 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
-<rect width="600" height="400" fill="rgba(30,30,30,1)"/>
+<rect width="600" height="400" fill="rgba(24,28,47,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="600" height="368"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="60" y="10" width="530" height="313" fill="rgba(30,30,30,1)"/>
-<rect x="60" y="10" width="530" height="313" stroke="rgba(90,90,105,1)" fill="none" stroke-width="1"/>
-<clipPath id="clip-1"><rect x="60" y="10" width="530" height="313"/></clipPath>
+<rect x="47" y="10" width="543" height="315" fill="rgba(24,28,47,1)"/>
+<rect x="47" y="10" width="543" height="315" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-1"><rect x="47" y="10" width="543" height="315"/></clipPath>
 <g clip-path="url(#clip-1)">
-<line x1="84.0909" y1="10" x2="84.0909" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="160.775" y1="10" x2="160.775" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="237.458" y1="10" x2="237.458" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="314.142" y1="10" x2="314.142" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="390.826" y1="10" x2="390.826" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="467.51" y1="10" x2="467.51" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="544.193" y1="10" x2="544.193" y2="323" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="303.536" x2="590" y2="303.536" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="265.242" x2="590" y2="265.242" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="226.948" x2="590" y2="226.948" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="188.654" x2="590" y2="188.654" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="150.36" x2="590" y2="150.36" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="112.066" x2="590" y2="112.066" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="73.7721" x2="590" y2="73.7721" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="35.4781" x2="590" y2="35.4781" stroke="rgba(60,60,70,1)" stroke-width="1"/>
-<line x1="60" y1="10" x2="60" y2="323" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<line x1="60" y1="323" x2="590" y2="323" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<polyline points="84.0909,188.654 86.5121,176.647 88.9333,164.839 91.3545,153.275 93.7757,141.997 96.1969,131.047 98.6181,120.465 101.039,110.289 103.46,100.554 105.882,91.2939 108.303,82.5393 110.724,74.3192 113.145,66.6597 115.566,59.5843 117.988,53.1142 120.409,47.2675 122.83,42.0598 125.251,37.504 127.672,33.6102 130.094,30.3854 132.515,27.8344 134.936,25.9588 137.357,24.7576 139.778,24.2273 142.2,24.3614 144.621,25.1512 147.042,26.5852 149.463,28.6496 151.884,31.3282 154.306,34.6027 156.727,38.4524 159.148,42.8547 161.569,47.7851 163.99,53.2172 166.412,59.123 168.833,65.4729 171.254,72.2359 173.675,79.3799 176.096,86.8713 178.518,94.676 180.939,102.759 183.36,111.084 185.781,119.614 188.202,128.314 190.624,137.146 193.045,146.074 195.466,155.06 197.887,164.067 200.308,173.06 202.73,182.002 205.151,190.858 207.572,199.595 209.993,208.178 212.414,216.576 214.836,224.756 217.257,232.689 219.678,240.346 222.099,247.701 224.52,254.727 226.942,261.4 229.363,267.699 231.784,273.602 234.205,279.092 236.626,284.151 239.048,288.764 241.469,292.918 243.89,296.604 246.311,299.811 248.732,302.533 251.153,304.766 253.575,306.506 255.996,307.753 258.417,308.507 260.838,308.773 263.259,308.554 265.681,307.859 268.102,306.695 270.523,305.074 272.944,303.008 275.365,300.51 277.787,297.595 280.208,294.282 282.629,290.587 285.05,286.531 287.471,282.134 289.893,277.418 292.314,272.407 294.735,267.123 297.156,261.592 299.577,255.838 301.999,249.888 304.42,243.767 306.841,237.503 309.262,231.122 311.683,224.651 314.105,218.117 316.526,211.547 318.947,204.969 321.368,198.407 323.789,191.889 326.211,185.44 328.632,179.084 331.053,172.847 333.474,166.751 335.895,160.819 338.317,155.073 340.738,149.534 343.159,144.22 345.58,139.151 348.001,134.344 350.423,129.814 352.844,125.576 355.265,121.645 357.686,118.03 360.107,114.743 362.529,111.794 364.95,109.189 367.371,106.934 369.792,105.035 372.213,103.494 374.635,102.313 377.056,101.493 379.477,101.031 381.898,100.926 384.319,101.173 386.741,101.767 389.162,102.701 391.583,103.968 394.004,105.557 396.425,107.459 398.846,109.662 401.268,112.153 403.689,114.919 406.11,117.945 408.531,121.216 410.952,124.716 413.374,128.428 415.795,132.334 418.216,136.416 420.637,140.657 423.058,145.036 425.48,149.534 427.901,154.133 430.322,158.812 432.743,163.552 435.164,168.332 437.586,173.134 440.007,177.938 442.428,182.724 444.849,187.474 447.27,192.17 449.692,196.792 452.113,201.323 454.534,205.747 456.955,210.048 459.376,214.208 461.798,218.214 464.219,222.052 466.64,225.708 469.061,229.169 471.482,232.425 473.904,235.465 476.325,238.28 478.746,240.861 481.167,243.201 483.588,245.293 486.01,247.132 488.431,248.714 490.852,250.036 493.273,251.095 495.694,251.892 498.116,252.426 500.537,252.698 502.958,252.71 505.379,252.466 507.8,251.969 510.222,251.225 512.643,250.241 515.064,249.022 517.485,247.577 519.906,245.915 522.328,244.044 524.749,241.976 527.17,239.719 529.591,237.287 532.012,234.691 534.434,231.943 536.855,229.057 539.276,226.045 541.697,222.921 544.118,219.699 546.54,216.394 548.961,213.019 551.382,209.589 553.803,206.118 556.224,202.621 558.646,199.112 561.067,195.605 563.488,192.115 565.909,188.654" stroke="rgba(0,140,200,1)" fill="none" stroke-width="2"/>
+<line x1="71.6818" y1="10" x2="71.6818" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="150.246" y1="10" x2="150.246" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="228.811" y1="10" x2="228.811" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="307.376" y1="10" x2="307.376" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="385.94" y1="10" x2="385.94" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="464.505" y1="10" x2="464.505" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="543.07" y1="10" x2="543.07" y2="325" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="305.412" x2="590" y2="305.412" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="266.873" x2="590" y2="266.873" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="228.334" x2="590" y2="228.334" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="189.796" x2="590" y2="189.796" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="151.257" x2="590" y2="151.257" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="112.718" x2="590" y2="112.718" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="74.1796" x2="590" y2="74.1796" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="35.6409" x2="590" y2="35.6409" stroke="rgba(70,78,116,1)" stroke-width="1"/>
+<line x1="47" y1="10" x2="47" y2="325" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<line x1="47" y1="325" x2="590" y2="325" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<polyline points="71.6818,189.796 74.1624,177.712 76.643,165.829 79.1236,154.19 81.6042,142.84 84.0847,131.821 86.5653,121.171 89.0459,110.93 91.5265,101.133 94.0071,91.8134 96.4877,83.0028 98.9682,74.7302 101.449,67.0217 103.929,59.9012 106.41,53.3896 108.891,47.5056 111.371,42.2647 113.852,37.6798 116.332,33.761 118.813,30.5157 121.294,27.9483 123.774,26.0608 126.255,24.8519 128.735,24.3182 131.216,24.4532 133.696,25.248 136.177,26.6911 138.658,28.7687 141.138,31.4645 143.619,34.7599 146.099,38.6342 148.58,43.0646 151.061,48.0266 153.541,53.4933 156.022,59.4369 158.502,65.8274 160.983,72.6336 163.463,79.8232 165.944,87.3625 168.425,95.2171 170.905,103.351 173.386,111.729 175.866,120.315 178.347,129.07 180.828,137.959 183.308,146.943 185.789,155.986 188.269,165.051 190.75,174.101 193.23,183.101 195.711,192.014 198.192,200.806 200.672,209.444 203.153,217.896 205.633,226.128 208.114,234.112 210.595,241.818 213.075,249.22 215.556,256.291 218.036,263.007 220.517,269.346 222.997,275.287 225.478,280.811 227.959,285.902 230.439,290.545 232.92,294.726 235.4,298.435 237.881,301.663 240.362,304.403 242.842,306.65 245.323,308.401 247.803,309.655 250.284,310.415 252.765,310.682 255.245,310.462 257.726,309.762 260.206,308.591 262.687,306.96 265.167,304.88 267.648,302.366 270.129,299.433 272.609,296.098 275.09,292.38 277.57,288.298 280.051,283.873 282.532,279.127 285.012,274.084 287.493,268.766 289.973,263.199 292.454,257.409 294.934,251.421 297.415,245.261 299.896,238.957 302.376,232.535 304.857,226.022 307.337,219.447 309.818,212.835 312.299,206.214 314.779,199.611 317.26,193.051 319.74,186.561 322.221,180.165 324.701,173.887 327.182,167.752 329.663,161.783 332.143,156 334.624,150.425 337.104,145.078 339.585,139.976 342.066,135.138 344.546,130.58 347.027,126.315 349.507,122.358 351.988,118.72 354.468,115.413 356.949,112.444 359.43,109.823 361.91,107.554 364.391,105.642 366.871,104.092 369.352,102.903 371.833,102.077 374.313,101.613 376.794,101.507 379.274,101.756 381.755,102.354 384.236,103.294 386.716,104.568 389.197,106.168 391.677,108.081 394.158,110.298 396.638,112.805 399.119,115.589 401.6,118.635 404.08,121.927 406.561,125.449 409.041,129.184 411.522,133.116 414.003,137.224 416.483,141.491 418.964,145.898 421.444,150.426 423.925,155.054 426.405,159.763 428.886,164.533 431.367,169.344 433.847,174.177 436.328,179.011 438.808,183.828 441.289,188.608 443.77,193.334 446.25,197.985 448.731,202.546 451.211,206.998 453.692,211.326 456.172,215.513 458.653,219.545 461.134,223.407 463.614,227.086 466.095,230.57 468.575,233.847 471.056,236.906 473.537,239.739 476.017,242.336 478.498,244.691 480.978,246.796 483.459,248.647 485.939,250.239 488.42,251.569 490.901,252.636 493.381,253.438 495.862,253.975 498.342,254.248 500.823,254.261 503.304,254.015 505.784,253.515 508.265,252.767 510.745,251.776 513.226,250.55 515.706,249.096 518.187,247.422 520.668,245.54 523.148,243.458 525.629,241.187 528.109,238.74 530.59,236.127 533.071,233.361 535.551,230.456 538.032,227.425 540.512,224.282 542.993,221.039 545.474,217.713 547.954,214.316 550.435,210.864 552.915,207.371 555.396,203.852 557.876,200.321 560.357,196.791 562.838,193.278 565.318,189.796" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
 </g>
-<line x1="84.0909" y1="323" x2="84.0909" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="81.0909" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0</text>
-<line x1="160.775" y1="323" x2="160.775" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="157.775" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">2</text>
-<line x1="237.458" y1="323" x2="237.458" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="233.958" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">4</text>
-<line x1="314.142" y1="323" x2="314.142" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="311.142" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">6</text>
-<line x1="390.826" y1="323" x2="390.826" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="387.826" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">8</text>
-<line x1="467.51" y1="323" x2="467.51" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="461.51" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">10</text>
-<line x1="544.193" y1="323" x2="544.193" y2="328" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="538.193" y="330" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">12</text>
-<line x1="55" y1="303.536" x2="60" y2="303.536" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="34" y="297.536" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0.6</text>
-<line x1="55" y1="265.242" x2="60" y2="265.242" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="34" y="259.242" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0.4</text>
-<line x1="55" y1="226.948" x2="60" y2="226.948" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="34" y="220.948" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">-0.2</text>
-<line x1="55" y1="188.654" x2="60" y2="188.654" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="47" y="182.654" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0</text>
-<line x1="55" y1="150.36" x2="60" y2="150.36" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="38" y="144.36" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0.2</text>
-<line x1="55" y1="112.066" x2="60" y2="112.066" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="37" y="106.066" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0.4</text>
-<line x1="55" y1="73.7721" x2="60" y2="73.7721" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="38" y="67.7721" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0.6</text>
-<line x1="55" y1="35.4781" x2="60" y2="35.4781" stroke="rgba(90,90,105,1)" stroke-width="1"/>
-<text xml:space="preserve" x="38" y="29.4781" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(180,180,190,1)" dominant-baseline="hanging">0.8</text>
-<text xml:space="preserve" x="295" y="341" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(220,220,220,1)" dominant-baseline="hanging">Time (s)</text>
-<text xml:space="preserve" x="10" y="166.5" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(220,220,220,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 10 166.5)">Amplitude</text>
+<line x1="71.6818" y1="325" x2="71.6818" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="68.6818" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0</text>
+<line x1="150.246" y1="325" x2="150.246" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="147.246" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">2</text>
+<line x1="228.811" y1="325" x2="228.811" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="225.311" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">4</text>
+<line x1="307.376" y1="325" x2="307.376" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="304.376" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">6</text>
+<line x1="385.94" y1="325" x2="385.94" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="382.94" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">8</text>
+<line x1="464.505" y1="325" x2="464.505" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="458.505" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">10</text>
+<line x1="543.07" y1="325" x2="543.07" y2="330" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="537.07" y="332" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">12</text>
+<line x1="42" y1="305.412" x2="47" y2="305.412" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="299.412" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0.6</text>
+<line x1="42" y1="266.873" x2="47" y2="266.873" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="260.873" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0.4</text>
+<line x1="42" y1="228.334" x2="47" y2="228.334" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="21" y="222.334" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">-0.2</text>
+<line x1="42" y1="189.796" x2="47" y2="189.796" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="34" y="183.796" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0</text>
+<line x1="42" y1="151.257" x2="47" y2="151.257" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="25" y="145.257" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0.2</text>
+<line x1="42" y1="112.718" x2="47" y2="112.718" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="24" y="106.718" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0.4</text>
+<line x1="42" y1="74.1796" x2="47" y2="74.1796" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="25" y="68.1796" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0.6</text>
+<line x1="42" y1="35.6409" x2="47" y2="35.6409" stroke="rgba(74,82,122,1)" stroke-width="1"/>
+<text xml:space="preserve" x="25" y="29.6409" font-family="Noto Sans, sans-serif" font-size="11" fill="rgba(152,160,196,1)" dominant-baseline="hanging">0.8</text>
+<text xml:space="preserve" x="296.5" y="347" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Time (s)</text>
+<text xml:space="preserve" x="12.5" y="167.5" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 12.5 167.5)">Amplitude</text>
 </g>
 </svg>

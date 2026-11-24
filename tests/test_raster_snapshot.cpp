@@ -52,6 +52,7 @@ struct DemoModel {
 TEST_CASE("a laid-out snapshot draws into a 480x272 canvas") {
     DemoModel model;
     WidgetTree tree(model);
+    tree.set_theme(prism::ui::classic_dark_theme());
     prism::raster::Fonts fonts;   // the measurer: layout and drawing use the same metrics
     tree.set_text_measurer(&fonts);
     auto snap = tree.build_snapshot(W, H, 1);
@@ -192,6 +193,7 @@ std::shared_ptr<prism::render::DrawList> filled(Rect r, Color c) {
 TEST_CASE("the widget demo drawn in 48-row bands equals the whole frame") {
     prism_examples::WidgetsModel model;
     WidgetTree tree(model);
+    tree.set_theme(prism::ui::classic_dark_theme());
     Fonts fonts;
     tree.set_text_measurer(&fonts);
     auto snap = tree.build_snapshot(800, 480, 1);
@@ -206,6 +208,7 @@ TEST_CASE("the audio scope drawn in 48-row bands equals the whole frame") {
     prism_examples::scope_bind(model, state);
     prism_examples::scope_tick(model, state);
     WidgetTree tree(model);
+    tree.set_theme(prism::ui::classic_dark_theme());
     Fonts fonts;
     tree.set_text_measurer(&fonts);
     auto snap = tree.build_snapshot(800, 480, 1);

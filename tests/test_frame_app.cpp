@@ -458,7 +458,8 @@ TEST_CASE("a sink that clears its own frame is asked to, and the CPU does not cl
     });
     REQUIRE(sink.presents >= 1);
     CHECK(sink.clears >= sink.presents);
-    CHECK(sink.cleared_with == 0xFF1E1E1Eu);   // the window background, rgba(30, 30, 30)
+    // The window background, as the default theme gives it: frame_app has no theme hook.
+    CHECK(sink.cleared_with == prism::raster::Argb8888::pack(prism::ui::default_theme().canvas_bg));
     // The bottom-right corner is background: no widget draws there, so it keeps what was there.
     CHECK(sink.pixels.back() == 0x12345678u);
 }

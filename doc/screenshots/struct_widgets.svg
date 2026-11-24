@@ -16,38 +16,53 @@
 <text x="38" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">};</text>
 <rect x="757.2" y="63" width="302" height="152" rx="8" fill="none" stroke="#d0d7de"/>
 <g transform="translate(758.2,64)"><svg width="300" height="150" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150">
-<rect width="300" height="150" fill="rgba(250,250,252,1)"/>
+<rect width="300" height="150" fill="rgba(243,245,251,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-0)">
 <rect x="0" y="0" width="300" height="30" fill="rgba(0,0,0,0)"/>
-<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="17" fill="rgba(30,30,35,1)" dominant-baseline="hanging">Now playing</text>
+<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="17" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Now playing</text>
 </g>
-<clipPath id="clip-1"><rect x="0" y="30" width="300" height="48"/></clipPath>
+<clipPath id="clip-1"><rect x="0" y="40" width="300" height="48"/></clipPath>
 <g clip-path="url(#clip-1)">
-<text xml:space="preserve" x="4" y="32" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(85,85,95,1)" dominant-baseline="hanging">volume</text>
-<text xml:space="preserve" x="271" y="32" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(30,30,35,1)" dominant-baseline="hanging">0.60</text>
-<rect x="0" y="62" width="300" height="6" fill="rgba(215,217,224,1)"/>
-<rect x="172.8" y="50" width="12" height="30" fill="rgba(47,111,222,1)"/>
+<text xml:space="preserve" x="4" y="42" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(86,92,122,1)" dominant-baseline="hanging">volume</text>
+<text xml:space="preserve" x="271" y="42" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(26,29,48,1)" dominant-baseline="hanging">0.60</text>
+<rect x="0" y="60" width="300" height="30" fill="rgba(0,0,0,0)"/>
+<rect x="0" y="72" width="300" height="6" rx="3" fill="rgba(220,224,240,1)"/>
+<defs><linearGradient id="g-0" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="0" y="72" width="178.8" height="6" rx="3" fill="url(#g-0)"/>
+<rect x="169.8" y="66" width="18" height="18" rx="9" fill="rgba(255,255,255,1)"/>
+<rect x="172.8" y="69" width="12" height="12" rx="6" fill="rgba(108,76,230,1)"/>
 </g>
-<clipPath id="clip-2"><rect x="0" y="78" width="300" height="30"/></clipPath>
+<clipPath id="clip-2"><rect x="0" y="98" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-2)">
-<rect x="0" y="78" width="300" height="30" fill="rgba(236,237,242,1)"/>
-<rect x="8" y="85" width="16" height="16" fill="rgba(47,111,222,1)"/>
-<text xml:space="preserve" x="10" y="86" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
-<rect x="8" y="85" width="16" height="16" stroke="rgba(190,192,200,1)" fill="none" stroke-width="1.5"/>
-<text xml:space="preserve" x="32" y="85" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">shuffle</text>
+<rect x="0" y="98" width="300" height="30" fill="rgba(0,0,0,0)"/>
+<defs><linearGradient id="g-1" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(118,90,226,1)"/>
+<stop offset="1" stop-color="rgba(84,54,196,1)"/>
+</linearGradient></defs>
+<rect x="8" y="105" width="16" height="16" rx="4" fill="url(#g-1)"/>
+<text xml:space="preserve" x="10" y="106" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
+<rect x="8" y="105" width="16" height="16" rx="4" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1.5"/>
+<text xml:space="preserve" x="32" y="105" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">shuffle</text>
 </g>
-<clipPath id="clip-3"><rect x="0" y="108" width="300" height="32"/></clipPath>
+<clipPath id="clip-3"><rect x="0" y="138" width="300" height="32"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="0" y="108" width="300" height="32" fill="rgba(30,100,190,1)"/>
-<rect x="0" y="108" width="300" height="32" stroke="rgba(60,130,220,1)" fill="none" stroke-width="1"/>
-<text xml:space="preserve" x="8" y="115" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Play</text>
+<defs><linearGradient id="g-2" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="0" y="138" width="300" height="32" rx="8" fill="url(#g-2)"/>
+<rect x="0.5" y="138.5" width="299" height="31" rx="8" stroke="rgba(40,160,175,1)" fill="none" stroke-width="1"/>
+<text xml:space="preserve" x="8" y="145" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Play</text>
 </g>
 </svg>
 </g>
 <g class="hl" style="animation-delay: 0.00s"><rect x="30" y="89" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="61" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,99 C707.2,99 707.2,79 752.2,79" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="93" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,119 C707.2,119 707.2,120 752.2,120" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="139" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,139 C707.2,139 707.2,157 752.2,157" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="169" width="306" height="38" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,159 C707.2,159 707.2,188 752.2,188" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="103" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,119 C707.2,119 707.2,130 752.2,130" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="159" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,139 C707.2,139 707.2,177 752.2,177" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="199" width="306" height="38" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,159 C707.2,159 707.2,218 752.2,218" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <text x="24" y="246" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">A Field of a widget type is that widget: a label, a slider, a checkbox, a button.</text>
 </svg>

@@ -577,6 +577,7 @@ struct MixedCanvasModel {
 TEST_CASE("canvas() without min_size still expands into remaining space") {
     MixedCanvasModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::ui::classic_dark_theme());   // no spacing between the two canvases
     auto snap = tree.build_snapshot(300, 200, 1);
 
     REQUIRE(snap->geometry.size() == 2);

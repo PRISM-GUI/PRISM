@@ -92,11 +92,11 @@ TEST_CASE("frames take the colours of the theme in use") {
     Window w;
     WidgetTree tree{w};
     (void)tree.build_snapshot(win_w, win_h, 1);
-    tree.set_theme(light_theme());
+    tree.set_theme(classic_light_theme());
     auto snap = tree.build_snapshot(win_w, win_h, 2);
     Rect bold = rect_of(*snap, tree.leaf_ids()[0]);
     float strip_h = bold.origin.y.raw() * 2 + bold.extent.h.raw();
-    CHECK(has_fill(*snap, light_theme().chrome_bg, Rect{Point{X{0}, Y{0}}, Size{Width{win_w}, Height{strip_h}}}));
+    CHECK(has_fill(*snap, classic_light_theme().chrome_bg, Rect{Point{X{0}, Y{0}}, Size{Width{win_w}, Height{strip_h}}}));
 }
 
 namespace {

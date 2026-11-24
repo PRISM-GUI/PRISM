@@ -78,6 +78,8 @@ struct Rig {
 
     template <typename Model>
     Frame render(WidgetTree& tree, float scale, const char* name, int width = w, int height = h) {
+        // Every pixel in this file was checked against the classic look: ask for it by name.
+        tree.set_theme(prism::classic_dark_theme());
 #ifdef PRISM_TEST_WEBGPU
         if (via == Via::WebGpu) return render_webgpu(tree, scale, name);
 #endif

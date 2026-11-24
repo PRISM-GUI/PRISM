@@ -17,56 +17,67 @@
 <text x="38" y="202" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">};</text>
 <rect x="741.4" y="63" width="302" height="264" rx="8" fill="none" stroke="#d0d7de"/>
 <g transform="translate(742.4,64)"><svg width="300" height="262" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 262">
-<rect width="300" height="262" fill="rgba(250,250,252,1)"/>
+<rect width="300" height="262" fill="rgba(243,245,251,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="300" height="24" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">Sample rate</text>
+<rect x="0" y="0" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Sample rate</text>
 </g>
-<clipPath id="clip-1"><rect x="0" y="24" width="300" height="30"/></clipPath>
+<clipPath id="clip-1"><rect x="0" y="34" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="24" width="300" height="30" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="28" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">48000</text>
+<rect x="0" y="34" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="38" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">48000</text>
 </g>
-<clipPath id="clip-2"><rect x="0" y="54" width="300" height="48"/></clipPath>
+<clipPath id="clip-2"><rect x="0" y="74" width="300" height="48"/></clipPath>
 <g clip-path="url(#clip-2)">
-<text xml:space="preserve" x="4" y="56" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(85,85,95,1)" dominant-baseline="hanging">supply</text>
-<text xml:space="preserve" x="259" y="56" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(30,30,35,1)" dominant-baseline="hanging">12.0 V</text>
-<rect x="0" y="86" width="300" height="6" fill="rgba(215,217,224,1)"/>
-<rect x="115.2" y="74" width="12" height="30" fill="rgba(47,111,222,1)"/>
+<text xml:space="preserve" x="4" y="76" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(86,92,122,1)" dominant-baseline="hanging">supply</text>
+<text xml:space="preserve" x="259" y="76" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(26,29,48,1)" dominant-baseline="hanging">12.0 V</text>
+<rect x="0" y="94" width="300" height="30" fill="rgba(0,0,0,0)"/>
+<rect x="0" y="106" width="300" height="6" rx="3" fill="rgba(220,224,240,1)"/>
+<defs><linearGradient id="g-0" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="0" y="106" width="121.2" height="6" rx="3" fill="url(#g-0)"/>
+<rect x="112.2" y="100" width="18" height="18" rx="9" fill="rgba(255,255,255,1)"/>
+<rect x="115.2" y="103" width="12" height="12" rx="6" fill="rgba(108,76,230,1)"/>
 </g>
-<clipPath id="clip-3"><rect x="0" y="102" width="300" height="24"/></clipPath>
+<clipPath id="clip-3"><rect x="0" y="132" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="0" y="102" width="300" height="24" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="106" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">serial</text>
+<rect x="0" y="132" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="136" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">serial</text>
 </g>
-<clipPath id="clip-4"><rect x="0" y="126" width="300" height="30"/></clipPath>
+<clipPath id="clip-4"><rect x="0" y="166" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-4)">
-<rect x="0" y="126" width="300" height="30" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="130" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(30,30,35,1)" dominant-baseline="hanging">PX-0042</text>
+<rect x="0" y="166" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="170" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">PX-0042</text>
 </g>
-<clipPath id="clip-5"><rect x="0" y="156" width="300" height="24"/></clipPath>
+<clipPath id="clip-5"><rect x="0" y="206" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-5)">
-<rect x="0" y="156" width="300" height="24" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="160" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">Output</text>
+<rect x="0" y="206" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="210" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Output</text>
 </g>
-<clipPath id="clip-6"><rect x="0" y="180" width="300" height="24"/></clipPath>
+<clipPath id="clip-6"><rect x="0" y="240" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-6)">
-<rect x="0" y="180" width="300" height="24" fill="rgba(236,237,242,1)"/>
-<text xml:space="preserve" x="4" y="184" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(85,85,95,1)" dominant-baseline="hanging">enabled</text>
+<rect x="0" y="240" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<text xml:space="preserve" x="4" y="244" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">enabled</text>
 </g>
-<clipPath id="clip-7"><rect x="0" y="204" width="300" height="30"/></clipPath>
+<clipPath id="clip-7"><rect x="0" y="274" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-7)">
-<rect x="0" y="204" width="300" height="30" fill="rgba(236,237,242,1)"/>
-<rect x="8" y="211" width="16" height="16" fill="rgba(47,111,222,1)"/>
-<text xml:space="preserve" x="10" y="212" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
-<rect x="8" y="211" width="16" height="16" stroke="rgba(190,192,200,1)" fill="none" stroke-width="1.5"/>
+<rect x="0" y="274" width="300" height="30" fill="rgba(0,0,0,0)"/>
+<defs><linearGradient id="g-1" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(118,90,226,1)"/>
+<stop offset="1" stop-color="rgba(84,54,196,1)"/>
+</linearGradient></defs>
+<rect x="8" y="281" width="16" height="16" rx="4" fill="url(#g-1)"/>
+<text xml:space="preserve" x="10" y="282" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
+<rect x="8" y="281" width="16" height="16" rx="4" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1.5"/>
 </g>
 </svg>
 </g>
-<g class="hl" style="animation-delay: 0.00s"><rect x="30" y="89" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="61" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,99 C691.4,99 691.4,91 736.4,91" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="117" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,119 C691.4,119 691.4,144 736.4,144" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="163" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,139 C691.4,139 691.4,193 736.4,193" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="241" width="306" height="60" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,159 C691.4,159 691.4,271 736.4,271" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 0.00s"><rect x="30" y="89" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="61" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,99 C691.4,99 691.4,96 736.4,96" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="137" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,119 C691.4,119 691.4,164 736.4,164" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="193" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,139 C691.4,139 691.4,228 736.4,228" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
+<g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="616.4" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="739.4" y="301" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M646.4,159 C691.4,159 691.4,336 736.4,336" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <text x="24" y="358" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">label renames the caption, range and unit make a slider, readonly shows the value without an editor, section adds a header, skip hides it.</text>
 </svg>

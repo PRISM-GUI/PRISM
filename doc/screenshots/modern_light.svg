@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 440">
+<rect width="420" height="440" fill="rgba(243,245,251,1)"/>
+<clipPath id="clip-0"><rect x="0" y="0" width="420" height="32"/></clipPath>
+<g clip-path="url(#clip-0)">
+<rect x="0" y="0" width="238" height="32" rx="16" fill="rgba(234,237,247,1)"/>
+<defs><linearGradient id="g-0" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="0" y="0" width="70" height="32" rx="16" fill="url(#g-0)"/>
+<text xml:space="preserve" x="16" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Audio</text>
+<rect x="70" y="0" width="80" height="32" rx="16" fill="rgba(234,237,247,1)"/>
+<text xml:space="preserve" x="86" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(96,102,132,1)" dominant-baseline="hanging">Display</text>
+<rect x="150" y="0" width="88" height="32" rx="16" fill="rgba(234,237,247,1)"/>
+<text xml:space="preserve" x="166" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(96,102,132,1)" dominant-baseline="hanging">Network</text>
+</g>
+<clipPath id="clip-1"><rect x="0" y="32" width="420" height="30"/></clipPath>
+<g clip-path="url(#clip-1)">
+<rect x="0" y="32" width="420" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0.5" y="32.5" width="419" height="29" rx="8" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-2"><rect x="4" y="32" width="412" height="30"/></clipPath>
+<g clip-path="url(#clip-2)">
+<text xml:space="preserve" x="4" y="38" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,146,170,1)" dominant-baseline="hanging">Search...</text>
+</g>
+</g>
+<clipPath id="clip-3"><rect x="0" y="72" width="420" height="125"/></clipPath>
+<g clip-path="url(#clip-3)">
+<text xml:space="preserve" x="2" y="75" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Sound</text>
+<rect x="0.5" y="94.5" width="419" height="102" rx="8" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1"/>
+</g>
+<clipPath id="clip-4"><rect x="9" y="100" width="402" height="30"/></clipPath>
+<g clip-path="url(#clip-4)">
+<rect x="9" y="100" width="402" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="9.5" y="100.5" width="401" height="29" rx="8" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1"/>
+<clipPath id="clip-5"><rect x="13" y="100" width="394" height="30"/></clipPath>
+<g clip-path="url(#clip-5)">
+<text xml:space="preserve" x="13" y="106" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Speaker</text>
+</g>
+</g>
+<clipPath id="clip-6"><rect x="9" y="140" width="402" height="48"/></clipPath>
+<g clip-path="url(#clip-6)">
+<text xml:space="preserve" x="13" y="142" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Volume</text>
+<text xml:space="preserve" x="378" y="142" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(26,29,48,1)" dominant-baseline="hanging">62 %</text>
+<rect x="9" y="160" width="402" height="30" fill="rgba(0,0,0,0)"/>
+<rect x="9" y="172" width="402" height="6" rx="3" fill="rgba(220,224,240,1)"/>
+<defs><linearGradient id="g-1" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="9" y="172" width="247.8" height="6" rx="3" fill="url(#g-1)"/>
+<rect x="247.8" y="166" width="18" height="18" rx="9" fill="rgba(255,255,255,1)"/>
+<rect x="250.8" y="169" width="12" height="12" rx="6" fill="rgba(108,76,230,1)"/>
+</g>
+<clipPath id="clip-7"><rect x="0" y="207" width="420" height="34"/></clipPath>
+<g clip-path="url(#clip-7)">
+<rect x="0" y="207" width="420" height="34" fill="rgba(0,0,0,0)"/>
+<text xml:space="preserve" x="0" y="208" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Loading... 72%</text>
+<rect x="0" y="229" width="420" height="8" rx="4" fill="rgba(220,224,240,1)"/>
+<defs><linearGradient id="g-2" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="0" y="229" width="302.4" height="8" rx="4" fill="url(#g-2)"/>
+</g>
+<clipPath id="clip-8"><rect x="0" y="251" width="145" height="30"/></clipPath>
+<g clip-path="url(#clip-8)">
+<rect x="0" y="251" width="145" height="30" fill="rgba(0,0,0,0)"/>
+<defs><linearGradient id="g-3" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(118,90,226,1)"/>
+<stop offset="1" stop-color="rgba(84,54,196,1)"/>
+</linearGradient></defs>
+<rect x="8" y="258" width="16" height="16" rx="4" fill="url(#g-3)"/>
+<text xml:space="preserve" x="10" y="259" font-family="Noto Sans, sans-serif" font-size="13" fill="rgba(255,255,255,1)" dominant-baseline="hanging">✓</text>
+<rect x="8" y="258" width="16" height="16" rx="4" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1.5"/>
+<text xml:space="preserve" x="32" y="258" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Mail notification</text>
+</g>
+<clipPath id="clip-9"><rect x="155" y="251" width="128" height="30"/></clipPath>
+<g clip-path="url(#clip-9)">
+<rect x="155" y="251" width="128" height="30" fill="rgba(0,0,0,0)"/>
+<rect x="163" y="258" width="16" height="16" rx="4" fill="rgba(255,255,255,1)"/>
+<rect x="163" y="258" width="16" height="16" rx="4" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1.5"/>
+<text xml:space="preserve" x="187" y="258" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Beta features</text>
+</g>
+<clipPath id="clip-10"><rect x="0" y="291" width="59" height="32"/></clipPath>
+<g clip-path="url(#clip-10)">
+<rect x="0" y="291" width="59" height="32" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0.5" y="291.5" width="58" height="31" rx="8" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1"/>
+<text xml:space="preserve" x="8" y="298" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Cancel</text>
+</g>
+<clipPath id="clip-11"><rect x="69" y="291" width="50" height="32"/></clipPath>
+<g clip-path="url(#clip-11)">
+<defs><linearGradient id="g-4" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(118,90,226,1)"/>
+<stop offset="1" stop-color="rgba(84,54,196,1)"/>
+</linearGradient></defs>
+<rect x="69" y="291" width="50" height="32" rx="8" fill="url(#g-4)"/>
+<rect x="69.5" y="291.5" width="49" height="31" rx="8" stroke="rgba(206,211,230,1)" fill="none" stroke-width="1"/>
+<text xml:space="preserve" x="77" y="298" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Mute</text>
+</g>
+<clipPath id="clip-12"><rect x="129" y="291" width="48" height="32"/></clipPath>
+<g clip-path="url(#clip-12)">
+<defs><linearGradient id="g-5" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="rgba(18,128,146,1)"/>
+<stop offset="1" stop-color="rgba(37,99,235,1)"/>
+</linearGradient></defs>
+<rect x="129" y="291" width="48" height="32" rx="8" fill="url(#g-5)"/>
+<rect x="129.5" y="291.5" width="47" height="31" rx="8" stroke="rgba(40,160,175,1)" fill="none" stroke-width="1"/>
+<text xml:space="preserve" x="137" y="298" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">Save</text>
+</g>
+</svg>

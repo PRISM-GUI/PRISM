@@ -29,6 +29,7 @@ struct RowModel {
 TEST_CASE("build_snapshot with default layout stacks vertically") {
     RowModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
 
     auto snap = tree.build_snapshot(800, 600, 1);
     REQUIRE(snap != nullptr);
@@ -52,6 +53,7 @@ struct ViewModelSimple {
 TEST_CASE("view() controls field order") {
     ViewModelSimple model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 2);
 
     auto ids = tree.leaf_ids();
@@ -77,6 +79,7 @@ struct RowViewModel {
 TEST_CASE("view() with row() produces side-by-side layout") {
     RowViewModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     REQUIRE(snap != nullptr);
     CHECK(snap->geometry.size() == 2);
@@ -105,6 +108,7 @@ struct NestedLayoutModel {
 TEST_CASE("view() with row + extra widget wraps in implicit Column") {
     NestedLayoutModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     REQUIRE(snap != nullptr);
     CHECK(snap->geometry.size() == 3);
@@ -138,6 +142,7 @@ struct SpacerModel {
 TEST_CASE("view() with spacer pushes widgets apart") {
     SpacerModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     REQUIRE(snap != nullptr);
     CHECK(snap->geometry.size() == 2);  // spacer has no geometry
@@ -167,6 +172,7 @@ struct GapModel {
 TEST_CASE("vb.gap leaves a fixed space between widgets") {
     GapModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     REQUIRE(snap->geometry.size() == 2);   // the gap, like a spacer, has no geometry
     auto& ra = snap->geometry[0].second;
@@ -189,6 +195,7 @@ struct BarOverContent {
 TEST_CASE("a spacer in a row stretches the row sideways, not downwards") {
     BarOverContent model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto snap = tree.build_snapshot(800, 600, 1);
     auto rect_of = [&](prism::WidgetId id) {
         for (auto& [gid, r] : snap->geometry) if (gid == id) return r;
@@ -226,6 +233,7 @@ struct ParentWithComponent {
 TEST_CASE("view() with block() embeds sub-block tree") {
     ParentWithComponent model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 3);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -236,6 +244,7 @@ TEST_CASE("view() with block() embeds sub-block tree") {
 TEST_CASE("view() with block(): sub-block fields are reactive") {
     ParentWithComponent model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     tree.clear_dirty();
 
     model.sub.x.set(99);
@@ -268,6 +277,7 @@ struct ParentWithViewedSub {
 TEST_CASE("block() delegates to sub-block's view()") {
     ParentWithViewedSub model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 3);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -294,6 +304,7 @@ struct OmittedFieldModel {
 TEST_CASE("omitted field has no widget but remains reactive") {
     OmittedFieldModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 1);
 
     model.hidden.set(99);
@@ -313,6 +324,7 @@ struct FocusViewModel {
 TEST_CASE("focus order follows view() placement order") {
     FocusViewModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto focus = tree.focus_order();
     auto ids = tree.leaf_ids();
     REQUIRE(focus.size() == 2);
@@ -325,6 +337,7 @@ TEST_CASE("focus order follows view() placement order") {
 TEST_CASE("dirty propagation works for view()-placed widgets") {
     ViewModelSimple model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
 
     auto snap1 = tree.build_snapshot(800, 600, 1);
     tree.clear_dirty();
@@ -354,6 +367,7 @@ struct PlainModel {
 TEST_CASE("model without view() still uses reflection walk") {
     PlainModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 3);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -402,6 +416,7 @@ struct DrawingCanvasModel {
 TEST_CASE("canvas record() receives allocated bounds from layout") {
     DrawingCanvasModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
 
     auto snap = tree.build_snapshot(400, 300, 1);
     REQUIRE(snap->geometry.size() == 2);
@@ -423,6 +438,7 @@ TEST_CASE("canvas record() receives allocated bounds from layout") {
 TEST_CASE("canvas depends_on triggers dirty on field change") {
     DrawingCanvasModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
 
     tree.clear_dirty();
     CHECK_FALSE(tree.any_dirty());
@@ -447,6 +463,7 @@ TEST_CASE("canvas depends_on supports multiple fields") {
 
     MultiDepCanvas model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 1);
 
     tree.clear_dirty();
@@ -475,6 +492,7 @@ TEST_CASE("canvas depends_on accepts multiple fields in one variadic call") {
 
     VariadicDepCanvas model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 1);
 
     tree.clear_dirty();
@@ -513,6 +531,7 @@ struct InteractiveCanvas {
 TEST_CASE("canvas with handle_canvas_input is focusable") {
     InteractiveCanvas model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto focus = tree.focus_order();
     CHECK(focus.size() == 1);
 }
@@ -520,6 +539,7 @@ TEST_CASE("canvas with handle_canvas_input is focusable") {
 TEST_CASE("canvas dispatches input to handle_canvas_input") {
     InteractiveCanvas model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     auto ids = tree.leaf_ids();
     REQUIRE(ids.size() == 1);
 
@@ -532,6 +552,7 @@ TEST_CASE("canvas dispatches input to handle_canvas_input") {
 TEST_CASE("canvas node expands to fill remaining space") {
     CanvasModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 2);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -563,6 +584,7 @@ struct CanvasInRow {
 TEST_CASE("canvas in row expands horizontally") {
     CanvasInRow model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 2);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -592,6 +614,7 @@ struct CanvasOnlyModel {
 TEST_CASE("canvas-only model fills entire viewport") {
     CanvasOnlyModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     CHECK(tree.leaf_count() == 1);
 
     auto snap = tree.build_snapshot(800, 600, 1);
@@ -625,6 +648,7 @@ struct FocusRowModel {
 TEST_CASE("focused widget in a row keeps a stable size across publishes") {
     FocusRowModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     (void)tree.build_snapshot(800, 600, 1);
     tree.clear_dirty();
 
@@ -664,6 +688,7 @@ struct FocusColumnModel {
 TEST_CASE("focusing a widget in a column does not shift its siblings") {
     FocusColumnModel model;
     prism::WidgetTree tree(model);
+    tree.set_theme(prism::classic_dark_theme());
     (void)tree.build_snapshot(800, 600, 1);
     tree.clear_dirty();
 

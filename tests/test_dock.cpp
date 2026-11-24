@@ -247,6 +247,7 @@ std::optional<Rect> dock_rect(WidgetTree& tree) {
 TEST_CASE("the dock builds the layout: groups side by side, a group of two shows tabs") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto files = text_rect(*snap, "FILES"), code = text_rect(*snap, "code");
     REQUIRE(files);
@@ -277,6 +278,7 @@ TEST_CASE("a nested column of three groups, each a scroll view, shows all three,
         }
     } model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(1000, 700, 1);   // right from the first frame (an app's launch, a capture)
     auto a = text_rect(*snap, "AAA"), b = text_rect(*snap, "BBB"), c = text_rect(*snap, "CCC");
     REQUIRE(a);
@@ -292,6 +294,7 @@ TEST_CASE("a nested column of three groups, each a scroll view, shows all three,
 TEST_CASE("a new layout rebuilds the dock") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     model.layout.set({dock_split(false, {dock_group({"editor", "search"}), dock_group({"files"})})});
     snap = tree.build_snapshot(600, 400, 2);
@@ -304,6 +307,7 @@ TEST_CASE("a new layout rebuilds the dock") {
 TEST_CASE("picking a tab writes it into the layout, without rebuilding the dock") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto editor_id = tree.leaf_ids();   // ids before
     auto tab = text_at(*snap, "Search");
@@ -320,6 +324,7 @@ TEST_CASE("picking a tab writes it into the layout, without rebuilding the dock"
 TEST_CASE("dragging the split handle writes the sizes into the layout") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto files = text_rect(*snap, "FILES");
     REQUIRE(files);
@@ -336,6 +341,7 @@ TEST_CASE("dragging the split handle writes the sizes into the layout") {
 TEST_CASE("dragging a tab onto a group's edge moves the panel there") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto tab = text_at(*snap, "Search");
     auto files = text_rect(*snap, "FILES");
@@ -369,6 +375,7 @@ std::optional<Rect> insertion_line(const SceneSnapshot& snap, Color accent) {
 TEST_CASE("dragging a tab onto the left half of another in its bar puts it before that one") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto search = text_at(*snap, "Search"), editor = text_at(*snap, "Editor");
     REQUIRE(search);
@@ -390,6 +397,7 @@ TEST_CASE("dragging a tab onto the left half of another in its bar puts it befor
 TEST_CASE("dropping a tab on another group's tab bar puts it there, between its tabs") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto files = text_at(*snap, "Files"), search = text_at(*snap, "Search");
     REQUIRE(files);
@@ -445,6 +453,7 @@ std::optional<Point> close_button(const SceneSnapshot& snap, std::string_view ti
 TEST_CASE("a closable panel's tab shows a close button; a click on it closes the panel") {
     ClosableIde model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     CHECK_FALSE(close_button(*snap, "Editor"));   // not closable
     auto x = close_button(*snap, "Search");
@@ -460,6 +469,7 @@ TEST_CASE("a closable panel's tab shows a close button; a click on it closes the
 TEST_CASE("a middle click on a closable tab closes it; on another, nothing") {
     ClosableIde model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto editor = text_at(*snap, "Editor"), files = text_at(*snap, "Files");
     REQUIRE(editor);
@@ -475,6 +485,7 @@ TEST_CASE("a middle click on a closable tab closes it; on another, nothing") {
 TEST_CASE("dropping a tab on a group's guide button splits the group that way") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto tab = text_at(*snap, "Search");
     auto group = group_rect(tree, *snap, "Files");
@@ -495,6 +506,7 @@ TEST_CASE("dropping a tab on a group's guide button splits the group that way") 
 TEST_CASE("dropping a tab on the dock's edge button docks it along that whole side") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto tab = text_at(*snap, "Search");
     auto dock = dock_rect(tree);
@@ -524,6 +536,7 @@ TEST_CASE("dropping a tab on the dock's edge button docks it along that whole si
 TEST_CASE("a moved panel keeps its widgets: same widget, focus and wiring") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto code = text_rect(*snap, "code");
     REQUIRE(code);
@@ -546,6 +559,7 @@ TEST_CASE("a moved panel keeps its widgets: same widget, focus and wiring") {
 TEST_CASE("while dragging a tab: the zone is shaded, and the ghost is that tab alone") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto tab = text_at(*snap, "Search");
     auto files = text_rect(*snap, "FILES");
@@ -578,6 +592,7 @@ TEST_CASE("while dragging a tab: the zone is shaded, and the ghost is that tab a
 TEST_CASE("the guide is drawn over the dragged tab, on a plate of its own") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     auto tab = text_at(*snap, "Search");
     auto group = group_rect(tree, *snap, "Files");
@@ -639,6 +654,7 @@ struct Windows {
 TEST_CASE("a tab dropped outside the window floats its panel in a window of its own") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     Windows windows;
     windows.install(tree);
     auto snap = tree.build_snapshot(600, 400, 1);
@@ -682,6 +698,7 @@ std::optional<Point> float_button(const SceneSnapshot& snap, std::string_view ti
 TEST_CASE("a double click on a tab floats its panel in a window of its own") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     Windows windows;
     windows.install(tree);
     auto snap = tree.build_snapshot(600, 400, 1);
@@ -697,6 +714,7 @@ TEST_CASE("a double click on a tab floats its panel in a window of its own") {
 TEST_CASE("the float button at the end of a tab bar floats the panel shown") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     Windows windows;
     windows.install(tree);
     auto snap = tree.build_snapshot(600, 400, 1);
@@ -734,6 +752,7 @@ void float_by_double_click(WidgetTree& tree, std::unique_ptr<SceneSnapshot>& sna
 TEST_CASE("with no window to open (the browser), a floating panel is a card over the dock") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     CHECK(float_button(*snap, "Editor"));   // floating works here too
     float_by_double_click(tree, snap, "Search");
@@ -751,6 +770,7 @@ TEST_CASE("a card lies over the dock: a click on it reaches its widgets") {
     Ide model;
     model.layout.set(place_card(float_panel(model.layout.get(), "editor"), "editor", 20.f, 20.f));
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     snap = tree.build_snapshot(600, 400, 2);
     auto code = text_at(*snap, "code");   // the editor's text field, in the card over the files group
@@ -766,6 +786,7 @@ TEST_CASE("dragging a card's title bar moves the card there") {
     Ide model;
     model.layout.set(place_card(float_panel(model.layout.get(), "search"), "search", 40.f, 40.f));
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     snap = tree.build_snapshot(600, 400, 2);
     auto title = text_at(*snap, "Search");
@@ -819,6 +840,7 @@ std::unique_ptr<SceneSnapshot> with_search_card(Ide& model, WidgetTree& tree) {
 TEST_CASE("a card let go on a group's middle button joins that group") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = with_search_card(model, tree);
     auto group = group_rect(tree, *snap, "Files");
     REQUIRE(group);
@@ -830,6 +852,7 @@ TEST_CASE("a card let go on a group's middle button joins that group") {
 TEST_CASE("a card let go on a group's side button goes beside it") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = with_search_card(model, tree);
     auto group = group_rect(tree, *snap, "Editor");
     REQUIRE(group);
@@ -842,6 +865,7 @@ TEST_CASE("a card let go on a group's side button goes beside it") {
 TEST_CASE("a card let go on one of the dock's edge buttons docks along that side") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = with_search_card(model, tree);
     auto dock = dock_rect(tree);
     REQUIRE(dock);
@@ -854,6 +878,7 @@ TEST_CASE("a card let go on one of the dock's edge buttons docks along that side
 TEST_CASE("a card dragged over a group shows that group's guide, and moves when let go off it") {
     Ide model;
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = with_search_card(model, tree);
     auto group = group_rect(tree, *snap, "Files");
     REQUIRE(group);
@@ -873,6 +898,7 @@ TEST_CASE("a card's dock button puts its panel back in the dock") {
     Ide model;
     model.layout.set(float_panel(model.layout.get(), "search"));
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     auto snap = tree.build_snapshot(600, 400, 1);
     snap = tree.build_snapshot(600, 400, 2);
     auto button = float_button(*snap, "Search");   // on a card: the same icon, docking it back
@@ -886,6 +912,7 @@ TEST_CASE("docking a floating panel from code closes its window") {
     Ide model;
     model.layout.set(float_panel(model.layout.get(), "search"));
     WidgetTree tree{model};
+    tree.set_theme(classic_dark_theme());
     Windows windows;
     windows.install(tree);
     auto snap = tree.build_snapshot(600, 400, 1);
