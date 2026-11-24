@@ -138,6 +138,62 @@ TEST_CASE("auto_fit_range returns default for empty series")
     CHECK(r.max == doctest::Approx(1.0));
 }
 
+TEST_CASE("auto_fit_range ignores non-finite samples")
+{
+    using namespace prism::plot;
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    Series s1(XYData{{nan, 1.0, 2.0, inf}, {inf, 3.0, 4.0, nan}}, SeriesStyle{});
+    std::array<Series, 1> arr = {std::move(s1)};
+
+    auto xr = auto_fit_range(arr, Axis::X);
+    CHECK(xr.min < 1.0);
+    CHECK(xr.max > 2.0);
+    CHECK(xr.min > 0.5);
+    CHECK(xr.max < 2.5);
+
+    auto yr = auto_fit_range(arr, Axis::Y);
+    CHECK(yr.min < 3.0);
+    CHECK(yr.max > 4.0);
+    CHECK(yr.min > 2.5);
+    CHECK(yr.max < 4.5);
+}
+
+TEST_CASE("auto_fit_range falls back to 0..1 when no sample is finite")
+{
+    using namespace prism::plot;
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    Series s1(XYData{{nan, nan, inf, -inf}, {nan, inf, nan, -inf}}, SeriesStyle{});
+    std::array<Series, 1> arr = {std::move(s1)};
+
+    auto xr = auto_fit_range(arr, Axis::X);
+    CHECK(xr.min == doctest::Approx(0.0));
+    CHECK(xr.max == doctest::Approx(1.0));
+
+    auto yr = auto_fit_range(arr, Axis::Y);
+    CHECK(yr.min == doctest::Approx(0.0));
+    CHECK(yr.max == doctest::Approx(1.0));
+}
+
+TEST_CASE("auto_fit_range stays finite for huge values")
+{
+    using namespace prism::plot;
+    const double huge = 1.0e308;
+    Series s1(XYData{{-huge, 0.0, huge}, {-huge, huge, -huge}}, SeriesStyle{});
+    std::array<Series, 1> arr = {std::move(s1)};
+
+    auto xr = auto_fit_range(arr, Axis::X);
+    CHECK(std::isfinite(xr.min));
+    CHECK(std::isfinite(xr.max));
+    CHECK(xr.min < xr.max);
+
+    auto yr = auto_fit_range(arr, Axis::Y);
+    CHECK(std::isfinite(yr.min));
+    CHECK(std::isfinite(yr.max));
+    CHECK(yr.min < yr.max);
+}
+
 TEST_CASE("compute_mapping subtracts margins from bounds")
 {
     using namespace prism;

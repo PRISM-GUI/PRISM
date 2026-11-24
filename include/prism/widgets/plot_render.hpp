@@ -161,21 +161,29 @@ struct BothAxisFit {
 template <typename Range>
 BothAxisFit auto_fit_ranges(const Range& series)
 {
+    // A non-finite sample is skipped per axis: a series whose y is NaN at x = 3 still
+    // fits x to 3. `any_x` / `any_y` keep the two axes independent for that reason.
     struct FitState {
         double x_lo = std::numeric_limits<double>::max();
         double x_hi = std::numeric_limits<double>::lowest();
         double y_lo = std::numeric_limits<double>::max();
         double y_hi = std::numeric_limits<double>::lowest();
-        bool any = false;
+        bool any_x = false;
+        bool any_y = false;
     };
     FitState state;
     auto visit = [](void* ctx, double x, double y) {
         auto& st = *static_cast<FitState*>(ctx);
-        st.x_lo = std::min(st.x_lo, x);
-        st.x_hi = std::max(st.x_hi, x);
-        st.y_lo = std::min(st.y_lo, y);
-        st.y_hi = std::max(st.y_hi, y);
-        st.any = true;
+        if (std::isfinite(x)) {
+            st.x_lo = std::min(st.x_lo, x);
+            st.x_hi = std::max(st.x_hi, x);
+            st.any_x = true;
+        }
+        if (std::isfinite(y)) {
+            st.y_lo = std::min(st.y_lo, y);
+            st.y_hi = std::max(st.y_hi, y);
+            st.any_y = true;
+        }
     };
 
     for (auto& s : series) {
@@ -192,11 +200,18 @@ BothAxisFit auto_fit_ranges(const Range& series)
 
     auto finish = [](double lo, double hi) {
         if (lo == hi) { lo -= 0.5; hi += 0.5; }
-        double pad = (hi - lo) * 0.05;
-        return AxisRange{lo - pad, hi + pad, true};
+        // (hi - lo) overflows to inf when the data sits near +-DBL_MAX, and so would the
+        // pad; take it from the larger endpoint so the range stays finite.
+        const double span = hi - lo;
+        const double pad = std::isfinite(span)
+            ? span * 0.05
+            : std::max(std::abs(lo), std::abs(hi)) * 0.05;
+        constexpr double largest = std::numeric_limits<double>::max();
+        return AxisRange{std::max(lo - pad, -largest), std::min(hi + pad, largest), true};
     };
-    if (!state.any) return {{0.0, 1.0, true}, {0.0, 1.0, true}};
-    return {finish(state.x_lo, state.x_hi), finish(state.y_lo, state.y_hi)};
+    const AxisRange empty{0.0, 1.0, true};
+    return {state.any_x ? finish(state.x_lo, state.x_hi) : empty,
+            state.any_y ? finish(state.y_lo, state.y_hi) : empty};
 }
 
 template <typename Range>
