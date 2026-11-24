@@ -454,12 +454,38 @@ T apply_validator(nb::object self, T v) {
     }
 }
 
+// A str that cannot be encoded as UTF-8 (a lone surrogate) is not text a C++ field can hold, and
+// nanobind's std::string caster reports it as "incompatible function arguments", naming the handle
+// class and `str` but never the problem. Convert here so the message says what is wrong.
+inline std::string checked_utf8(nb::handle text) {
+    Py_ssize_t size = 0;
+    const char* utf8 = PyUnicode_AsUTF8AndSize(text.ptr(), &size);
+    if (!utf8) {
+        PyErr_Clear();
+        throw nb::value_error("the text is not valid Unicode: it cannot be encoded as UTF-8");
+    }
+    return std::string(utf8, static_cast<std::size_t>(size));
+}
+
+// The Python object a `.value` setter was handed, as the C++ type it must become.
+template <typename T>
+T python_to(nb::handle value) {
+    if constexpr (std::is_same_v<T, std::string>) {
+        if (nb::isinstance<nb::str>(value)) return checked_utf8(value);
+    } else if constexpr (std::is_same_v<T, std::optional<std::string>>) {
+        if (value.is_none()) return std::nullopt;
+        if (nb::isinstance<nb::str>(value)) return checked_utf8(value);
+    }
+    return nb::cast<T>(value);
+}
+
 // Shared body for a handle's `.value` setter and `.set()` method — same
 // validate-then-write on both, so `m.x = v`, `m.x.value = v` and
 // `m.x.set(v)` behave identically (the Python descriptor's __set__ just
 // delegates to `.value =`, giving a single validation path).
 template <typename Handle, typename T>
-void validated_set(nb::object self, T v) {
+void validated_set(nb::object self, nb::object value) {
+    T v = python_to<T>(value);
     v = apply_validator<T>(self, std::move(v));
     nb::cast<Handle&>(self).set(std::move(v));
 }

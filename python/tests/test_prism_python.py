@@ -5180,3 +5180,21 @@ def test_derived_without_deps_follows_label_text_area_and_text_field():
     assert m.joined.value == "AbC"
     m.body.value = "B"
     assert m.joined.value == "ABC"
+
+
+def test_text_that_is_not_valid_unicode_says_so():
+    """A lone surrogate cannot be encoded as UTF-8, so it is not text a C++ field can hold. The
+    write must say that, instead of failing as a nanobind overload mismatch that only names the
+    handle class and `str`."""
+
+    class Form(prism.Model):
+        name = prism.text_field("ada")
+        body = prism.text_area("first")
+
+    m = Form()
+    with pytest.raises(ValueError, match="not valid Unicode"):
+        m.name.value = "\ud800"
+    with pytest.raises(ValueError, match="not valid Unicode"):
+        m.body.value = "ok\udfff"
+    assert m.name.value == "ada"  # the write landed nowhere
+    assert m.body.value == "first"
