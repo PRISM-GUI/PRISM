@@ -88,3 +88,45 @@ TEST_CASE("assistive tech hears the chosen option") {
     CHECK(Widget<Choice>::access_role == Role::ComboBox);
     CHECK(a.value == "y");
 }
+
+TEST_CASE("set_options keeps the chosen text, at its new index") {
+    Choice c{.options = {"a", "b", "c"}, .selected = 1};
+    c.set_options({"b", "a", "c"});
+    CHECK(c.options == std::vector<std::string>{"b", "a", "c"});
+    CHECK(c.selected == std::optional<std::size_t>{0});   // "b", wherever it moved to
+    REQUIRE(c.chosen() != nullptr);
+    CHECK(*c.chosen() == "b");
+}
+
+TEST_CASE("set_options with other names at the same length chooses nothing") {
+    Choice c{.options = {"a", "b", "c"}, .selected = 1};
+    c.set_options({"x", "y", "z"});
+    CHECK_FALSE(c.selected.has_value());
+    CHECK_FALSE(c.chosen());
+}
+
+TEST_CASE("set_options keeps a name that survives a shorter list") {
+    Choice c{.options = {"a", "b", "c"}, .selected = 2};
+    c.set_options({"c", "a"});
+    CHECK(c.selected == std::optional<std::size_t>{0});
+    REQUIRE(c.chosen() != nullptr);
+    CHECK(*c.chosen() == "c");
+}
+
+TEST_CASE("set_options drops a name the new list does not have") {
+    Choice c{.options = {"a", "b", "c"}, .selected = 2};
+    c.set_options({"a", "b"});
+    CHECK_FALSE(c.selected.has_value());
+}
+
+TEST_CASE("set_options keeps a name an appended option leaves in place") {
+    Choice c{.options = {"a"}, .selected = 0};
+    c.set_options({"a", "b"});
+    CHECK(c.selected == std::optional<std::size_t>{0});
+}
+
+TEST_CASE("set_options leaves no choice when there was none") {
+    Choice c{.options = {"a", "b"}};
+    c.set_options({"b", "a"});
+    CHECK_FALSE(c.selected.has_value());
+}

@@ -82,8 +82,12 @@ if (const std::string* p = port.get().chosen()) open(*p);
 | `selected` | `std::optional<std::size_t>` | none | the index of the choice; none: no choice yet |
 | `placeholder` | `std::string` | `""` | shown while nothing is chosen |
 | `chosen()` | `const std::string*` | | the chosen option, or null |
+| `set_options(list)` | `Choice&` | | replaces `options`, keeping the chosen name |
 
-When the app shortens `options` past the selection, the choice reads as none.
+When the app replaces `options`, `set_options` keeps the chosen *name*: the same option stays
+chosen at its new index, and nothing is chosen once its text is gone. Assigning `options`
+directly keeps the index instead, so shortening the list leaves the selection past its end and
+the choice reads as none.
 
 ## Using them
 

@@ -137,13 +137,10 @@ static void bind_handles(nb::module_& m) {
         "not one of the options raises ValueError.")
         .def_prop_rw("options", [](const BoundChoice& h) { return h.state().options; },
                      [](BoundChoice& h, std::vector<std::string> opts) {
-                         h.modify([opts = std::move(opts)](Choice& c) {
-                             auto chosen = c.chosen() ? std::optional{*c.chosen()} : std::nullopt;
-                             c.options = opts;
-                             c.selected = option_index(c.options, chosen);   // kept if still there
-                         });
+                         h.modify([opts = std::move(opts)](Choice& c) { c.set_options(std::move(opts)); });
                      },
-                     "The options; a choice no longer among them becomes None. Any thread; posted.");
+                     "The options; the chosen name stays chosen, at its new index, or None once it "
+                     "is gone. Any thread; posted.");
     bind_widget_value<BoundRadio, std::string>(m, "BoundRadio",
         "Bound handle for a Model's radio field: .value is the chosen option. Setting a string "
         "that is not one of the options raises ValueError.");

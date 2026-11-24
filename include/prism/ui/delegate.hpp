@@ -374,6 +374,23 @@ struct Choice {
     [[nodiscard]] const std::string* chosen() const {
         return selected && *selected < options.size() ? &options[*selected] : nullptr;
     }
+
+    // Replaces the options, keeping the chosen *text*: a list that gains, loses or reorders
+    // entries keeps the same option chosen, or none once its text is gone. Assigning `options`
+    // directly keeps the index instead, which is what a plain reload of the same names wants.
+    Choice& set_options(std::vector<std::string> new_options) {
+        auto keep = chosen() ? std::optional<std::string>(*chosen()) : std::nullopt;
+        options = std::move(new_options);
+        selected = keep ? index_of(*keep) : std::nullopt;
+        return *this;
+    }
+
+private:
+    [[nodiscard]] std::optional<std::size_t> index_of(const std::string& text) const {
+        for (std::size_t i = 0; i < options.size(); ++i)
+            if (options[i] == text) return i;
+        return std::nullopt;
+    }
 };
 
 // Ephemeral state for open dropdown popup
