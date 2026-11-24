@@ -51,6 +51,10 @@ int main() {
 `attach` is a block's start-up hook: the app calls it once, with the app context, before the
 first frame.
 
+<img src="../diagrams/http-threads.svg" alt="attach(ctx) sends a request to the client's own thread; the reply is queued back and on_reply runs on the logic thread, which is the only reason it may set fields" width="900"/>
+
+*One arrow out, one arrow back: `attach(ctx)` is what makes the reply land on the logic thread.*
+
 ### The same, as a coroutine
 
 With `prism/app/task.hpp`, a function returning `app::Task` may `co_await` a request. It resumes on

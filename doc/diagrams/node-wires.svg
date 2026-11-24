@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="380" viewBox="0 0 900 380" role="img" aria-label="A wire joins one card's output port to another card's input port of the same type, and its colour comes from the type">
+  <rect width="900" height="380" fill="#ffffff"/>
+
+  <text x="20" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">A wire is an output port and an input port of the same type</text>
+
+  <!-- card: Sine -->
+  <rect x="40" y="90" width="210" height="80" rx="8" fill="#191c26" stroke="#2a2f3d"/>
+  <text x="58" y="118" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#eef1f7">Sine</text>
+  <text x="58" y="148" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#eef1f7">wave</text>
+  <circle cx="250" cy="144" r="6" fill="#4ea1ff"/>
+
+  <!-- card: Gain -->
+  <rect x="440" y="70" width="250" height="150" rx="8" fill="#191c26" stroke="#2a2f3d"/>
+  <text x="458" y="98" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#eef1f7">Gain</text>
+  <circle cx="440" cy="120" r="6" fill="#4ea1ff"/>
+  <text x="462" y="125" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#eef1f7">in</text>
+  <circle cx="440" cy="155" r="6" fill="#f2a33a"/>
+  <text x="462" y="160" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#eef1f7">by</text>
+  <text x="462" y="192" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#eef1f7">out</text>
+  <circle cx="690" cy="188" r="6" fill="#4ea1ff"/>
+
+  <!-- the wire -->
+  <line x1="256" y1="144" x2="434" y2="120" stroke="#4ea1ff" stroke-width="2.5"/>
+  <text x="345" y="122" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">waveform, so blue</text>
+
+  <!-- port indexes -->
+  <text x="345" y="160" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">Sine port 0 into Gain port 0</text>
+
+  <!-- legend -->
+  <text x="40" y="262" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#5b6472">WIRE COLOUR, BY TYPE</text>
+  <rect x="40" y="274" width="18" height="6" rx="3" fill="#4ea1ff"/>
+  <text x="66" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">waveform</text>
+  <rect x="190" y="274" width="18" height="6" rx="3" fill="#f2a33a"/>
+  <text x="216" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">number</text>
+  <rect x="330" y="274" width="18" height="6" rx="3" fill="#5fd38d"/>
+  <text x="356" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">boolean</text>
+  <rect x="470" y="274" width="18" height="6" rx="3" fill="#a98bff"/>
+  <text x="496" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">integer</text>
+  <rect x="610" y="274" width="18" height="6" rx="3" fill="#eef1f7" stroke="#c9d1dd"/>
+  <text x="636" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">text</text>
+  <rect x="710" y="274" width="18" height="6" rx="3" fill="#9aa1b2"/>
+  <text x="736" y="281" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#1b1f27">anything else</text>
+
+  <text x="40" y="322" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">A wire names its ends by port index: the order of your ports() list. Gain's are in, by, out, so 0, 1, 2.</text>
+  <text x="40" y="346" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">An output reaches an input of the same type only: two mismatched ports are refused, with a reason.</text>
+</svg>

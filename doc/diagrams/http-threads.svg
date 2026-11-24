@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="370" viewBox="0 0 900 370" role="img" aria-label="A net::Client sends on its own thread and hands the reply back to the logic thread; only attach(ctx) makes the callback run on the logic thread">
+  <rect width="900" height="370" fill="#ffffff"/>
+
+  <text x="20" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">The reply comes back through one door</text>
+
+  <rect x="20" y="56" width="330" height="250" rx="10" fill="#eef3ff" stroke="#7fa3e0"/>
+  <rect x="480" y="56" width="400" height="250" rx="10" fill="#f4f6fa" stroke="#c9d1dd"/>
+  <text x="185" y="82" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#1b1f27">Logic thread</text>
+  <text x="680" y="82" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#1b1f27">The client's own thread</text>
+
+  <rect x="50" y="100" width="250" height="56" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="175" y="122" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">attach(ctx)</text>
+  <text x="175" y="143" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">runs once, before the first frame</text>
+
+  <rect x="50" y="222" width="250" height="56" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="175" y="244" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">your on_reply(r)</text>
+  <text x="175" y="265" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">may set fields here</text>
+
+  <rect x="530" y="150" width="300" height="66" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="680" y="176" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">net::Client</text>
+  <text x="680" y="197" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">one request at a time, in order</text>
+
+  <line x1="304" y1="128" x2="524" y2="160" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="524,160 515,153 513,163" fill="#4ea1ff"/>
+  <text x="404" y="132" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">get(url) · post(url, body)</text>
+
+  <line x1="524" y1="206" x2="304" y2="250" stroke="#5fd38d" stroke-width="2"/>
+  <polygon points="304,250 313,243 315,253" fill="#5fd38d"/>
+  <text x="404" y="238" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2f7d54">queued reply, run here</text>
+
+  <text x="20" y="334" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">A Client nobody attached calls on_reply on its own thread: setting a field there is a bug.</text>
+  <text x="20" y="356" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">One Client carries one request at a time, so two slow URLs wait for each other.</text>
+</svg>

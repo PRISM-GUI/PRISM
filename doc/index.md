@@ -34,6 +34,8 @@ Where to start:
 - Want to build it? [Install](start/install.md).
 - Looking for a widget? The [widget reference](widgets/index.md) has every one, with an example;
   the [widget gallery](https://prism-gui.github.io/PRISM/) lets you try them in the browser.
+- Writing in Python? [The Python SDK](integrations/python.md).
+- Running on a board? [Embedded boards](project/embedded.md).
 
 ```{toctree}
 :caption: Getting started
@@ -62,6 +64,7 @@ concepts/reference/index
 :maxdepth: 2
 
 widgets/index
+widgets/own-widget
 ```
 
 ```{toctree}

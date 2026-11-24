@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img" aria-label="A write from any Python thread is posted to the logic thread, a read waits for it, and add(n) does the increment there so two threads cannot lose one">
+  <rect width="900" height="360" fill="#ffffff"/>
+
+  <text x="20" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">Every Python thread writes through one thread</text>
+
+  <rect x="20" y="56" width="304" height="240" rx="10" fill="#f4f6fa" stroke="#c9d1dd"/>
+  <rect x="572" y="56" width="308" height="240" rx="10" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="172" y="82" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#1b1f27">Your Python thread</text>
+  <text x="726" y="82" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#1b1f27">The logic thread</text>
+
+  <rect x="48" y="102" width="248" height="52" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="172" y="133" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">m.f.value = x</text>
+
+  <rect x="48" y="212" width="248" height="52" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="172" y="243" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">m.f.add(n)</text>
+
+  <rect x="600" y="102" width="252" height="162" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="726" y="130" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">the field changes</text>
+  <text x="726" y="156" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">observers run</text>
+  <text x="726" y="182" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">a frame is drawn</text>
+  <text x="726" y="212" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">one at a time, in order</text>
+  <text x="726" y="234" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">your observers run here too</text>
+
+  <line x1="304" y1="120" x2="592" y2="120" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="592,120 583,115 583,125" fill="#4ea1ff"/>
+  <text x="448" y="111" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">a write is posted</text>
+
+  <line x1="592" y1="166" x2="304" y2="166" stroke="#5fd38d" stroke-width="2"/>
+  <polygon points="304,166 313,161 313,171" fill="#5fd38d"/>
+  <text x="448" y="183" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2f7d54">a read asks, and waits for the answer</text>
+
+  <line x1="304" y1="238" x2="592" y2="238" stroke="#f2a33a" stroke-width="2"/>
+  <polygon points="592,238 583,233 583,243" fill="#f2a33a"/>
+  <text x="448" y="229" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#9a6412">the increment happens there</text>
+
+  <text x="20" y="322" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">m.f.value += 1 reads, then writes: two workers can both read the old value and lose one.</text>
+  <text x="20" y="344" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">m.f.add(1) does both on the logic thread, so it is safe from many threads at once.</text>
+</svg>

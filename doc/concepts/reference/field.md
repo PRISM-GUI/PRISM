@@ -51,6 +51,10 @@ Reading through `get()`, the conversion or `value()` is what a [`Derived`](deriv
 All of these notify once if the value changed, and not at all if it did not.
 Inside a [transaction](transaction.md), the notification waits for its end.
 
+<img src="../../diagrams/field-notify.svg" alt="A write goes in, is compared with the value the field holds, notifies listeners only when it differs, marks the widget dirty, and the next frame draws it" width="900"/>
+
+*Four steps from a write to a repainted widget, and the one comparison that can stop it.*
+
 | Member | Meaning |
 |---|---|
 | `set(v)` | stores `v` |

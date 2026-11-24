@@ -30,6 +30,8 @@ the app. Docking: panels moved, tabbed, split, closed, reopened and floated.
 model. A browser build: every example runs in a web page.
 
 **Platforms.** Linux, Windows and macOS on the desktop, and the browser through WebAssembly.
+Three microcontroller boards: the STM32H7B3I-DK and STM32F746G-DISCO, and the ESP32-S31-Korvo-1, each in a repository of
+its own. [Embedded boards](embedded.md) has both.
 
 ## What comes next
 
@@ -45,7 +47,7 @@ model. A browser build: every example runs in a web page.
 - **Ideas parked:**
   - live previews of each `view()` as you save the file;
   - a thin client that shows an app running on another machine;
-  - a port to small boards such as the ESP32-P4.
+  - a port to the ESP32-P4, the chip with a larger panel and hardware graphics.
 
 ## How it got here
 

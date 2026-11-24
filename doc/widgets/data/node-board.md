@@ -129,6 +129,10 @@ A wire is `(node, port index)` to `(node, port index)`: `Sine` has one port, its
 (`Cycle`), and a port that is not there (`UnknownPort`). `can_connect` asks the same question
 without drawing anything — the board fades the ports a wire cannot land on with it.
 
+<img src="../../diagrams/node-wires.svg" alt="A card's output dot on its right edge wired to the next card's input dot on its left edge; the wire's colour comes from the port type, with six colours for waveform, number, boolean, integer, text and anything else" width="900"/>
+
+*Output to input, same type, and the colour says which type. `Gain` takes two inputs: a wave and a number.*
+
 `vb.node_board(graph)` is the whole board. It fills the space it is given, cards at their graph
 positions, so a board alone in a window is the window; put it beside a palette in an `hstack` and
 it takes what is left.

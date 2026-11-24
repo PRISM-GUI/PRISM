@@ -14,11 +14,23 @@ ninja -C builddir
 PYTHONPATH=builddir/python python3 python/examples/01_counter.py
 ```
 
+`builddir/python` holds the module the desktop build produces; there is nothing else to install
+for the examples.
+
 To install it in a virtual environment instead:
 
 ```bash
-pip install . --no-build-isolation
+pip install .
 ```
+
+The build needs a C++26 compiler, and that is all: `pip` fetches the two build tools on its own
+(`meson-python` and `nanobind`, from `pyproject.toml`), and SDL3, freetype, harfbuzz and fmt come
+from the repo's wraps, linked statically. No system SDL, no display needed to build.
+
+`pip install . --no-build-isolation` also works, but only in a virtual environment that already has
+`meson-python>=0.14` and `nanobind>=2.0` in it.
+
+There are no prebuilt wheels: the extension is compiled here, on your machine.
 
 ## A model is a window
 
@@ -114,6 +126,10 @@ Python threads talk to it:
 
 Never write `m.f.value += 1` from a worker: two threads can read the same old value. Use
 `m.f.add(1)`.
+
+<img src="../diagrams/python-threads.svg" alt="A write from any Python thread is posted to the logic thread; a read waits for the answer; add(n) does the increment on the logic thread" width="900"/>
+
+*A write is posted, a read waits, and `add` is the one increment that cannot be lost.*
 
 A worker that feeds the window:
 

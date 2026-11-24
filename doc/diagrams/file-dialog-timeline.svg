@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="330" viewBox="0 0 900 330" role="img" aria-label="choose_files returns at once, the platform's dialog opens, and done(result) arrives later on the logic thread">
+  <rect width="900" height="330" fill="#ffffff"/>
+
+  <text x="20" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">Asking for a file takes two moments</text>
+
+  <!-- OS dialog band -->
+  <rect x="440" y="62" width="430" height="66" rx="8" fill="#f4f6fa" stroke="#c9d1dd" stroke-dasharray="5 4"/>
+  <text x="655" y="88" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">the platform's dialog is open</text>
+  <text x="655" y="110" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">the user picks, or cancels</text>
+
+  <!-- logic thread row -->
+  <text x="20" y="170" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#5b6472">LOGIC THREAD</text>
+
+  <rect x="20" y="186" width="210" height="64" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="125" y="212" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">choose_files(dialog, done)</text>
+  <text x="125" y="233" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">shows it, and returns</text>
+
+  <line x1="234" y1="218" x2="286" y2="218" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="286,218 277,213 277,223" fill="#4ea1ff"/>
+  <text x="260" y="208" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">at once</text>
+
+  <rect x="290" y="186" width="260" height="64" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="420" y="212" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">the code after it runs</text>
+  <text x="420" y="233" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">before the user has chosen</text>
+
+  <line x1="554" y1="218" x2="606" y2="218" stroke="#f2a33a" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="606,218 597,213 597,223" fill="#f2a33a"/>
+  <text x="580" y="208" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#9a6412">later</text>
+
+  <rect x="610" y="186" width="260" height="64" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="740" y="212" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">done(result)</text>
+  <text x="740" y="233" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">again on the logic thread</text>
+
+  <line x1="740" y1="132" x2="740" y2="182" stroke="#9aa1b2" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="740,182 735,173 745,173" fill="#9aa1b2"/>
+  <text x="762" y="162" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">the choice</text>
+
+  <!-- time axis -->
+  <line x1="20" y1="286" x2="870" y2="286" stroke="#c9d1dd" stroke-width="2"/>
+  <polygon points="870,286 861,281 861,291" fill="#c9d1dd"/>
+  <text x="838" y="308" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">time</text>
+</svg>

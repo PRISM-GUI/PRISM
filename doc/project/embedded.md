@@ -1,6 +1,6 @@
 # Embedded boards (STM32, ESP32)
 
-PRISM runs on a microcontroller with a screen: the STM32 port and the ESP32-S3 Korvo-1
+PRISM runs on a microcontroller with a screen: the STM32 port and the ESP32-S31-Korvo-1
 port are the two that ship. This page lists what changes on a board, and the three rules
 that keep a firmware from failing in ways that are hard to see.
 
@@ -56,8 +56,9 @@ void app_main() {
 
 On the desktop, the SDL backend's sources live in `prism-software-backend`, the library
 a program links when it makes an `Output` or decodes an image, and `sdl_registered.hpp`
-holds the registrar as a single object the library owns. `prism-mp3-player` links that
-library for its audio, so the registration cannot be dropped.
+holds the registrar as a single object the library owns.
+[`prism-mp3-player`](https://github.com/PRISM-GUI/prism-mp3-player), an app built on the ESP32
+port, links that library for its audio, so the registration cannot be dropped.
 
 ## Boot order on a board
 
@@ -84,11 +85,82 @@ STM32 build.
 
 ## The two ports
 
-- **ESP32-S3 Korvo-1** (`prism-esp32`): the panel and touch are PRISM's `BandSink` and
-  `TouchSource`, the speaker is a PRISM audio device, and Bluetooth is the `prism_bt`
-  component. The board's README has the build, the flash and the controls.
-- **STM32**: the same split, with the panel driver and the audio codec in the board
-  component. The board's README has the cross file and the flash command.
+Both are separate repositories: PRISM holds no board code.
 
-Both ports keep their device code out of PRISM itself: a board registers what it has, and
-the rest of the framework reads the registries.
+| Board | Repository | What runs |
+|---|---|---|
+| ESP32-S31-Korvo-1 | [prism-esp32](https://github.com/PRISM-GUI/prism-esp32) | an ESP-IDF project whose `prism` component builds PRISM with Meson |
+| STM32H7B3I-DK | [prism-stm32](https://github.com/PRISM-GUI/prism-stm32) | a cross build of the same sources |
+
+Each repository's README has its clone, build, flash and console commands. The board a
+repository targets:
+
+| | ESP32-S31-Korvo-1 |
+|---|---|
+| Chip | ESP32-S31: two RISC-V cores at 320 MHz |
+| Memory | 16 MB PSRAM, 16 MB flash |
+| Screen | 4.3" 800×480, parallel RGB, RGB565 on a 16-bit bus |
+| Touch | GT1151 over I2C |
+| Audio | ES8389 codec: two microphones and a speaker output |
+| Toolchain | ESP-IDF at a pinned commit (the repository's Docker image), GCC 16 |
+
+On the ESP32, the panel and touch are PRISM's `BandSink` and `TouchSource`, the speaker is a
+PRISM audio device, and Bluetooth is the port's `prism_bt` component. On the STM32, the same
+split holds, with the panel driver and the audio codec in the board component.
+
+Neither port's flash and RAM figures are quoted here: they move with the compiler and the
+options. Measure your own build with `idf.py size-components` (ESP32-IDF) or
+`arm-none-eabi-size` (STM32).
+
+## Starting a board port
+
+A port writes only what its board owns. `include/prism/platform/frame_target.hpp` is the
+contract, and `frame_app.hpp` is the entry point.
+
+Four pieces, in the order they are needed:
+
+| Piece | What it provides |
+|---|---|
+| Linker script and startup code | where the heap, the PSRAM and the stacks live |
+| A display driver | `platform::FrameSink` (a full frame) or `platform::BandSink<P>` (bands) |
+| A touch driver | `platform::TouchSource`: `read()` returns the touched point, or nothing |
+| `app_main` | registers the board's devices and decoders, then calls the app |
+
+`FrameSink` is what the rasterizer draws into:
+
+| Member | What the port does |
+|---|---|
+| `back()` | returns the ARGB8888 pixels for the next frame, stride = width |
+| `clear(argb)` | optional: fill it with the engine, return `true` |
+| `clear_rect(x0, y0, x1, y1, argb)` | optional: the same for a damage rectangle |
+| `present()` | shows what was drawn into `back()` |
+| `size()` | the frame's size in pixels |
+| `buffer_age()` | 1 or 2: how many presented frames `back()` still holds, so the runtime knows what it must redraw |
+
+`BandSink<P>` is the same idea for a panel fed band by band: `band_height()`, `band(index)`,
+`flush(index, first_row, rows)`, `present()`, `size()`, `frame_age()`.
+
+The app starts with one call, from `app_main` or `main`:
+
+```cpp
+#include <prism/platform/frame_app.hpp>
+
+prism::platform::frame_app(sink, touch, model, [](prism::platform::FrameContext& ctx) {
+    ctx.on_loop([] { /* once per loop iteration */ });
+    ctx.on_stats([](std::string_view line) { /* print the frame budget */ });
+});
+```
+
+`frame_app` takes the model by reference; it must outlive the call.
+`platform::FrameOptions` sets `ui_scale` (1.5 for a fingertip) and `before_thread_start`,
+which is where a port sets its thread priorities and core pinning.
+`FrameContext::quit()` stops the loop, and `frame_app` returns after that.
+
+`examples/embedded/` holds the apps both boards run (the widgets demo and the audio scope),
+built on every target and exported as `prism_embedded_apps_dep`. A port links it and passes its
+own sample source: the STM32 an ADC, the ESP32 its microphones.
+
+`tests/cross/none-cortex-m7.ini` is the cross file to start from, and `ports/freertos/` (the
+POSIX layer, profile clock, system counters and `sbrk`) is what a `none` target gets unless
+`-Dfreertos_port=disabled` says the SDK has its own. The MPS2-AN500 QEMU board in
+`ports/qemu_mps2/` runs the same path without hardware, and CI builds it.

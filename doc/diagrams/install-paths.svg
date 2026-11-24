@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-label="Five ways into PRISM: look at the demos, build the examples, build your own program from a wrap, build for the browser, build for a board; each is one section of this page">
+  <rect width="900" height="430" fill="#ffffff"/>
+
+  <text x="40" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">What you want, and what it takes</text>
+
+  <text x="40" y="62" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#5b6472">WHAT YOU WANT</text>
+  <text x="390" y="62" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#5b6472">WHAT YOU END UP WITH</text>
+
+  <!-- row 1 -->
+  <rect x="40" y="76" width="200" height="46" rx="8" fill="#f4f6fa" stroke="#c9d1dd"/>
+  <text x="56" y="105" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Just looking</text>
+  <rect x="390" y="76" width="470" height="46" rx="8" fill="#ffffff" stroke="#c9d1dd" stroke-dasharray="5 4"/>
+  <text x="406" y="105" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">The demos in a browser, nothing to install</text>
+
+  <!-- row 2 -->
+  <rect x="40" y="142" width="200" height="46" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="56" y="171" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Run the examples</text>
+  <line x1="248" y1="165" x2="380" y2="165" stroke="#7fa3e0" stroke-width="2"/>
+  <polygon points="380,165 371,160 371,170" fill="#7fa3e0"/>
+  <text x="314" y="156" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">git clone</text>
+  <rect x="390" y="142" width="470" height="46" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="406" y="171" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Example binaries in builddir/examples/, and the tests</text>
+
+  <!-- row 3 -->
+  <rect x="40" y="208" width="200" height="46" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="56" y="237" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Your own desktop app</text>
+  <line x1="248" y1="231" x2="380" y2="231" stroke="#7fa3e0" stroke-width="2"/>
+  <polygon points="380,231 371,226 371,236" fill="#7fa3e0"/>
+  <text x="314" y="222" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">prism.wrap</text>
+  <rect x="390" y="208" width="470" height="46" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="406" y="237" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Your binary, with PRISM compiled inside it</text>
+
+  <!-- row 4 -->
+  <rect x="40" y="274" width="200" height="46" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="56" y="303" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">A browser</text>
+  <line x1="248" y1="297" x2="380" y2="297" stroke="#7fa3e0" stroke-width="2"/>
+  <polygon points="380,297 371,292 371,302" fill="#7fa3e0"/>
+  <text x="314" y="288" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">cross-file</text>
+  <rect x="390" y="274" width="470" height="46" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="406" y="303" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">An .html page and a .wasm the page loads</text>
+
+  <!-- row 5 -->
+  <rect x="40" y="340" width="200" height="46" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="56" y="369" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">A board</text>
+  <line x1="248" y1="363" x2="380" y2="363" stroke="#7fa3e0" stroke-width="2"/>
+  <polygon points="380,363 371,358 371,368" fill="#7fa3e0"/>
+  <text x="314" y="354" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">prism-esp32 / prism-stm32</text>
+  <rect x="390" y="340" width="470" height="46" rx="8" fill="#ffffff" stroke="#9aa1b2"/>
+  <text x="406" y="369" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">Firmware for the board, built in its own repository</text>
+
+  <text x="40" y="412" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">Each row is one section below. The board's section is on the Embedded boards page.</text>
+</svg>

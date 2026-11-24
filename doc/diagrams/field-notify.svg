@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500" viewBox="0 0 900 500" role="img" aria-label="A write compares with the value the field holds, notifies listeners only when it differs, marks the widget dirty, and the next frame draws it">
+  <rect width="900" height="500" fill="#ffffff"/>
+
+  <text x="20" y="34" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#1b1f27">One write, four steps</text>
+
+  <rect x="60" y="76" width="360" height="56" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="80" y="110" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">set(v) · f = v · ++f · f += v</text>
+
+  <line x1="240" y1="136" x2="240" y2="152" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="240,152 235,143 245,143" fill="#4ea1ff"/>
+  <text x="256" y="149" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">the value goes in</text>
+
+  <rect x="60" y="156" width="360" height="56" rx="8" fill="#eef3ff" stroke="#7fa3e0"/>
+  <text x="80" y="190" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">compare with the value it already holds</text>
+
+  <line x1="240" y1="216" x2="240" y2="232" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="240,232 235,223 245,223" fill="#4ea1ff"/>
+  <text x="256" y="229" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">it differs</text>
+
+  <rect x="60" y="236" width="360" height="56" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="80" y="260" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">observe(fn) listeners run</text>
+  <text x="80" y="280" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">on the logic thread, after the change</text>
+
+  <line x1="240" y1="296" x2="240" y2="312" stroke="#4ea1ff" stroke-width="2"/>
+  <polygon points="240,312 235,303 245,303" fill="#4ea1ff"/>
+  <text x="256" y="309" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2c6cb0">a change happened</text>
+
+  <rect x="60" y="316" width="360" height="56" rx="8" fill="#ffffff" stroke="#7fa3e0"/>
+  <text x="80" y="350" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">the widget that shows it is marked dirty</text>
+
+  <line x1="240" y1="376" x2="240" y2="392" stroke="#5fd38d" stroke-width="2"/>
+  <polygon points="240,392 235,383 245,383" fill="#5fd38d"/>
+  <text x="256" y="389" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#2f7d54">repaint</text>
+
+  <rect x="60" y="396" width="360" height="56" rx="8" fill="#eef7f1" stroke="#5fd38d"/>
+  <text x="80" y="430" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#1b1f27">the next frame draws it</text>
+
+  <!-- equal branch -->
+  <line x1="424" y1="184" x2="512" y2="184" stroke="#9aa1b2" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="512,184 503,179 503,189" fill="#9aa1b2"/>
+  <text x="468" y="175" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">equal</text>
+  <rect x="516" y="156" width="364" height="56" rx="8" fill="#ffffff" stroke="#c9d1dd" stroke-dasharray="5 4"/>
+  <text x="536" y="190" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#5b6472">nothing happens: no listener, no frame</text>
+
+  <text x="20" y="470" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">mutate(fn) always notifies, since no old value is kept to compare with. A transaction holds its</text>
+  <text x="20" y="488" font-family="-apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#5b6472">notifications until it ends, so listeners see one change instead of several.</text>
+</svg>

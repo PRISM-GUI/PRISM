@@ -15,9 +15,9 @@ struct Tone {
 
     float phase = 0.f;
 
-    void attach(app::AppContext& app) {
-        app.observe(pitch, [this](const auto& p) { to_audio.write(static_cast<float>(p.value)); });
-        app.observe(play, [this](const auto& p) {
+    void attach(app::AppContext&) {
+        pitch.observe([this](const auto& p) { to_audio.publish(static_cast<float>(p.value)); });
+        play.observe([this](const auto& p) {
             if (p.checked) {
                 output = std::make_unique<audio::Output>(
                     audio::Format{}, [this](std::span<float> out) { render(out); });
@@ -46,9 +46,15 @@ int main() { app::run(Tone{}, {.title = "Tone", .width = 320, .height = 120}); }
 
 Three threads meet here. The logic thread owns the fields and publishes the pitch into `core::Latest`. The audio thread reads the latest pitch once per block and never waits. The render thread draws.
 
+`observe` belongs to the field, not to the app: a field carries its own listeners.
+
 ## Choosing the device
 
 `audio::Output` plays through a device backend. The platform's backend is registered as the program loads: SDL's devices on the desktop, a board's speaker and headset on an embedded target. `audio::devices()` lists what is there now.
+
+![An Output asks the device registry for a device, the device pulls blocks on its own thread, and Output converts only when the sample types differ](../diagrams/audio-output.svg)
+
+*`Output` finds a device, the device pulls blocks, `Output` converts when the types differ.*
 
 | Constructor | Which device |
 | --- | --- |

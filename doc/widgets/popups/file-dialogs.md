@@ -33,6 +33,10 @@ struct Notes {
 `ctx.choose_files(dialog, done)` shows the platform's file dialog. It never blocks:
 `done` runs later, on the logic thread, with the answer.
 
+<img src="../../diagrams/file-dialog-timeline.svg" alt="choose_files returns at once, so the code after it runs before the user has chosen; done(result) arrives later, on the logic thread" width="900"/>
+
+*Two moments, one call: everything you want to happen after the choice belongs in `done`.*
+
 `app::FileDialog`:
 
 | Member | Type | Default | Meaning |

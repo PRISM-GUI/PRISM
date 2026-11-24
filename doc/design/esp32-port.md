@@ -1,6 +1,7 @@
 # The ESP32 port (ESP32-S31-Korvo-1)
 
-**Status:** Proposal — for review before code.
+**Status:** Done — the port ships, with the widgets demo and the audio scope. This page records the
+design; [Embedded boards](../project/embedded.md) is what a user reads.
 
 ## Why
 

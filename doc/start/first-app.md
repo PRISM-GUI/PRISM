@@ -27,6 +27,12 @@ int main() {
 `app::run` opens a window, shows the model, and returns when the window closes.
 The model must outlive the call: here it lives in `main`.
 
+### Build it
+
+That snippet is a program, not yet a project.
+[Install](install.md#use-prism-in-your-project) has the two files it needs: a wrap file that
+fetches PRISM, and a `meson.build` that links it.
+
 ### Without reflection: add `view()`
 
 With GCC 16, PRISM reads the struct's members by reflection.

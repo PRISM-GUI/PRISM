@@ -11,15 +11,19 @@ The thread that called `app::run` handles the operating system's events and draw
 Every `Field`, `State`, `Derived` and `List`, and every widget, belongs to the logic thread.
 Before `app::run` starts and after it returns, the model is the calling thread's again.
 They are not thread-safe: setting one from another thread is a data race.
-A debug build asserts when it happens:
+PRISM checks for it in every build, release ones included, and stops the program with:
 
 ```text
-a model field set off the app's logic thread: hand it over with AppContext::post, Shared<T> or Channel<T>
+prism: a model field set off the app's logic thread: hand it over with AppContext::post, Shared<T> or Channel<T>
 ```
 
 The drawing thread never runs your code.
 So a slow function on the logic thread freezes the *content* of the window, but never the window:
 it still moves, resizes and repaints.
+
+<img src="../diagrams/threads-lanes.svg" alt="Three lanes: the model lives on the logic thread, the window thread only draws and reports input; Shared, Channel and ctx.post are the only doors between threads" width="900"/>
+
+*The model lives in the middle lane. Only the labelled doors cross it.*
 
 ## Four ways across
 

@@ -4,6 +4,10 @@
 model: other threads, windows, the theme, the platform's dialogs. This page lists what an app
 uses it for.
 
+<img src="../diagrams/app-context.svg" alt="Four cards: threads, the clock, windows and theme, the platform; only post, poster and waker may be called from another thread" width="900"/>
+
+*Four kinds of thing behind one handle. Only three calls are safe from another thread.*
+
 ## Getting it
 
 `app::run` hands it to the setup function, on the logic thread, before the first frame:

@@ -74,6 +74,14 @@ synthesizer and a SQL tool; all of them [run in the browser](https://prism-gui.g
 
 <p align="center"><img src="doc/screenshots/widget_gallery.svg" alt="Widget Gallery" width="700"/></p>
 
+The same model runs elsewhere:
+
+- **Python:** the [SDK](https://prism-gui.readthedocs.io/en/latest/integrations/python.html)
+  builds a `prism` extension from [`python/`](python/): a class of fields is a window, and any
+  thread may change a field.
+- **Boards:** [embedded](https://prism-gui.readthedocs.io/en/latest/project/embedded.html) covers
+  the ports that ship: the STM32H7B3I-DK and STM32F746G-DISCO, and the ESP32-S31-Korvo-1.
+
 ## Building
 
 You need **Meson ≥ 1.5** and a recent C++ compiler.
