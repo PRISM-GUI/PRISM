@@ -30,19 +30,10 @@ inline Color mix(Color a, Color b, float t) {
     return Color::rgba(channel(a.r, b.r), channel(a.g, b.g), channel(a.b, b.b), channel(a.a, b.a));
 }
 
-// `Gradient` is the theme's fill for whatever is "on": the two ends are equal in the classic
-// themes, so they draw solid. `Axis` says which way a fill runs, across or down; it is nested so
-// that `ui::Gradient::Axis` cannot be confused with the plot's own `Axis` in a using-directive.
-struct Gradient {
-    enum class Axis { horizontal, vertical };
-
-    Color from{};
-    Color to{};
-    Axis axis = Axis::horizontal;
-
-    bool operator==(const Gradient&) const = default;
-    [[nodiscard]] bool solid() const { return from == to; }
-};
+// A theme's fill for whatever is "on": the two ends are equal in the classic themes, so they draw
+// solid. The type lives in the draw list (a backend reads it), and `ui::Gradient` is the name the
+// theme and the widget code use.
+using Gradient = render::Gradient;
 
 struct Theme {
     // Surface backgrounds (widget fill)

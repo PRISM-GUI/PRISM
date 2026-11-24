@@ -90,6 +90,9 @@ public:
     void fill_rect(Rect r, Color c);
     void rect_outline(Rect r, Color c, float thickness);    // bands inside the rect
     void rounded_rect(Rect r, Color c, float radius, float thickness);  // thickness 0 = filled
+    // A filled rect whose colour runs from `g.from` to `g.to` across (or down) it; radius rounds
+    // the corners like rounded_rect.
+    void gradient_rect(Rect r, const render::Gradient& g, float radius);
     void line(Point from, Point to, Color c, float thickness);
     void polyline(std::span<const Point> pts, Color c, float thickness);  // each segment a thick line
     void circle(Point center, float radius, Color c, float thickness);   // thickness 0 = filled

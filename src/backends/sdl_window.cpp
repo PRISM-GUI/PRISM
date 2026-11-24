@@ -497,6 +497,17 @@ void SdlWindow::render_cmd(const RoundedRect& cmd) {
     draw_mesh(cmd.thickness > 0.f ? stroke_closed(outline, cmd.thickness) : fill_convex(outline), cmd.color);
 }
 
+void SdlWindow::render_cmd(const GradientRect& cmd) {
+    const float x0 = cmd.rect.origin.x.raw(), y0 = cmd.rect.origin.y.raw();
+    const float x1 = x0 + cmd.rect.extent.w.raw(), y1 = y0 + cmd.rect.extent.h.raw();
+    if (x1 <= x0 || y1 <= y0) return;   // nothing to fill
+    if (cmd.from == cmd.to) return render_cmd(FilledRect{cmd.rect, cmd.from});
+    if (cmd.radius > 0.5f) return draw_mesh(fill_convex(rounded_rect_outline(cmd.rect, cmd.radius)), cmd);
+    const ShapeMesh quad{{{{x0, y0, 1.f}, {x1, y0, 1.f}, {x1, y1, 1.f}, {x0, y1, 1.f}}},
+                         {0, 1, 2, 0, 2, 3}};
+    draw_mesh(quad, cmd);
+}
+
 namespace {
 // Thick lines go through the same mesh as the GPU path; a hairline stays SDL's own crisp line.
 render::ShapeMesh thick_line(std::span<const Point> pts, float thickness) {
@@ -561,6 +572,19 @@ void SdlWindow::draw_mesh(const ShapeMesh& mesh, Color c) {
         mesh_vertices_.push_back(SDL_Vertex{{v.x, v.y},
                                             {c.r / 255.f, c.g / 255.f, c.b / 255.f, c.a / 255.f * v.alpha},
                                             {0.f, 0.f}});
+    SDL_RenderGeometry(renderer_, nullptr, mesh_vertices_.data(), static_cast<int>(mesh_vertices_.size()),
+                       mesh.indices.data(), static_cast<int>(mesh.indices.size()));
+}
+
+void SdlWindow::draw_mesh(const ShapeMesh& mesh, const GradientRect& g) {
+    if (mesh.indices.empty()) return;
+    mesh_vertices_.clear();
+    for (auto& v : mesh.vertices) {
+        const Color c = gradient_at(g, v.x, v.y);
+        mesh_vertices_.push_back(SDL_Vertex{{v.x, v.y},
+                                            {c.r / 255.f, c.g / 255.f, c.b / 255.f, c.a / 255.f * v.alpha},
+                                            {0.f, 0.f}});
+    }
     SDL_RenderGeometry(renderer_, nullptr, mesh_vertices_.data(), static_cast<int>(mesh_vertices_.size()),
                        mesh.indices.data(), static_cast<int>(mesh.indices.size()));
 }

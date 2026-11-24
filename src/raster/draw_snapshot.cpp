@@ -46,6 +46,8 @@ void draw_list(BasicCanvas<P>& canvas, const DrawList& dl, const Fonts& fonts) {
                 canvas.pop_clip();
             } else if constexpr (std::is_same_v<K, RoundedRect>) {
                 canvas.rounded_rect(scaled(c.rect, s), c.color, c.radius * s, c.thickness * s);
+            } else if constexpr (std::is_same_v<K, GradientRect>) {
+                canvas.gradient_rect(scaled(c.rect, s), render::Gradient{c.from, c.to, c.axis}, c.radius * s);
             } else if constexpr (std::is_same_v<K, Line>) {
                 // No mark: a plot draws hundreds of grid lines a frame, and two marks each fill the
                 // recorder's ring (and cost more than the line) faster than a trace can use them.

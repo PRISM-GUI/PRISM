@@ -488,3 +488,77 @@ TEST_CASE("Canvas::retarget rejects a pixel span smaller than stride * height") 
     CHECK(aborts([&] { c.retarget(too_short); }));
 }
 #endif
+
+namespace {
+
+constexpr Color kTeal = Color::rgba(44, 160, 178);
+constexpr Color kBlue = Color::rgba(59, 130, 246);
+
+int channel(std::uint32_t argb, int k) { return static_cast<int>((argb >> (8 * (2 - k))) & 0xFFu); }
+
+int channel8(Color c, int k) { return k == 0 ? c.r : (k == 1 ? c.g : c.b); }
+
+// Every channel of `got` within `tol` of `want`'s.
+bool near(std::uint32_t got, Color want, int tol) {
+    if (channel(got, 3) != 255) return false;
+    for (int k = 0; k < 3; ++k)
+        if (std::abs(channel(got, k) - channel8(want, k)) > tol) return false;
+    return true;
+}
+
+} // namespace
+
+TEST_CASE("a horizontal gradient runs from its start colour to its end colour") {
+    Fb<8, 4> fb;
+    fb.canvas.gradient_rect(rect(0, 0, 8, 4), prism::render::Gradient{kTeal, kBlue}, 0.f);
+    CHECK(fb.count_touched() == 8 * 4);
+    CHECK(near(fb.at(0, 2), kTeal, 20));      // the first pixel holds the start colour
+    CHECK(near(fb.at(7, 2), kBlue, 20));      // the last one the end colour
+    CHECK(near(fb.at(3, 2), Color::rgba(51, 145, 212), 12));   // and the middle is halfway
+    CHECK(fb.at(0, 0) == fb.at(0, 3));        // a horizontal run does not change down a column
+}
+
+TEST_CASE("a vertical gradient runs down, the same colours") {
+    Fb<4, 8> fb;
+    fb.canvas.gradient_rect(rect(0, 0, 4, 8), prism::render::Gradient{kTeal, kBlue, prism::render::Gradient::Axis::vertical}, 0.f);
+    CHECK(fb.count_touched() == 4 * 8);
+    CHECK(near(fb.at(2, 0), kTeal, 20));
+    CHECK(near(fb.at(2, 7), kBlue, 20));
+    CHECK(near(fb.at(2, 3), Color::rgba(51, 145, 212), 12));
+    CHECK(fb.at(0, 0) == fb.at(3, 0));        // a vertical run does not change across a row
+}
+
+TEST_CASE("a gradient on an rgb565 canvas lands on both end colours") {
+    Fb565<8, 4> fb;
+    fb.canvas.gradient_rect(rect(0, 0, 8, 4), prism::render::Gradient{kTeal, kBlue}, 0.f);
+    CHECK(fb.at(0, 0) == prism::raster::Rgb565::pack(kTeal));
+    CHECK(fb.at(7, 0) == prism::raster::Rgb565::pack(kBlue));
+    CHECK(fb.at(0, 0) != fb.at(1, 0));        // and it really runs
+}
+
+TEST_CASE("a rounded gradient leaves its corners clear") {
+    Fb<16, 16> fb;
+    fb.canvas.gradient_rect(rect(0, 0, 16, 16), prism::render::Gradient{kTeal, kBlue}, 8.f);
+    CHECK_FALSE(fb.touched(0, 0));            // a corner is outside the round
+    CHECK_FALSE(fb.touched(15, 15));
+    CHECK(fb.touched(8, 8));                  // the middle is inside
+    CHECK(fb.touched(0, 8));                  // and so is the middle of the left edge
+}
+
+TEST_CASE("a gradient of no width or no height draws nothing") {
+    Fb<16, 16> wide;
+    wide.canvas.gradient_rect(rect(2, 2, 0, 10), prism::render::Gradient{kTeal, kBlue}, 0.f);
+    CHECK(wide.count_touched() == 0);
+
+    Fb<16, 16> tall;
+    tall.canvas.gradient_rect(rect(2, 2, 10, 0), prism::render::Gradient{kTeal, kBlue}, 0.f);
+    CHECK(tall.count_touched() == 0);
+}
+
+TEST_CASE("a corner radius past half the rect is clamped to a pill, not a hole") {
+    Fb<16, 16> fb;
+    fb.canvas.gradient_rect(rect(0, 0, 16, 16), prism::render::Gradient{kTeal, kBlue}, 40.f);
+    CHECK_FALSE(fb.touched(0, 0));            // as round as the rect allows
+    for (int x = 0; x < 16; ++x) CHECK(fb.touched(x, 8));   // the middle row is whole
+    for (int y = 0; y < 16; ++y) CHECK(fb.touched(8, y));   // and so is the middle column
+}

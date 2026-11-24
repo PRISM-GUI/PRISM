@@ -15,7 +15,11 @@ void scale_cmd(DrawCmd& cmd, const ViewTransform& t) {
     std::visit([&t](auto& c) {
         if constexpr (requires { c.rect; }) scale_rect(c.rect, t);
         if constexpr (requires { c.center; }) scale_point(c.center, t);
-        if constexpr (requires { c.from; c.to; }) { scale_point(c.from, t); scale_point(c.to, t); }
+        // A gradient carries colours in `from`/`to`, not points: ask the call itself.
+        if constexpr (requires { scale_point(c.from, t); scale_point(c.to, t); }) {
+            scale_point(c.from, t);
+            scale_point(c.to, t);
+        }
         if constexpr (requires { c.points; }) for (auto& p : c.points) scale_point(p, t);
         if constexpr (requires { c.origin; }) scale_point(c.origin, t);
         if constexpr (requires { c.radius; }) c.radius *= t.scale;

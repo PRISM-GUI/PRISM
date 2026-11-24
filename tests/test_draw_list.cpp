@@ -377,6 +377,40 @@ TEST_CASE("bounding box: what a clip cuts away does not count") {
     CHECK(bb.extent.h.raw() == doctest::Approx(50.f));
 }
 
+TEST_CASE("gradient_rect records a GradientRect, and the box is its rect") {
+    prism::DrawList dl;
+    const auto from = prism::Color::rgba(44, 160, 178);
+    const auto to = prism::Color::rgba(59, 130, 246);
+    dl.gradient_rect(R(10, 20, 100, 40), prism::Gradient{from, to, prism::Gradient::Axis::horizontal}, 8.f);
+
+    REQUIRE(dl.commands.size() == 1);
+    REQUIRE(std::holds_alternative<prism::GradientRect>(dl.commands[0]));
+    const auto& cmd = std::get<prism::GradientRect>(dl.commands[0]);
+    CHECK(cmd.rect == R(10, 20, 100, 40));
+    CHECK(cmd.from == from);
+    CHECK(cmd.to == to);
+    CHECK(cmd.axis == prism::Gradient::Axis::horizontal);
+    CHECK(cmd.radius == 8.f);
+
+    auto bb = dl.bounding_box();
+    CHECK(bb.origin.x.raw() == doctest::Approx(10.f));
+    CHECK(bb.origin.y.raw() == doctest::Approx(20.f));
+    CHECK(bb.extent.w.raw() == doctest::Approx(100.f));
+    CHECK(bb.extent.h.raw() == doctest::Approx(40.f));
+}
+
+TEST_CASE("gradient_rect inside a clip is translated, and its radius defaults to square") {
+    prism::DrawList dl;
+    dl.clip_push(P(50, 60), S(200, 100));
+    dl.gradient_rect(R(0, 0, 20, 10), prism::Gradient{prism::Color::rgba(1, 2, 3), prism::Color::rgba(4, 5, 6)});
+    dl.clip_pop();
+    REQUIRE(dl.commands.size() == 3);
+    const auto& cmd = std::get<prism::GradientRect>(dl.commands[1]);
+    CHECK(cmd.rect == R(50, 60, 20, 10));
+    CHECK(cmd.axis == prism::Gradient::Axis::horizontal);
+    CHECK(cmd.radius == 0.f);
+}
+
 TEST_CASE("bounding box: text inside a clip still counts") {
     prism::render::DrawList dl;
     using prism::core::Point; using prism::core::Size;

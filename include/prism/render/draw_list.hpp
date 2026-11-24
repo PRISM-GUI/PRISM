@@ -83,6 +83,50 @@ struct RoundedRect {
     bool operator==(const RoundedRect&) const = default;
 };
 
+// Which way a fill runs: across, or down. Nested so that `Gradient::Axis` cannot be confused with
+// the plot's own `Axis` in a file that names both namespaces.
+struct Gradient {
+    enum class Axis { horizontal, vertical };
+
+    Color from{};
+    Color to{};
+    Axis axis = Axis::horizontal;
+
+    bool operator==(const Gradient&) const = default;
+    [[nodiscard]] bool solid() const { return from == to; }
+};
+
+// A filled rectangle whose colour runs from `from` at its start edge to `to` at its end edge, with
+// the corners rounded like a RoundedRect. Fields stay flat, like every other command: each backend
+// reads them one by one.
+struct GradientRect {
+    Rect rect;
+    Color from;
+    Color to;
+    Gradient::Axis axis;
+    float radius;   // 0 = square corners
+    bool operator==(const GradientRect&) const = default;
+};
+
+// A colour part way from a to b, mixed in 8-bit channels: t = 0 and t = 1 land exactly on the
+// ends, so an rgb565 target packs them as pack() packs them (no dithering, see the board ports).
+inline Color mix_color(Color a, Color b, float t) {
+    auto channel = [t](std::uint8_t from, std::uint8_t to) {
+        return static_cast<std::uint8_t>(std::lround(float(from) + (float(to) - float(from)) * t));
+    };
+    return Color::rgba(channel(a.r, b.r), channel(a.g, b.g), channel(a.b, b.b), channel(a.a, b.a));
+}
+
+// The colour a gradient shows at a point of its rect: the ramp runs across the rect or down it,
+// and a point on the edge is an end colour.
+inline Color gradient_at(const GradientRect& c, float x, float y) {
+    const float w = c.rect.extent.w.raw(), h = c.rect.extent.h.raw();
+    const float along = c.axis == Gradient::Axis::horizontal ? x - c.rect.origin.x.raw() : y - c.rect.origin.y.raw();
+    const float span = c.axis == Gradient::Axis::horizontal ? w : h;
+    if (!(span > 0.f)) return c.from;
+    return mix_color(c.from, c.to, std::clamp(along / span, 0.f, 1.f));
+}
+
 struct Line {
     Point from;
     Point to;
@@ -190,7 +234,8 @@ struct ImageCmd {
 };
 
 using DrawCmd = std::variant<FilledRect, RectOutline, TextCmd, ClipPush, ClipPop,
-                             RoundedRect, Line, Polyline, Circle, FilledPolygon, ImageCmd>;
+                             RoundedRect, GradientRect, Line, Polyline, Circle, FilledPolygon,
+                             ImageCmd>;
 
 struct DrawList {
     std::vector<DrawCmd> commands;
@@ -232,6 +277,11 @@ struct DrawList {
     void rounded_rect(Rect r, Color c, float radius, float thickness = 0.f)
     {
         commands.emplace_back(RoundedRect{translated(r), c, radius, thickness});
+    }
+
+    void gradient_rect(Rect r, const Gradient& g, float radius = 0.f)
+    {
+        commands.emplace_back(GradientRect{translated(r), g.from, g.to, g.axis, radius});
     }
 
     void text(std::string s, Point origin, float size, Color c,
@@ -378,6 +428,10 @@ inline void fade(DrawList& dl, float factor) {
         std::visit([&](auto& c) {
             if constexpr (requires { c.color.a; }) c.color.a = scaled(c.color.a);
             if constexpr (requires { c.alpha; }) c.alpha = scaled(c.alpha);
+            if constexpr (requires { c.from.a; c.to.a; }) {
+                c.from.a = scaled(c.from.a);
+                c.to.a = scaled(c.to.a);
+            }
         }, cmd);
 }
 

@@ -24,6 +24,12 @@ namespace {
 inline int span_begin(float lo) { return static_cast<int>(std::ceil(lo - 0.5f)); }
 inline int span_end(float hi) { return static_cast<int>(std::ceil(hi - 0.5f)); }
 
+// Where index i of n sits along the ramp: the first pixel is `from`, the last is `to`, and one
+// pixel is the whole ramp (n - 1 divides).
+inline float gradient_t(int i, int n) {
+    return n > 1 ? std::clamp(float(i) / float(n - 1), 0.f, 1.f) : 0.f;
+}
+
 // Always on (not an assert): a short span would be written past its end, and the check is cheap.
 void require_span(std::size_t size, int stride, int height) {
     if (size >= std::size_t(stride) * height) return;
@@ -249,6 +255,33 @@ void BasicCanvas<P>::rounded_rect(Rect r, Color c, float radius, float thickness
             fill_xspan(y, so->first, si->first, c);
             fill_xspan(y, si->second, so->second, c);
         }
+    }
+}
+
+template <class P>
+void BasicCanvas<P>::gradient_rect(Rect r, const render::Gradient& g, float radius) {
+    const float w = r.extent.w.raw(), h = r.extent.h.raw();
+    if (!(w > 0.f) || !(h > 0.f)) return;   // nothing to fill, and no span to divide by
+    radius = std::clamp(radius, 0.f, std::min(w, h) / 2.f);
+    const bool horizontal = g.axis == render::Gradient::Axis::horizontal;
+    const int x_first = span_begin(r.origin.x.raw());
+    const int x_count = span_end(r.origin.x.raw() + w) - x_first;
+    const int y_first = span_begin(r.origin.y.raw());
+    const int y_count = span_end(r.origin.y.raw() + h) - y_first;
+    const auto [y0, y1] = clip_rows(y_first, y_first + y_count);
+    auto span_of = [&](int y) -> std::optional<std::pair<float, float>> {
+        if (radius > 0.5f) return rounded_span(y, r, radius);
+        return std::pair{r.origin.x.raw(), r.origin.x.raw() + w};
+    };
+    for (int y = y0; y < y1; ++y) {
+        const auto span = span_of(y);
+        if (!span) continue;
+        if (!horizontal) {   // one colour per row, so a 565 target packs it once
+            fill_xspan(y, span->first, span->second, render::mix_color(g.from, g.to, gradient_t(y - y_first, y_count)));
+            continue;
+        }
+        for (int x = span_begin(span->first); x < span_end(span->second); ++x)
+            fill_span(y, x, x + 1, render::mix_color(g.from, g.to, gradient_t(x - x_first, x_count)));
     }
 }
 

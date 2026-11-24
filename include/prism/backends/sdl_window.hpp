@@ -133,12 +133,15 @@ private:
     void render_cmd(const ClipPush& cmd);
     void render_cmd(const ClipPop& cmd);
     void render_cmd(const RoundedRect& cmd);
+    void render_cmd(const GradientRect& cmd);
     void render_cmd(const Line& cmd);
     void render_cmd(const Polyline& cmd);
     void render_cmd(const Circle& cmd);
     void render_cmd(const FilledPolygon& cmd);
     void render_cmd(const ImageCmd& cmd);
     void draw_mesh(const ShapeMesh& mesh, Color c);   // anti-aliased via the mesh's alpha fringe
+    // The same, with a colour per vertex: a gradient, interpolated by the rasterizer.
+    void draw_mesh(const ShapeMesh& mesh, const GradientRect& g);
     std::vector<SDL_Vertex> mesh_vertices_;
 };
 

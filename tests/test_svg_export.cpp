@@ -239,3 +239,58 @@ TEST_CASE("a sized SVG of a snapshot is filled with the snapshot's own backgroun
     auto svg = prism::to_svg(snap, 100.f, 50.f);
     CHECK(svg.find("<rect width=\"100\" height=\"50\" fill=\"rgba(240,240,245,1)\"/>") != std::string::npos);
 }
+
+namespace {
+// The id a `<linearGradient` declares, so a test can check the rect that references it.
+std::string gradient_id(const std::string& svg) {
+    const auto at = svg.find("<linearGradient id=\"");
+    if (at == std::string::npos) return {};
+    const auto first = at + std::string("<linearGradient id=\"").size();
+    const auto last = svg.find('"', first);
+    return last == std::string::npos ? std::string{} : svg.substr(first, last - first);
+}
+}
+
+TEST_CASE("a horizontal gradient is a linearGradient the rect fills with") {
+    prism::DrawList dl;
+    dl.gradient_rect(R(10, 20, 100, 50), prism::Gradient{prism::Color::rgba(44, 160, 178),
+                                                         prism::Color::rgba(59, 130, 246)});
+    auto svg = prism::to_svg(dl);
+
+    CHECK(svg.find("<defs>") != std::string::npos);
+    CHECK(svg.find("<linearGradient") != std::string::npos);
+    CHECK(svg.find("x1=\"0\"") != std::string::npos);
+    CHECK(svg.find("x2=\"1\"") != std::string::npos);
+    CHECK(svg.find("y2=\"0\"") != std::string::npos);
+    CHECK(svg.find("stop-color=\"rgba(44,160,178,1)\"") != std::string::npos);
+    CHECK(svg.find("stop-color=\"rgba(59,130,246,1)\"") != std::string::npos);
+
+    const auto id = gradient_id(svg);
+    REQUIRE_FALSE(id.empty());
+    CHECK(svg.find("fill=\"url(#" + id + ")\"") != std::string::npos);
+    CHECK(svg.find("x=\"10\"") != std::string::npos);
+    CHECK(svg.find("width=\"100\"") != std::string::npos);
+}
+
+TEST_CASE("a vertical gradient runs down the rect") {
+    prism::DrawList dl;
+    dl.gradient_rect(R(0, 0, 40, 80), prism::Gradient{prism::Color::rgba(1, 2, 3), prism::Color::rgba(4, 5, 6),
+                                                      prism::Gradient::Axis::vertical});
+    auto svg = prism::to_svg(dl);
+    CHECK(svg.find("y1=\"0\"") != std::string::npos);
+    CHECK(svg.find("y2=\"1\"") != std::string::npos);
+    CHECK(svg.find("x2=\"0\"") != std::string::npos);
+}
+
+TEST_CASE("a rounded gradient keeps its corners, and a solid one stays a plain rect") {
+    prism::DrawList dl;
+    dl.gradient_rect(R(0, 0, 60, 30), prism::Gradient{prism::Color::rgba(10, 20, 30), prism::Color::rgba(40, 50, 60)}, 8.f);
+    auto svg = prism::to_svg(dl);
+    CHECK(svg.find("rx=\"8\"") != std::string::npos);
+
+    prism::DrawList flat;
+    flat.gradient_rect(R(0, 0, 60, 30), prism::Gradient{prism::Color::rgba(10, 20, 30), prism::Color::rgba(10, 20, 30)});
+    auto flat_svg = prism::to_svg(flat);
+    CHECK(flat_svg.find("<linearGradient") == std::string::npos);   // one colour: nothing to run
+    CHECK(flat_svg.find("fill=\"rgba(10,20,30,1)\"") != std::string::npos);
+}

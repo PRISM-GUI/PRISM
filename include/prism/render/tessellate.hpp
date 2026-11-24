@@ -108,9 +108,27 @@ struct Builder {
         vertex(c.x, c.y, col);
     }
 
+    // Triangle-strip order, as the SDL backend draws it, with a colour per corner where it applies
     void quad(Vec2 a, Vec2 b, Vec2 c, Vec2 d, Color col) {   // a b c d around the quad
         triangle(a, b, c, col);
         triangle(a, c, d, col);
+    }
+
+    void quad(Vec2 a, Vec2 b, Vec2 c, Vec2 d, Color ca, Color cb, Color cc, Color cd) {
+        vertex(a.x, a.y, ca);
+        vertex(b.x, b.y, cb);
+        vertex(c.x, c.y, cc);
+        vertex(a.x, a.y, ca);
+        vertex(c.x, c.y, cc);
+        vertex(d.x, d.y, cd);
+    }
+
+    // A mesh whose vertices take the colour of the gradient under them: the ramp is per vertex.
+    void gradient_mesh(const ShapeMesh& m, const GradientRect& g) {
+        for (int i : m.indices) {
+            const auto& v = m.vertices[i];
+            vertex(v.x, v.y, gradient_at(g, v.x, v.y), v.alpha);
+        }
     }
 
     void rect(float x, float y, float w, float h, Color col) {
@@ -152,6 +170,24 @@ struct Builder {
         }
         auto outline = rounded_rect_outline(c.rect, c.radius);
         mesh(c.thickness > 0.f ? stroke_closed(outline, c.thickness) : fill_convex(outline), c.color);
+    }
+    // A gradient interpolates across the shape: one quad with a colour per corner, or a rounded
+    // mesh whose vertices take the colour under them. Both ends of the ramp stay exact.
+    void add(const GradientRect& c) {
+        const float x0 = c.rect.origin.x.raw(), y0 = c.rect.origin.y.raw();
+        const float x1 = x0 + c.rect.extent.w.raw(), y1 = y0 + c.rect.extent.h.raw();
+        if (x1 <= x0 || y1 <= y0) return;   // nothing to fill
+        if (c.from == c.to) {
+            add(FilledRect{c.rect, c.from});
+            return;
+        }
+        if (c.radius > 0.5f) {
+            gradient_mesh(fill_convex(rounded_rect_outline(c.rect, c.radius)), c);
+            return;
+        }
+        quad({x0, y0}, {x1, y0}, {x1, y1}, {x0, y1},
+             gradient_at(c, x0, y0), gradient_at(c, x1, y0),
+             gradient_at(c, x1, y1), gradient_at(c, x0, y1));
     }
     void add(const Circle& c) {
         auto outline = circle_outline(c.center, c.radius, 4 * arc_segments(c.radius));

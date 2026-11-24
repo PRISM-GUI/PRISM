@@ -41,6 +41,7 @@ inline std::string xml_escape(const std::string& s) {
 struct SvgEmitter {
     std::ostringstream out;
     int clip_id = 0;
+    int gradient_id = 0;
 
     void emit(const FilledRect& c) {
         out << "<rect x=\"" << fmt_float(c.rect.origin.x.raw())
@@ -73,6 +74,30 @@ struct SvgEmitter {
         } else {
             out << " fill=\"" << fmt_color(c.color) << "\"";
         }
+        out << "/>\n";
+    }
+
+    // A gradient is a <linearGradient> in a <defs> beside the rect that references it: the
+    // gradient box runs from one edge to the other (objectBoundingBox, the SVG default). Two
+    // equal stops are a solid fill, so the classic look stays one plain <rect>.
+    void emit(const GradientRect& c) {
+        const bool horizontal = c.axis == Gradient::Axis::horizontal;
+        const int id = gradient_id++;
+        if (c.from != c.to) {
+            out << "<defs><linearGradient id=\"g-" << id
+                << "\" x1=\"0\" y1=\"0\" x2=\"" << (horizontal ? "1" : "0")
+                << "\" y2=\"" << (horizontal ? "0" : "1") << "\">\n"
+                << "<stop offset=\"0\" stop-color=\"" << fmt_color(c.from) << "\"/>\n"
+                << "<stop offset=\"1\" stop-color=\"" << fmt_color(c.to) << "\"/>\n"
+                << "</linearGradient></defs>\n";
+        }
+        out << "<rect x=\"" << fmt_float(c.rect.origin.x.raw())
+            << "\" y=\"" << fmt_float(c.rect.origin.y.raw())
+            << "\" width=\"" << fmt_float(c.rect.extent.w.raw())
+            << "\" height=\"" << fmt_float(c.rect.extent.h.raw()) << "\"";
+        if (c.radius > 0.f) out << " rx=\"" << fmt_float(c.radius) << "\"";
+        if (c.from == c.to) out << " fill=\"" << fmt_color(c.from) << "\"";
+        else out << " fill=\"url(#g-" << id << ")\"";
         out << "/>\n";
     }
 

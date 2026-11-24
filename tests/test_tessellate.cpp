@@ -187,3 +187,86 @@ TEST_CASE("a hairline stays a plain quad, so 1 px rules stay crisp") {
     CHECK(t.vertices.size() == 6);
     for (auto& v : t.vertices) CHECK(v.a == 1.f);
 }
+
+TEST_CASE("a gradient rect is one quad with a colour per corner") {
+    const Color teal = Color::rgba(44, 160, 178);
+    const Color blue = Color::rgba(59, 130, 246);
+    DrawList dl;
+    dl.gradient_rect(R(10, 20, 100, 40), Gradient{teal, blue});
+    auto snap = one_list(std::move(dl));
+    auto t = tessellate(snap);
+    REQUIRE(t.vertices.size() == 6);
+    CHECK(t.batches[0].count == 6);
+    auto corner = [&](float x, float y) {
+        for (auto& v : t.vertices)
+            if (std::abs(v.x - x) < 0.01f && std::abs(v.y - y) < 0.01f) return v;
+        return Vertex{};
+    };
+    const auto left = corner(10.f, 20.f);
+    const auto right = corner(110.f, 20.f);
+    CHECK(left.r == doctest::Approx(44.f / 255.f));
+    CHECK(left.g == doctest::Approx(160.f / 255.f));
+    CHECK(left.b == doctest::Approx(178.f / 255.f));
+    CHECK(right.r == doctest::Approx(59.f / 255.f));
+    CHECK(right.b == doctest::Approx(246.f / 255.f));
+    CHECK(left.a == 1.f);
+    CHECK(corner(10.f, 60.f).b == doctest::Approx(178.f / 255.f));   // the left edge keeps one colour
+}
+
+TEST_CASE("a vertical gradient rect runs down the rect") {
+    const Color teal = Color::rgba(44, 160, 178);
+    const Color blue = Color::rgba(59, 130, 246);
+    DrawList dl;
+    dl.gradient_rect(R(10, 20, 100, 40), Gradient{teal, blue, Gradient::Axis::vertical});
+    auto snap = one_list(std::move(dl));
+    auto t = tessellate(snap);
+    REQUIRE(t.vertices.size() == 6);
+    float top = 0.f, bottom = 0.f;
+    for (auto& v : t.vertices) {
+        if (v.y == 20.f) top = v.b;
+        if (v.y == 60.f && v.x == 10.f) bottom = v.b;
+    }
+    CHECK(top == doctest::Approx(178.f / 255.f));
+    CHECK(bottom == doctest::Approx(246.f / 255.f));
+}
+
+TEST_CASE("a gradient rect draws nothing at zero size, and a solid one is a filled rect") {
+    const Color teal = Color::rgba(44, 160, 178);
+    const Color blue = Color::rgba(59, 130, 246);
+    {
+        DrawList dl;
+        dl.gradient_rect(R(5, 5, 0, 30), Gradient{teal, blue});
+        dl.gradient_rect(R(5, 5, 30, 0), Gradient{teal, blue});
+        auto snap = one_list(std::move(dl));
+        auto t = tessellate(snap);
+        CHECK(t.vertices.empty());
+        CHECK(t.batches.empty());
+    }
+    {
+        DrawList dl;
+        dl.gradient_rect(R(10, 20, 30, 40), Gradient{teal, teal});
+        auto snap = one_list(std::move(dl));
+        auto t = tessellate(snap);
+        REQUIRE(t.vertices.size() == 6);
+        CHECK(t.vertices[0].b == doctest::Approx(178.f / 255.f));
+    }
+}
+
+TEST_CASE("a rounded gradient mesh keeps the ramp and the fringe") {
+    const Color teal = Color::rgba(44, 160, 178);
+    const Color blue = Color::rgba(59, 130, 246);
+    DrawList dl;
+    dl.gradient_rect(R(10, 20, 100, 40), Gradient{teal, blue}, 8.f);
+    auto snap = one_list(std::move(dl));
+    auto t = tessellate(snap);
+    CHECK(t.vertices.size() > 6);
+    bool fades = false;
+    bool ramps = true;
+    for (auto& v : t.vertices) {
+        if (v.a == 0.f) fades = true;
+        const float along = std::clamp((v.x - 10.f) / 100.f, 0.f, 1.f);
+        if (std::abs(v.b - (178.f + 68.f * along) / 255.f) > 4.f / 255.f) ramps = false;
+    }
+    CHECK(fades);   // the outline's antialiased edge still fades
+    CHECK(ramps);   // and every vertex sits at its own place on the ramp
+}

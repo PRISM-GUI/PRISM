@@ -39,6 +39,7 @@ private:
     void rasterise(const ClipPush&) {}    // POC: skip clipping
     void rasterise(const ClipPop&) {}     // POC: skip clipping
     void rasterise(const RoundedRect&) {} // POC: skip rounded rects
+    void rasterise(const GradientRect&) {} // stub: gradients, Task 3
     void rasterise(const Line&) {}        // POC: skip lines
     void rasterise(const Polyline&) {}    // POC: skip polylines
     void rasterise(const Circle&) {}      // POC: skip circles

@@ -55,6 +55,10 @@ std::string cmd_text(const prism::DrawCmd& cmd) {
         else if constexpr (std::is_same_v<T, prism::RoundedRect>)
             return fmt::format("RoundedRect rect={} color={} radius={:.1f} thickness={:.1f}",
                 rect_text(c.rect), color_hex(c.color), c.radius, c.thickness);
+        else if constexpr (std::is_same_v<T, prism::GradientRect>)
+            return fmt::format("GradientRect rect={} from={} to={} axis={} radius={:.1f}",
+                rect_text(c.rect), color_hex(c.from), color_hex(c.to),
+                c.axis == prism::Gradient::Axis::horizontal ? "horizontal" : "vertical", c.radius);
         else if constexpr (std::is_same_v<T, prism::Line>)
             return fmt::format("Line from=({:.1f},{:.1f}) to=({:.1f},{:.1f}) color={} thickness={:.1f}",
                 c.from.x.raw(), c.from.y.raw(), c.to.x.raw(), c.to.y.raw(),

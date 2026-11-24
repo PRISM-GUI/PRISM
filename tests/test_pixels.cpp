@@ -462,3 +462,68 @@ TEST_CASE("an rgb565 image and its rgba8888 conversion render the same pixels") 
         for (int x = 0; x < packed_frame.w; ++x) differing += packed_frame.differs(rgba_frame, x, y, 3) ? 1 : 0;
     CHECK(differing == 0);
 }
+
+namespace {
+
+// A widget that is nothing but a gradient: the draw command through the real renderer.
+struct GradientBox {
+    prism::render::Gradient fill;
+    bool operator==(const GradientBox&) const = default;
+};
+
+} // namespace
+
+namespace prism::ui {
+template <>
+struct Widget<GradientBox> {
+    static constexpr FocusPolicy focus_policy = FocusPolicy::none;
+
+    static void record(DrawList& dl, const Field<GradientBox>& f, WidgetNode& node) {
+        // A fixed box: a leaf is measured from what it draws, and its allocation is 0 x 0 then.
+        (void)node;
+        const Rect box{Point{X{0}, Y{0}}, Size{Width{240}, Height{40}}};
+        dl.gradient_rect(box, value(f).fill);
+    }
+    static void handle_input(Field<GradientBox>&, const InputEvent&, WidgetNode&) {}
+};
+} // namespace prism::ui
+
+namespace {
+
+struct GradientModel {
+    Field<GradientBox> box{GradientBox{prism::render::Gradient{prism::Color::rgba(44, 160, 178),
+                                                               prism::Color::rgba(59, 130, 246)}}};
+    void view(WidgetTree::ViewBuilder& vb) { vb.widget(box); }
+};
+
+bool near(const std::uint8_t* px, prism::Color want, int tol) {
+    for (int k = 0; k < 3; ++k) {
+        const int got = k == 0 ? px[0] : (k == 1 ? px[1] : px[2]);
+        const int expected = k == 0 ? want.r : (k == 1 ? want.g : want.b);
+        if (std::abs(got - expected) > tol) return false;
+    }
+    return true;
+}
+
+} // namespace
+
+TEST_CASE("a gradient renders from its start colour to its end colour") {
+    Rig rig;
+    GradientModel model;
+    WidgetTree tree{model};
+    const Frame frame = rig.render<GradientModel>(tree, 1.f, "gradient", 240, 40);
+
+    const prism::Color from = prism::Color::rgba(44, 160, 178);
+    const prism::Color to = prism::Color::rgba(59, 130, 246);
+    const prism::Color middle = prism::Color::rgba(51, 145, 212);
+    const int y = frame.h / 2;
+
+    CHECK(near(frame.at(4, y), from, 24));
+    CHECK(near(frame.at(frame.w / 2, y), middle, 24));
+    CHECK(near(frame.at(frame.w - 5, y), to, 24));
+    CHECK(std::abs(frame.at(4, y)[2] - frame.at(frame.w - 5, y)[2]) > 20);   // it really runs
+
+    const auto* top = frame.at(frame.w / 2, y);
+    const auto* bottom = frame.at(frame.w / 2, std::min(frame.h - 5, y + 6));
+    CHECK(std::abs(top[2] - bottom[2]) <= 3);   // a horizontal gradient does not change down a column
+}
