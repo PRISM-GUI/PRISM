@@ -20,6 +20,10 @@
 > [!WARNING]
 > PRISM is an R&D project. Nothing here is production-ready yet.
 
+<p align="center">
+  <img src="doc/screenshots/struct_to_ui.svg" alt="A plain C++ struct on the left and the UI PRISM makes from it on the right: each member's line points at its labelled row (text field, number, checkbox, dropdown, number)" width="860"/>
+</p>
+
 ```cpp
 #include <prism/prism.hpp>
 using namespace prism;   // the snippets below assume it: names read core::Field, ui::Slider, app::run

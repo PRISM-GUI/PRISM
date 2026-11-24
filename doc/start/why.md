@@ -18,6 +18,14 @@ This is how PRISM is built, not an option you turn on.
 
 ## Write a struct, get a UI
 
+<img src="../screenshots/struct_to_ui.svg" alt="A plain C++ struct on the left and the UI PRISM makes from it on the right: each member's line points at its labelled row" width="860"/>
+
+Each member of the struct becomes a widget picked for its type, with its name as the caption:
+`std::string` a text field, `int` and `double` number fields, `bool` a checkbox, an `enum` a
+dropdown. The picture is drawn by PRISM itself from the struct shown, so it is exactly what you
+get. A plain struct like this one is shown by `inspector::Inspector` (see the inspector page);
+an app's model of `Field`s gets the same widgets, laid out by `view()` or by reflection.
+
 Here is a whole program:
 
 ```cpp
