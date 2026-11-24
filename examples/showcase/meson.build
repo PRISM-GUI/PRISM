@@ -44,3 +44,14 @@ foreach name, src : showcases
     build_by_default : true,
   )
 endforeach
+
+# The "a struct is a UI" diagram: it reads its own source for the code panel.
+struct_to_ui_exe = executable('showcase_struct_to_ui', 'showcase_struct_to_ui.cpp',
+  dependencies : [prism_dep],
+)
+custom_target('svg_struct_to_ui',
+  output : 'struct_to_ui.svg',
+  command : [struct_to_ui_exe, '@OUTPUT@', files('showcase_struct_to_ui.cpp')],
+  depends : struct_to_ui_exe,
+  build_by_default : true,
+)
