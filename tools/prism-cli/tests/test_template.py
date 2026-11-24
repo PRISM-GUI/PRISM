@@ -23,6 +23,16 @@ DESKTOP_FILES = (
 
 IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
+BOARD_FILES = (
+    "boards/korvo1/CMakeLists.txt",
+    "boards/korvo1/main/CMakeLists.txt",
+    "boards/korvo1/main/main.cpp",
+    "boards/korvo1/sdkconfig.defaults",
+    "scripts/build.sh",
+    "scripts/flash.sh",
+    ".gitmodules",
+)
+
 
 def render(dst: Path, **data: object) -> Path:
     run_copy(str(ROOT), str(dst), data=data, defaults=True, vcs_ref="HEAD", quiet=True)
@@ -74,3 +84,35 @@ def test_no_license_no_ci(tmp_path: Path) -> None:
 
     assert not (out / "LICENSE").exists()
     assert not (out / ".github").exists()
+
+
+def test_esp32_target_renders(tmp_path: Path) -> None:
+    out = render(
+        tmp_path / "board",
+        targets=["desktop", "esp32_korvo1"],
+        project_name="Board Demo",
+    )
+
+    for name in BOARD_FILES:
+        assert (out / name).is_file(), name
+
+    gitmodules = (out / ".gitmodules").read_text()
+    assert "path = subprojects/prism-esp32" in gitmodules
+    assert "url = https://github.com/PRISM-GUI/prism-esp32.git" in gitmodules
+
+    assert "project(board_demo)" in (out / "boards/korvo1/CMakeLists.txt").read_text()
+
+    main = (out / "boards/korvo1/main/main.cpp").read_text()
+    assert "prism/platform/frame_app.hpp" in main
+    assert "BoardDemoModel" in main
+
+    sdkconfig = (out / "boards/korvo1/sdkconfig.defaults").read_text()
+    assert 'CONFIG_IDF_TARGET="esp32s31"' in sdkconfig
+
+
+def test_desktop_only_has_no_board(tmp_path: Path) -> None:
+    out = render(tmp_path / "plain")
+
+    assert not (out / "boards").exists()
+    assert not (out / ".gitmodules").exists()
+    assert not (out / "scripts").exists()

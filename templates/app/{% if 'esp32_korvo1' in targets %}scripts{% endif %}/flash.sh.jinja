@@ -1,0 +1,17 @@
+#!/bin/bash
+# Flash build/{{ project_slug }}.bin to the ESP32-S31-Korvo-1. Pass the serial port as $1 when the
+# board is not the only one plugged in. Needs esptool 5.6 or newer, the first release that knows
+# the ESP32-S31; the console is at 921600 baud.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+image=build/{{ project_slug }}.bin
+[[ -f $image ]] || { echo "$image is missing: run scripts/build.sh first" >&2; exit 1; }
+
+port=${1:-}
+if [[ -z $port ]]; then
+    port=$(ls /dev/ttyUSB* /dev/ttyACM* 2>/dev/null | head -n 1) || true
+fi
+[[ -n $port ]] || { echo "no serial port found: scripts/flash.sh /dev/ttyUSB0" >&2; exit 1; }
+
+esptool.py --chip esp32s31 -p "$port" -b 921600 write_flash 0x0 "$image"

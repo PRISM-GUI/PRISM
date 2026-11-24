@@ -1,0 +1,26 @@
+// {{ project_name }} on the ESP32-S31-Korvo-1's 800x480 panel, through prism-esp32's board port:
+// the panel is the frame's sink, the touch controller is its input, and the model is the one
+// src/model.hpp builds for the desktop.
+
+#include "app_support.hpp"
+#include "band_display.hpp"
+
+#include "model.hpp"
+
+#include <prism/platform/frame_app.hpp>
+
+extern "C" void app_main() {
+    auto display = korvo1::BandDisplay::open();
+    if (!display) korvo1::halt(display.error());
+    korvo1::Touch input = korvo1::open_touch_or_none();
+
+    static {{ project_class }}Model model;
+    prism::platform::frame_app(
+        *display, input, model,
+        [](prism::platform::FrameContext& ctx) {
+            // ctx.on_loop(...) runs on the logic thread at every tick; ctx.on_stats(...) gets
+            // the timing line. The model's own wiring needs neither.
+        },
+        korvo1::pinned_threads());
+    korvo1::halt_runtime_stopped();
+}

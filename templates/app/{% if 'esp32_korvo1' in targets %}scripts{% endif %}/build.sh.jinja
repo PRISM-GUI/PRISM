@@ -1,0 +1,18 @@
+#!/bin/bash
+# Build the Korvo-1 firmware: build/{{ project_slug }}.bin, one image merged at address 0
+# (bootloader, partition table, app). Flash it with scripts/flash.sh.
+# Needs ESP-IDF in the environment (. esp-idf/export.sh) and subprojects/prism-esp32 with its own
+# PRISM checkout (git submodule update --init --recursive).
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+[[ -n ${IDF_PATH:-} ]] || { echo "ESP-IDF is not in the environment: source esp-idf/export.sh" >&2; exit 1; }
+[[ -d subprojects/prism-esp32/boards/korvo1 ]] || {
+    echo "subprojects/prism-esp32 is missing: git submodule update --init --recursive" >&2
+    exit 1
+}
+
+export IDF_TARGET=esp32s31
+idf.py -C boards/korvo1 -B build/korvo1 build
+(cd build/korvo1 && python -m esptool --chip esp32s31 merge-bin -o ../{{ project_slug }}.bin @flash_args)
+echo "build/{{ project_slug }}.bin: $(wc -c < build/{{ project_slug }}.bin | tr -d ' ') bytes"

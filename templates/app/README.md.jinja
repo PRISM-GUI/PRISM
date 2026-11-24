@@ -22,6 +22,28 @@ meson test -C builddir
 The window comes from `src/model.hpp`. `app::run` builds it from the struct: every
 `core::Field` is a widget, and `core::Derived` is a value that follows the fields it reads.
 
+{% if 'esp32_korvo1' in targets %}
+## The board
+
+`boards/korvo1` runs the same model on the ESP32-S31-Korvo-1's 800x480 touch panel. The board port,
+PRISM and the Bluetooth headset come from
+[prism-esp32](https://github.com/PRISM-GUI/prism-esp32), a submodule at
+`subprojects/prism-esp32`.
+
+Get it, with its own PRISM checkout, then build and flash:
+
+```sh
+git submodule add https://github.com/PRISM-GUI/prism-esp32.git subprojects/prism-esp32
+git submodule update --init --recursive
+. /path/to/esp-idf/export.sh
+scripts/build.sh     # build/{{ project_slug }}.bin
+scripts/flash.sh     # or scripts/flash.sh /dev/ttyUSB0
+```
+
+The console is at 921600 baud. `boards/korvo1/sdkconfig.defaults` carries the board's settings;
+`idf.py -C boards/korvo1 menuconfig` changes them.
+
+{% endif %}
 ## Update the template
 
 ```sh
