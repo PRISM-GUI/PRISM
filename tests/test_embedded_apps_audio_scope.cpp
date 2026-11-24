@@ -270,3 +270,42 @@ TEST_CASE("audio scope: the title shows a stuck input's DC level")
     scope.show_stats("1 fps");
     CHECK(scope.model.title.get().value == "PRISM · queued · 16000 S/s · dc +1.00 · peak 0 dBFS");
 }
+
+namespace {
+// What a frame draws, without the shared_ptr identity: two equal frames compare equal.
+std::vector<std::vector<prism::render::DrawCmd>> frame_of(const prism::render::SceneSnapshot &snap)
+{
+    std::vector<std::vector<prism::render::DrawCmd>> out;
+    for (const auto &dl : snap.draw_lists)
+        out.push_back(dl ? dl->commands : std::vector<prism::render::DrawCmd>{});
+    return out;
+}
+} // namespace
+
+// The STM32F746 board, nothing on A0: "fit" on silence made the two plots flicker between two
+// layouts, one frame each, so the screen showed both at once. Once nothing changes, every frame
+// must draw the same thing.
+TEST_CASE("audio scope: after fit on silence, the frames settle")
+{
+    QueuedSource src;
+    Scope scope{src};
+    prism::app::WidgetTree tree{scope.model};
+    prism::raster::Fonts fonts;
+    tree.set_text_measurer(&fonts);
+    scope.tick();
+    press_fit(scope);
+    std::vector<std::vector<std::vector<prism::render::DrawCmd>>> frames;
+    std::vector<decltype(prism::render::SceneSnapshot::geometry)> geometry;
+    for (int i = 0; i < 8; ++i) {
+        scope.tick();
+        auto snap = tree.build_snapshot(480, 272, 1);
+        REQUIRE(snap != nullptr);
+        frames.push_back(frame_of(*snap));
+        geometry.push_back(snap->geometry);
+    }
+    for (std::size_t i = 4; i < frames.size(); ++i) {
+        INFO("frame ", i);
+        CHECK(geometry[i] == geometry[i - 1]);
+        CHECK(frames[i] == frames[i - 1]);
+    }
+}
