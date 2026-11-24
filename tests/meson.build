@@ -139,6 +139,7 @@ headless_tests = {
   'queued_platform_services' : files('test_queued_platform_services.cpp'),
   'form_widgets' : files('test_form_widgets.cpp'),
   'modern_widgets' : files('test_modern_widgets.cpp'),
+  'modern_containers' : files('test_modern_containers.cpp'),
   'tessellate' : files('test_tessellate.cpp'),
   'channel' : files('test_channel.cpp'),
   'field_mirror' : files('test_field_mirror.cpp'),

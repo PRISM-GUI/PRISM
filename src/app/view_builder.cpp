@@ -29,7 +29,12 @@ void show_selection(WidgetNode& wn, size_t index, Field<std::optional<std::size_
         record(node);
         if (selected.get() != index) return;
         Rect row{Point{X{0}, Y{0}}, Size{delegate_detail::widget_w(node), node.draws.bounding_box().extent.h}};
-        node.draws.filled_rect(row, node_theme(node).text_selection);
+        // A rounded theme rounds the band it paints behind the row; the classic look keeps it square.
+        const Theme& t = node_theme(node);
+        if (t.corner_radius > 0.f)
+            node.draws.rounded_rect(row, t.text_selection, std::min(t.corner_radius, row.extent.h.raw() / 2.f));
+        else
+            node.draws.filled_rect(row, t.text_selection);
     };
     wn.record(wn);
     wn.wire = [wire = std::move(wn.wire), index, &selected, &tree, list_id](WidgetNode& node) {

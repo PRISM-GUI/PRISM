@@ -101,14 +101,25 @@ inline render::DrawList frame_draws(const Framing& f, Size size, const Theme& t)
     case FrameLook::Group: {
         float top = f.title.empty() ? 0.f : frame_detail::title_h;
         if (!f.title.empty()) dl.text(f.title, Point{X{2}, Y{3}}, frame_detail::title_size, t.text_muted);
-        dl.rect_outline(Rect{Point{X{0.5f}, Y{top + 0.5f}}, Size{Width{w - 1}, Height{h - top - 1}}}, t.popup_border, 1.f);
+        const Rect border{Point{X{0.5f}, Y{top + 0.5f}}, Size{Width{w - 1}, Height{h - top - 1}}};
+        // A rounded theme rounds the frame; the classic look (radius 0) keeps its square outline.
+        if (t.corner_radius > 0.f) dl.rounded_rect(border, t.popup_border, t.corner_radius, 1.f);
+        else dl.rect_outline(border, t.popup_border, 1.f);
         break;
     }
-    case FrameLook::Card:
+    case FrameLook::Card: {
         dl.filled_rect(Rect{Point{X{2}, Y{3}}, size}, Color::rgba(0, 0, 0, 40));   // a soft shadow
-        dl.filled_rect(Rect{Point{X{0}, Y{0}}, size}, t.popup_bg);
-        dl.rect_outline(Rect{Point{X{0.5f}, Y{0.5f}}, Size{Width{w - 1}, Height{h - 1}}}, t.popup_border, 1.f);
+        const Rect body{Point{X{0}, Y{0}}, size};
+        const Rect border{Point{X{0.5f}, Y{0.5f}}, Size{Width{w - 1}, Height{h - 1}}};
+        if (t.corner_radius > 0.f) {
+            dl.rounded_rect(body, t.popup_bg, t.corner_radius);
+            dl.rounded_rect(border, t.popup_border, t.corner_radius, 1.f);
+        } else {
+            dl.filled_rect(body, t.popup_bg);
+            dl.rect_outline(border, t.popup_border, 1.f);
+        }
         break;
+    }
     case FrameLook::NodeCard:
         dl.rounded_rect(Rect{Point{X{0}, Y{0}}, size}, t.node_surface, node_card_radius);
         dl.rounded_rect(Rect{Point{X{0.5f}, Y{0.5f}}, Size{Width{w - 1}, Height{h - 1}}}, t.node_border,

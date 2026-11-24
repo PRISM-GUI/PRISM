@@ -88,8 +88,11 @@ inline std::optional<PopupLayout> layout_popup(WidgetNode& root, const LayoutNod
 // a scrim behind a modal popup, the card, then the content clipped to the card.
 inline void flatten_popup(PopupLayout& p, SceneSnapshot& snap, const Theme& theme) {
     if (p.anchor->popup_modal) snap.overlay.filled_rect(Rect{Point{X{0}, Y{0}}, snap.viewport}, theme.scrim);
-    snap.overlay.rounded_rect(p.card, theme.popup_bg, 8.f);
-    snap.overlay.rounded_rect(p.card, theme.popup_border, 8.f, 1.f);
+    // A card has always been rounded; a theme with a radius of its own (the modern looks) sets how
+    // much, and the classic looks keep the 8 they have always had.
+    const float radius = theme.corner_radius > 0.f ? theme.corner_radius : 8.f;
+    snap.overlay.rounded_rect(p.card, theme.popup_bg, radius);
+    snap.overlay.rounded_rect(p.card, theme.popup_border, radius, 1.f);
     snap.overlay_geometry.push_back({p.anchor->id, p.card});   // the card's own background
 
     SceneSnapshot content;

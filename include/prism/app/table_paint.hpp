@@ -55,7 +55,12 @@ inline WidgetNode paint_table_row(TableState& ts, size_t view_pos, const std::ve
                                    : theme.table_row_odd;
     float dx = -ts.scroll_x.raw();
     Width total_w{std::max(edges.back() + dx, ts.viewport_w.raw())};
-    wn.draws.filled_rect(Rect{Point{X{0}, Y{0}}, Size{total_w, ts.row_height}}, bg);
+    const Rect band{Point{X{0}, Y{0}}, Size{total_w, ts.row_height}};
+    // A rounded theme rounds the band under a selected row; the classic look keeps it square.
+    if (is_selected(ts, row) && theme.corner_radius > 0.f)
+        wn.draws.rounded_rect(band, bg, std::min(theme.corner_radius, ts.row_height.raw() / 2.f));
+    else
+        wn.draws.filled_rect(band, bg);
 
     auto shown = shown_columns(ts);
     for (size_t pos = 0; pos < shown.size(); ++pos) {

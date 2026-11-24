@@ -184,8 +184,8 @@ void draw_item(DrawList& dl, const Items& items, std::size_t i, Rect row, bool h
 }
 
 void draw_panel(DrawList& dl, const Items& items, Rect area, std::size_t highlighted, const Theme& t) {
-    dl.filled_rect(area, t.popup_bg);
-    dl.rect_outline(area, t.popup_border, 1.f);
+    delegate_detail::fill_box(dl, area, t.popup_bg, t.corner_radius);
+    delegate_detail::outline_box(dl, area, t.popup_border, 1.f, t.corner_radius);
     for (std::size_t i = 0; i < items.size(); ++i) {
         Rect row{Point{area.origin.x, area.origin.y + DY{row_top(items, i)}}, Size{area.extent.w, row_h(items[i])}};
         draw_item(dl, items, i, row, i == highlighted && selectable(items[i]), t);

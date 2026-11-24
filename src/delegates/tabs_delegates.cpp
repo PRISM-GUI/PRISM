@@ -42,7 +42,10 @@ void tabs_record(DrawList& dl, WidgetNode& node,
     for (auto w : widths)
         total_w += w;
 
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, total_w, tab_h), t.tab_bar_bg);
+    // A pill theme draws the bar as a segmented control: a pill track, each tab a pill in it.
+    const bool pills = t.pill_controls && t.corner_radius > 0.f;
+    const float radius = pills ? tab_h.raw() / 2.f : 0.f;
+    delegate_detail::fill_box(dl, delegate_detail::make_rect(X{0}, Y{0}, total_w, tab_h), t.tab_bar_bg, radius);
 
     es.header_x_ranges.clear();
     es.header_x_ranges.reserve(names.size());
@@ -58,9 +61,15 @@ void tabs_record(DrawList& dl, WidgetNode& node,
         auto bg = is_selected ? t.tab_active_bg
                 : is_hovered  ? t.surface_hover
                 :               t.tab_bar_bg;
-        dl.filled_rect(delegate_detail::make_rect(x, Y{0}, w, tab_h), bg);
+        // A pill theme (the modern looks) shows the selected tab as a rounded segment filled with
+        // the primary gradient; the classic look keeps its flat tab and its accent strip.
+        const bool pill = is_selected && pills;
+        const Rect face = delegate_detail::make_rect(x, Y{0}, w, tab_h);
+        if (pill) delegate_detail::fill_gradient(dl, face, t.primary_fill, radius);
+        else delegate_detail::fill_box(dl, face, bg, radius);
 
-        auto text_color = is_selected ? t.tab_text_active
+        auto text_color = pill ? t.text_on_primary
+                        : is_selected ? t.tab_text_active
                                       : t.tab_text;
         dl.text(names[i], delegate_detail::make_point(x + DX{tab_padding.raw()}, Y{8}), tab_font_size, text_color);
 
@@ -70,7 +79,7 @@ void tabs_record(DrawList& dl, WidgetNode& node,
             draw_close(dl, cx0, es.close_hovered && is_hovered, text_color, t);
         }
 
-        if (is_selected)
+        if (is_selected && !pill)
             dl.filled_rect(delegate_detail::make_rect(x, Y{(tab_h - tab_accent_h).raw()}, w, tab_accent_h),
                            t.tab_accent);
         x += DX{w.raw()};

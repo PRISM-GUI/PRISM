@@ -18,11 +18,23 @@ struct ModernSample {
     core::Field<ui::Button> save{{.text = "Save", .primary = true}};
     core::Field<ui::Button> mute{{.text = "Mute", .primary = false, .checked = true}};
 
+    core::Field<ui::TabBar<>> page;
+
     void view(app::ViewBuilder& vb) {
+        vb.tabs(page, [&] {
+            vb.tab("Audio", [&](app::ViewBuilder& p) { audio(p); });
+            vb.tab("Display", [&](app::ViewBuilder&) {});
+            vb.tab("Network", [&](app::ViewBuilder&) {});
+        });
+    }
+
+    void audio(app::ViewBuilder& vb) {
         vb.vstack([&] {
             vb.widget(search);
-            vb.widget(output);
-            vb.widget(volume);
+            vb.group("Sound", [&] {
+                vb.widget(output);
+                vb.widget(volume);
+            });
             vb.widget(loading);
             vb.hstack([&] {
                 vb.widget(notify);
@@ -40,7 +52,7 @@ struct ModernSample {
 int main(int argc, char* argv[]) {
     ModernSample model;
     const bool light = argc > 2 && std::strcmp(argv[2], "light") == 0;
-    return showcase(argc, argv, model, 420, 340, [light](app::AppContext& ctx) {
+    return showcase(argc, argv, model, 420, 440, [light](app::AppContext& ctx) {
         ctx.set_theme(light ? ui::modern_light_theme() : ui::modern_dark_theme());
     });
 }

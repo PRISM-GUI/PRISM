@@ -94,8 +94,14 @@ inline void draw_tooltip(render::DrawList& dl, std::string_view text, core::Poin
     float line_h = line_height(theme.measurer, font_size);
     core::Size size{Width{widest}, Height{line_h * static_cast<float>(spans.size())}};
     auto r = tooltip_rect(pointer, size, window);
-    dl.filled_rect(r, theme.popup_bg);
-    dl.rect_outline(r, theme.popup_border, 1.f);
+    // A rounded theme rounds the box; the classic look (radius 0) keeps the square one.
+    if (theme.corner_radius > 0.f) {
+        dl.rounded_rect(r, theme.popup_bg, theme.corner_radius);
+        dl.rounded_rect(r, theme.popup_border, theme.corner_radius, 1.f);
+    } else {
+        dl.filled_rect(r, theme.popup_bg);
+        dl.rect_outline(r, theme.popup_border, 1.f);
+    }
     for (std::size_t i = 0; i < spans.size(); ++i)
         dl.text(std::string(tooltip_line(text, spans[i])),
                 core::Point{r.origin.x + DX{pad_x}, r.origin.y + DY{pad_y + line_h * static_cast<float>(i)}},
