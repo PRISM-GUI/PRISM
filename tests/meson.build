@@ -39,6 +39,7 @@ headless_tests = {
   'state' : files('test_state.cpp'),
   'list' : files('test_list.cpp'),
   'reflect' : files('test_reflect.cpp'),
+  'umbrella' : files('test_umbrella.cpp'),
   'widget_tree' : files('test_widget_tree.cpp'),
   'widget' : files('test_widget.cpp'),
   'exec' : files('test_exec.cpp'),

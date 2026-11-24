@@ -19,6 +19,8 @@
 #include <prism/core/exec.hpp>
 #include <prism/core/on.hpp>
 #include <prism/core/reflect.hpp>
+#include <prism/core/reflect_annotations.hpp>
+#include <prism/core/error_hub.hpp>
 
 // render
 #include <prism/render/draw_list.hpp>
