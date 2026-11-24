@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from prism_cli import __version__, fault
+from prism_cli import __version__, fault, size
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,6 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
         "report", nargs="?", help="the report file; standard input when omitted"
     )
     fault.set_defaults(handler=_fault)
+
+    size = commands.add_parser("size", help="size per origin, from a linker map")
+    size.add_argument("map", help="the GNU ld map file")
+    size.add_argument("--top", type=int, default=10, help="how many sections to list")
+    size.set_defaults(handler=_size)
 
     return parser
 
@@ -47,6 +52,17 @@ def _fault(args: argparse.Namespace) -> int:
 
     for frame in frames:
         print(f"0x{frame.address:08x}  {frame.function}  {frame.location}")
+    return 0
+
+
+def _size(args: argparse.Namespace) -> int:
+    try:
+        sections = size.parse_map(Path(args.map).read_text(errors="replace"))
+    except (size.SizeError, OSError) as error:
+        print(f"prism size: {error}", file=sys.stderr)
+        return 2
+
+    print(size.report(sections, args.top))
     return 0
 
 

@@ -1,0 +1,47 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x08000000         0x00100000         xr
+RAM              0x20010000         0x00040000         xrw
+SDRAM            0xc0100000         0x00700000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /home/coder/opt/arm-gcc-threads-sp/lib/gcc/arm-none-eabi/15.2.0/crt0.o
+                0x08000000                _sflash = .
+
+.text           0x08000200    0x000d00
+ *(.text*)
+ .text.prism_widget_tree
+                0x08000200      0x400 subprojects/prism/src/libprism.a(app_widget_tree.cpp.o)
+ .text.prism_level
+                0x08000600      0x300 subprojects/prism/src/libprism.so.p/ui_level.cpp.o
+ .text.app_main 0x08000900      0x200 stm32f746g_disco.elf.p/boards_stm32f746g_disco_main.cpp.o
+ .text.std_string
+                0x08000b00      0x300 /usr/local/arm-none-eabi/lib/libstdc++.a(string.o)
+ .text.freertos_tasks
+                0x08000e00      0x100 libfreertos_board.a.p/subprojects_prism_subprojects_freertos-kernel_tasks.c.o
+                0x08000f00                _etext = .
+
+.data           0x20010000      0x100 load address 0x08000f00
+ *(.data*)
+ .data.prism_theme
+                0x20010000       0x80 subprojects/prism/src/libprism.a(ui_theme.cpp.o)
+ .data.app_config
+                0x20010080       0x80 stm32f746g_disco.elf.p/boards_stm32f746g_disco_main.cpp.o
+
+.bss            0x20010100     0x2000 load address 0x08001000
+                0x20010100                _sbss = .
+ *(.bss*)
+ .bss.prism_registry
+                0x20010100      0x800 subprojects/prism/src/libprism.a(app_registry.cpp.o)
+ .bss.freertos_ready
+                0x20010900      0x100 libfreertos_board.a.p/subprojects_prism_subprojects_freertos-kernel_tasks.c.o
+
+.sdram_heap     0xc0100000   0x100000
+                0xc0100000                _sdram_heap_start = .
+ *(.sdram_heap)
+ .sdram_heap    0xc0100000   0x100000 libboard_objects.a.p/boards_stm32f746g_disco_freertos_hooks.c.o
+                0xc0200000                _sdram_heap_end = .

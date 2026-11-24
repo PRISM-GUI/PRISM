@@ -1,0 +1,38 @@
+Discarded input sections
+
+ .text          0x0000000000000000       0x10 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+dp/hard/crti.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x0000000008000000 0x0000000000100000 xr
+RAM              0x0000000020000000 0x0000000000080000 xrw
+
+Linker script and memory map
+
+LOAD /home/x/prism/ports/qemu_mps2/mps2.ld
+
+.text           0x08000000   0x1750
+ *(.text*)
+ .text.prism_level
+                0x08000100      0x140 /home/x/app/build/subprojects/prism/src/libprism.so.p/ui_level.cpp.o
+ .text.prism_widget_tree
+                0x08000240      0x300 /home/x/app/build/subprojects/prism/src/libprism.so.p/app_widget_tree.cpp.o
+ .text.prism_field         0x08000540      0x100 /home/x/app/build/subprojects/prism/src/core/field.cpp.o
+ .text.level_now           0x08000640       0x40 /home/x/app/build/src/main.cpp.o
+ .text.std_string
+                0x08000680      0x400 /usr/local/arm-none-eabi/lib/libstdc++.a(string.o)
+ .text.gcc_bpabi
+                0x08000a80       0x80 /usr/lib/gcc/arm-none-eabi/13.2.1/libgcc.a(bpabi.o)
+ .text.newlib_memcpy       0x08000b00      0x200 /usr/local/arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+ .text.inter_regular
+                0x08000d00      0x600 /home/x/app/build/fonts/inter_regular.cpp.o
+ .text.freertos_tasks      0x08001300      0x180 /home/x/app/build/subprojects/freertos-kernel/tasks.cpp.o
+ .text.hal_gpio            0x08001480       0x90 /home/x/app/build/components/stm32-hal/hal_gpio.cpp.o
+ .text.cmsis_fft           0x08001510      0x120 /home/x/app/build/components/cmsis-dsp/arm_fft.cpp.o
+ .text.third_party         0x08001630       0x20 /home/x/app/build/third_party/foo/bar.cpp.o
+ *fill*         0x08001650        0x4
+                0x08001654                _etext = .
+
+.bss            0x20000000       0x10
+                0x20000000                _sbss = .
