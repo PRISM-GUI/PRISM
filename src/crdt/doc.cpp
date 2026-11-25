@@ -21,8 +21,8 @@ namespace prism::crdt {
 
 namespace {
 
-// One field bound to one key of the root map: how to write a value into it, and the connection
-// that carries its edits the other way.
+// One field bound to one key of the root map (a nested struct's key is dotted: "in.on"): how to
+// write a value into it, and the connection that carries its edits the other way.
 struct Binding {
     std::string key;
     std::function<bool(const Value&)> write;
@@ -55,10 +55,14 @@ YInput input_for(const Value& value) {
     return yinput_undefined();
 }
 
+std::string join_key(std::string_view map_path, std::string_view key) {
+    return map_path.empty() ? std::string(key) : std::string(map_path) + '.' + std::string(key);
+}
+
 std::optional<Value> current_value(YDoc* doc, const Branch* map, const char* key) {
     YTransaction* txn = ydoc_read_transaction(doc);
-    YOutput* output = ymap_get(map, txn, key);
     std::optional<Value> result;
+    YOutput* output = ymap_get(map, txn, key);
     if (output != nullptr) {
         result = output_value(*output);
         youtput_destroy(output);
@@ -67,9 +71,9 @@ std::optional<Value> current_value(YDoc* doc, const Branch* map, const char* key
     return result;
 }
 
-void write_value(YDoc* doc, Branch* map, const char* key, const Value& value) {
-    YInput input = input_for(value);
+void write_value(YDoc* doc, const Branch* map, const char* key, const Value& value) {
     YTransaction* txn = ydoc_write_transaction(doc, 0, nullptr);
+    YInput input = input_for(value);
     ymap_insert(map, txn, key, &input);
     ytransaction_commit(txn);
 }
@@ -156,22 +160,26 @@ std::string Doc::to_json() const {
     return result;
 }
 
-void Doc::bind_value(std::string_view key, std::function<bool(const Value&)> write,
-                     core::Connection changed) {
-    const std::string name(key);
-    // Binding never writes. A key the map holds replaces the field's value; an absent one leaves the
+Doc::Map Doc::map(std::string_view key) { return Map(*this, std::string(key)); }
+
+Doc::Map Doc::Map::map(std::string_view key) const { return Map(*owner_, join_key(path_, key)); }
+
+void Doc::bind_value(std::string_view map_path, std::string_view key,
+                     std::function<bool(const Value&)> write, core::Connection changed) {
+    // A nested struct's fields are keys of the root map with a dotted name: creating a nested Yrs
+    // map lazily loses an edit when two replicas each create one for the same key.
+    const std::string name = join_key(map_path, key);
+    // Binding never writes: a key the map holds replaces the field's value, an absent one leaves the
     // field as the code set it, so a joining peer cannot push its defaults over a peer's values.
-    if (const std::optional<Value> stored =
-            current_value(impl_->doc, impl_->root_map, name.c_str())) {
+    if (const std::optional<Value> stored = current_value(impl_->doc, impl_->root_map, name.c_str())) {
         write(*stored);
     }
     impl_->bindings.push_back(Binding{name, std::move(write), std::move(changed)});
 }
 
-void Doc::field_changed(std::string_view key, const Value& value) {
-    const std::string name(key);
-    if (const std::optional<Value> stored =
-            current_value(impl_->doc, impl_->root_map, name.c_str())) {
+void Doc::field_changed(std::string_view map_path, std::string_view key, const Value& value) {
+    const std::string name = join_key(map_path, key);
+    if (const std::optional<Value> stored = current_value(impl_->doc, impl_->root_map, name.c_str())) {
         // Already there: a remote update that just landed in the field, or its deferred emit after
         // the transaction that carried it. Nothing to write, and nothing to send back.
         if (*stored == value) return;

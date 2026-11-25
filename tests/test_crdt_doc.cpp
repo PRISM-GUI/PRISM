@@ -278,6 +278,35 @@ TEST_CASE("an unbound crdt::Field behaves as core::Field") {
     CHECK(observed == 3);
 }
 
+TEST_CASE("two replicas can each write a different member of one nested struct") {
+    // Unwired, each replica writes a different member of the same nested struct. Under a nested Yrs
+    // map each replica would create its own map for "in" and one of the two would lose the merge.
+    // A dotted key is a plain key of the root map, so both writes survive it.
+    Doc a;
+    Doc b;
+    Field<bool> on_a;
+    Field<int> level_a;
+    Field<bool> on_b;
+    Field<int> level_b;
+    a.map("in").bind("on", on_a);
+    a.map("in").bind("level", level_a);
+    b.map("in").bind("on", on_b);
+    b.map("in").bind("level", level_b);
+
+    on_a = true;
+    level_b = 5;
+
+    const auto from_a = a.encode_since(b.state_vector());
+    const auto from_b = b.encode_since(a.state_vector());
+    a.apply_update(from_b);
+    b.apply_update(from_a);
+
+    CHECK(on_a.get() == true);
+    CHECK(on_b.get() == true);
+    CHECK(level_a.get() == 5);
+    CHECK(level_b.get() == 5);
+}
+
 TEST_CASE("an integer travels as a Yjs number") {
     // A Yjs number is a double, and a JS peer reads a Yrs long as a BigInt: so a whole number a
     // double holds exactly leaves as a number, and a wider one as decimal text.

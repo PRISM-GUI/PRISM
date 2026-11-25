@@ -386,6 +386,12 @@ if prism_crdt_dep.found()
     dependencies : [prism_crdt_dep, doctest_dep]))
 endif
 
+# The crdt flavor: one model body compiled against core, then against crdt.
+if prism_crdt_dep.found()
+  test('crdt_flavor', executable('test_crdt_flavor', files('test_crdt_flavor.cpp'),
+    dependencies : [prism_crdt_dep, doctest_dep]))
+endif
+
 # net::send / net::Client against an in-process cpp-httplib server on localhost.
 if prism_net_dep.found()
   # httplib's std::regex trips a false -Wmaybe-uninitialized inside libstdc++'s regex automaton

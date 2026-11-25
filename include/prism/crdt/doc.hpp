@@ -163,6 +163,7 @@ bool from_value(const Value& value, T& out) {
 // The key a field is bound to, with the token that says the field is still there. The field's own
 // hub holds this, so the token dies with the field; the Doc keeps the weak side.
 struct Tracked_key {
+    std::string map_path;
     std::string key;
     std::shared_ptr<const bool> alive;
 };
@@ -175,6 +176,8 @@ struct Tracked_key {
 // value. Field<T> values are converted here; libyrs.h never reaches this header.
 class Doc {
 public:
+    class Map;
+
     Doc();
     ~Doc();
     Doc(const Doc&) = delete;
@@ -187,6 +190,30 @@ public:
     // not care which.
     template <typename T>
     void bind(std::string_view key, core::Field<T>& field) {
+        bind_under({}, key, field);
+    }
+
+    // A prefix for the keys of a nested struct: binding "on" under map("in") binds "in.on" in the
+    // root map. A dotted key, not a nested Yrs map: two replicas creating the same nested map each
+    // would keep only one of them, and the other's edits with it.
+    Map map(std::string_view key);
+
+    // A local edit, encoded: what to hand a peer.
+    core::SenderHub<std::span<const std::byte>>& on_update();
+    void apply_update(std::span<const std::byte> update);
+
+    std::vector<std::byte> state_vector() const;
+    std::vector<std::byte> encode_since(std::span<const std::byte> peer_state) const;
+
+    // The root map as JSON: what a peer in another language sees of this document.
+    std::string to_json() const;
+
+private:
+    // bind() for the root map (an empty prefix) and for a dotted prefix under it. The header
+    // converts T to a Value and back, and hands over the connection that reports the field's own
+    // edits, because a SenderHub<const T&> cannot be named without T.
+    template <typename T>
+    void bind_under(std::string_view map_path, std::string_view key, core::Field<T>& field) {
         static_assert(value_detail::shared_scalar<T>,
                       "a crdt field holds an integer, a floating point number, a bool, a "
                       "std::string or a scoped enum, and nothing else");
@@ -202,31 +229,39 @@ public:
             return true;
         };
         core::Connection changed = field.on_change().connect(
-            [this, bound = value_detail::Tracked_key{std::string(key), std::move(alive)}](
-                const T& next) { field_changed(bound.key, value_detail::to_value(next)); });
-        bind_value(key, std::move(write), std::move(changed));
+            [this, bound = value_detail::Tracked_key{std::string(map_path), std::string(key),
+                                                     std::move(alive)}](const T& next) {
+                field_changed(bound.map_path, bound.key, value_detail::to_value(next));
+            });
+        bind_value(map_path, key, std::move(write), std::move(changed));
     }
 
-    // A local edit, encoded: what to hand a peer.
-    core::SenderHub<std::span<const std::byte>>& on_update();
-    void apply_update(std::span<const std::byte> update);
-
-    std::vector<std::byte> state_vector() const;
-    std::vector<std::byte> encode_since(std::span<const std::byte> peer_state) const;
-
-    // The root map as JSON: what a peer in another language sees of this document.
-    std::string to_json() const;
-
-private:
-    // The non-template half of bind(): the header converts T to a Value and back, and hands over
-    // the connection that reports the field's own edits, because a SenderHub<const T&> cannot be
-    // named without T.
-    void bind_value(std::string_view key, std::function<bool(const Value&)> write,
-                    core::Connection changed);
-    void field_changed(std::string_view key, const Value& value);
+    // The non-template half: the header has converted T already.
+    void bind_value(std::string_view map_path, std::string_view key,
+                    std::function<bool(const Value&)> write, core::Connection changed);
+    void field_changed(std::string_view map_path, std::string_view key, const Value& value);
 
     struct Impl;
     std::unique_ptr<Impl> impl_;
+};
+
+// A group of keys in the root map, reached by the dotted prefix that names it.
+class Doc::Map {
+public:
+    template <typename T>
+    void bind(std::string_view key, core::Field<T>& field) {
+        owner_->bind_under(path_, key, field);
+    }
+
+    // A group nested in this one: the prefixes join with a dot.
+    Map map(std::string_view key) const;
+
+private:
+    friend class Doc;
+    Map(Doc& owner, std::string path) : owner_(&owner), path_(std::move(path)) {}
+
+    Doc* owner_;
+    std::string path_;
 };
 
 } // namespace prism::crdt

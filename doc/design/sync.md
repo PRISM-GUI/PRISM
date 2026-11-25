@@ -89,7 +89,9 @@ auto state = doc.state_vector();  auto missing = doc.encode_since(peer_state);  
   `on_change`; it writes the key in a Yrs transaction and emits the encoded update.
 - A remote update sets the field with `set()`, so views and `Derived` follow as for a local edit.
   While the `Doc` applies it, its own change handler ignores the field: no echo back out.
-- Nested structs (reflection tier) become nested maps, keyed by member name.
+- Nested structs (reflection tier) become dotted keys in the root map, `in.on`, `in.deeper.x`, not
+  nested maps: two replicas each creating the same nested map keep one of the two, and lose the
+  other's edits with it, while a dotted key merges like any other key.
 - Binding never writes. A key the Yrs map already holds takes the map's value, so joining a session
   loads its state; an absent one leaves the field alone. Defaults live in the code, so every peer
   starts from the same ones, and a peer that binds before catching up can never push its default
