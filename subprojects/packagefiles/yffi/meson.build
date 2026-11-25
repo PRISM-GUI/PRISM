@@ -18,7 +18,8 @@ yrs_lib = custom_target('yrs',
 cc = meson.get_compiler('c')
 yffi_dep = declare_dependency(
   link_with : yrs_lib,
-  include_directories : include_directories('.'),
+  # System: libyrs.h is generated C (empty structs, C-only idioms) that clang warns about in C++.
+  include_directories : include_directories('.', is_system : true),
   dependencies : [dependency('threads'), cc.find_library('dl', required : false),
                   cc.find_library('m', required : false)],
 )

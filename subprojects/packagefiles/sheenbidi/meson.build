@@ -5,8 +5,15 @@ project('sheenbidi', 'c', version : '3.0.0')
 
 threads_dep = dependency('threads')   # its scratch memory is per thread (pthread keys or TLS)
 
+# Bare metal has no thread-local storage this static, position-independent build can link
+# (__tls_get_addr): there SheenBidi allocates instead of using its per-thread scratch buffers.
+sheenbidi_args = ['-DSB_CONFIG_UNITY']
+if host_machine.system() == 'none'
+  sheenbidi_args += ['-DSB_CONFIG_DISABLE_SCRATCH_MEMORY']
+endif
+
 sheenbidi_lib = static_library('sheenbidi', 'Source/SheenBidi.c',
-  c_args : ['-DSB_CONFIG_UNITY'],
+  c_args : sheenbidi_args,
   include_directories : include_directories('Headers', 'Source'),
   dependencies : threads_dep,
   pic : true,
