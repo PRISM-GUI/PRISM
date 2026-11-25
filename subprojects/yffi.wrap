@@ -1,0 +1,9 @@
+[wrap-file]
+directory = yffi-0.28.2
+source_url = https://static.crates.io/crates/yffi/yffi-0.28.2.crate
+source_filename = yffi-0.28.2.tar.gz
+source_hash = 16beb53f173cf88b319c8e521039b308cbfdd27375e191d71978c6ae9ab54078
+patch_directory = yffi
+
+[provide]
+dependency_names = yffi

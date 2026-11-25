@@ -352,6 +352,22 @@ if host_machine.system() != 'emscripten' and io_on
   endif
 endif
 
+# CRDT (doc/design/sync.md, include/prism/crdt/): model fields shared between replicas, through Yrs
+# and its C ABI, yffi, which cargo builds — the one part of PRISM that needs a Rust compiler.
+# Static, like markdown: libyrs.h's types stay inside this directory, and a wheel needs no extra
+# shared library.
+prism_crdt_dep = dependency('', required : false)
+if crdt_on
+  # Internal: only prism-crdt and its test see libyrs.h, whose types never reach our headers.
+  prism_yrs_internal_dep = dependency('yffi')
+  prism_crdt_lib = static_library('prism-crdt', 'crdt/doc.cpp',
+    dependencies : [prism_core_dep, prism_yrs_internal_dep],
+    install : true,
+  )
+  prism_crdt_dep = declare_dependency(link_with : prism_crdt_lib,
+    dependencies : [prism_core_dep, prism_yrs_internal_dep.partial_dependency(links : true)])
+endif
+
 if sdl_enabled
 # OFL: the licence texts travel with the fonts. Own install tag, so wheels (tags runtime,
 # python-runtime) don't carry a second copy: the Python package ships its own (python/prism).

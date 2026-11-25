@@ -93,6 +93,18 @@ foreach o : ['http', 'io', 'markdown']
   set_variable(o + '_on', opt.enabled() or (opt.auto() and host_machine.system() != 'none'))
 endforeach
 
+# CRDT (doc/design/sync.md): model fields shared between replicas through Yrs, whose C ABI cargo
+# builds (src/meson.build). Rust's runtime wants a hosted target's threads, so bare metal and the
+# browser stay off whatever cargo says; auto otherwise means "on when cargo is here", and asking
+# for it where cargo is missing is an error rather than a silent downgrade to prism::core.
+crdt_opt = get_option('crdt')
+crdt_hosted = host_machine.system() != 'none' and host_machine.system() != 'emscripten'
+if crdt_opt.enabled() and not crdt_hosted
+  error('crdt=enabled needs a hosted target: yffi is not built for bare metal or the browser')
+endif
+cargo = find_program('cargo', required : crdt_opt.enabled())
+crdt_on = (crdt_opt.enabled() or (crdt_opt.auto() and crdt_hosted)) and cargo.found()
+
 prism_inc = include_directories('include')
 
 sdl_opt = get_option('sdl')

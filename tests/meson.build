@@ -374,6 +374,12 @@ if prism_markdown_dep.found()
     dependencies : [prism_markdown_dep, doctest_dep]))
 endif
 
+# yffi's C ABI through prism-crdt: one scalar round-trips through Yrs.
+if prism_crdt_dep.found()
+  test('crdt_smoke', executable('test_crdt_smoke', files('test_crdt_smoke.cpp'),
+    dependencies : [prism_yrs_internal_dep, doctest_dep]))
+endif
+
 # net::send / net::Client against an in-process cpp-httplib server on localhost.
 if prism_net_dep.found()
   # httplib's std::regex trips a false -Wmaybe-uninitialized inside libstdc++'s regex automaton
