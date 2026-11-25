@@ -86,6 +86,7 @@ app/app-context
 
 integrations/http-and-io
 integrations/audio
+integrations/crdt
 integrations/python
 integrations/python-reference
 ```

@@ -13,6 +13,7 @@ subdir('model_lab_bench')
 subdir('model_synth_rack')       # real audio through SDL3
 subdir('model_data_studio')      # SQLite, from WrapDB
 subdir('model_task_runner')
+subdir('crdt_pair')              # two windows, two Doc replicas, one model
 subdir('tour')                   # five short programs, one idea each
 if not is_wasm
   subdir('showcase')             # headless SVG capture tools, not apps
