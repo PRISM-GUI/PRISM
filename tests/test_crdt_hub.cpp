@@ -100,6 +100,23 @@ TEST_CASE("a late joiner gets the hub's full state after the first client is gon
     CHECK(until(pump, [&] { return b_gain.get() == 3.0; }));
 }
 
+TEST_CASE("a late joiner catches up on a document bigger than the send queue's cap") {
+    Doc hub_doc;
+    Field<std::string> hub_notes;
+    hub_doc.bind("notes", hub_notes);
+    Hub hub(hub_doc, local_options());
+    // One catch-up message larger than the backlog cap: it must still go out to an idle peer.
+    hub_notes = std::string(5u << 20, 'x');
+
+    Doc b_doc;
+    Field<std::string> b_notes;
+    b_doc.bind("notes", b_notes);
+    Client b(b_doc, room_url(hub.port(), "room"));
+
+    const Pump pump = [&] { hub.drain(); b.drain(); };
+    CHECK(until(pump, [&] { return b_notes.get().size() == (5u << 20); }));
+}
+
 TEST_CASE("a client dropping mid-session leaves the other syncing") {
     Doc hub_doc;
     Field<double> hub_gain;

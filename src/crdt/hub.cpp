@@ -115,7 +115,10 @@ public:
     bool push(std::span<const std::byte> message) {
         std::lock_guard lock{mutex_};
         if (closed_) return false;
-        if (queued_bytes_ + message.size() > max_queued_bytes) {
+        // The cap bounds the unread backlog, not one message: an idle peer always takes the next
+        // one, or a document grown past the cap could never reach a newcomer (its catch-up is one
+        // message). One incoming message is bounded by CPPHTTPLIB_WEBSOCKET_MAX_PAYLOAD_LENGTH.
+        if (!queue_.empty() && queued_bytes_ + message.size() > max_queued_bytes) {
             close_locked();
             return false;
         }
