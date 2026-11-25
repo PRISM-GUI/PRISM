@@ -29,6 +29,20 @@ struct TextInputs {
 
 `value(name)` reads the text. `set_value(name, "grace")` changes it and keeps the placeholder.
 
+## From a plain string
+
+A plain `Field<std::string>` is a text field with no placeholder:
+
+```cpp
+struct Note {
+    core::Field<std::string> title{"Untitled"};
+    void view(app::ViewBuilder& vb) { vb.widget(title); }
+};
+```
+
+Put `ui::TextField<>` in the field when it needs a placeholder or a length limit, and
+`ui::Label<>` when nobody should type into it.
+
 ## Using it
 
 - Typing, Backspace and Delete edit. The caret steps over whole characters: an accent typed

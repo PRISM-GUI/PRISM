@@ -24,8 +24,9 @@ static_assert(prism::ui::access_role_of<prism::TextField<>>() == Role::TextInput
 static_assert(prism::ui::access_role_of<prism::Password<>>() == Role::PasswordInput);
 static_assert(prism::ui::access_role_of<prism::TextArea<>>() == Role::MultilineTextInput);
 static_assert(prism::ui::access_role_of<prism::Label<>>() == Role::Label);
-static_assert(prism::ui::access_role_of<int>() == Role::Label);
-static_assert(prism::ui::access_role_of<std::string>() == Role::Label);
+static_assert(prism::ui::access_role_of<int>() == Role::SpinButton);            // a plain number edits as a spin box
+static_assert(prism::ui::access_role_of<double>() == Role::SpinButton);
+static_assert(prism::ui::access_role_of<std::string>() == Role::TextInput);     // a plain string edits as a text field
 static_assert(prism::ui::access_role_of<prism::TabBar<>>() == Role::TabList);
 static_assert(static_cast<int>(Role::Button) == 18 && static_cast<int>(Role::Slider) == 113);
 

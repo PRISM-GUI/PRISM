@@ -132,4 +132,22 @@ void Widget<ProgressBar>::record(DrawList& dl, const Field<ProgressBar>& f, Widg
     }
 }
 
+namespace spin_detail {
+
+void draw(DrawList& dl, std::string_view shown, bool typing, WidgetNode& node) {
+    const auto& t = node_theme(node);
+    auto& vs = node_vs(node);
+    float w = delegate_detail::widget_w(node).raw();
+    delegate_detail::fill_widget_bg(dl, node, Height{widget_h});
+    dl.text(std::string(shown), Point{X{pad}, Y{7}}, font_size, typing ? t.accent : t.text);
+    float sx = w - stepper_w;
+    dl.filled_rect(Rect{Point{X{sx}, Y{0}}, Size{Width{1}, Height{widget_h}}}, t.border);
+    float cx = sx + stepper_w / 2, a = 4.f;
+    dl.filled_polygon({Point{X{cx - a}, Y{11}}, Point{X{cx + a}, Y{11}}, Point{X{cx}, Y{6}}}, t.text);
+    dl.filled_polygon({Point{X{cx - a}, Y{19}}, Point{X{cx + a}, Y{19}}, Point{X{cx}, Y{24}}}, t.text);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, Width{w}, Height{widget_h}, t);
+}
+
+} // namespace spin_detail
+
 } // namespace prism::ui

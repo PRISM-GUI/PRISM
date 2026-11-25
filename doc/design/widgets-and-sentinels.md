@@ -112,7 +112,7 @@ Usage in model structs:
 enum class Theme { Light, Dark, System };
 
 struct Settings {
-    Field<std::string>           username{"ada"};                        // → read-only string display
+    Field<std::string>           username{"ada"};                        // → text input (editable)
     Field<TextField<>>           search{{.placeholder = "Search..."}};        // → editable text field
     Field<Label<>>               status{{"OK"}};                             // → read-only label
     Field<Password<>>            secret{{.placeholder = "API key"}};          // → masked text input
@@ -204,8 +204,8 @@ When no sentinel is used, `Field<T>` uses the default widget for `T`:
 | `Field<T>` type | Concept matched | Default widget | Status |
 |---|---|---|---|
 | `Field<bool>` | `Widget<bool>` | Checkbox | **Implemented** |
-| `Field<std::string>` | `StringLike` | Read-only text display | **Implemented** |
-| `Field<int>`, `Field<double>` | `Numeric` | Read-only number display | **Implemented** |
+| `Field<std::string>` | `StringLike` | Single-line text field, no placeholder; a borrowed view (`string_view`) stays text | **Implemented** |
+| `Field<int>`, `Field<double>` | `Numeric` | Spin box over the whole range of the type, step 1 | **Implemented** |
 | `Field<ScopedEnum>` | `ScopedEnum` concept | Auto-dropdown via P2996 `enumerators_of` (or magic_enum) | **Implemented** |
 | `Field<Color>` | `Widget<Color>` | Swatch + hex code; popup with a hue bar and a saturation/value square | **Implemented** |
 | `Field<std::chrono::year_month_day>` | `Widget<year_month_day>` | ISO date; popup with a month calendar | **Implemented** |

@@ -853,7 +853,9 @@ public:
         container.vlist_bind_row = [&items, on_row_click, shifted_at, &tree = tree_](WidgetNode& wn, size_t index) {
             auto field_ptr = std::make_shared<Field<T>>(items[index]);
             wn.edit_state = std::shared_ptr<void>(field_ptr);
-            wn.focus_policy = Widget<T>::focus_policy;
+            // A row shows a value: a plain number or string is drawn as text, not as the spin box
+            // or text field the same type makes in a form.
+            wn.focus_policy = PlainValue<T> ? FocusPolicy::none : Widget<T>::focus_policy;
             wn.dirty = true;
             wn.is_container = false;
             wn.draws.clear();
@@ -861,15 +863,20 @@ public:
             wn.record = [field_ptr](WidgetNode& node) {
                 node.draws.clear();
                 node.overlay_draws.clear();
-                Widget<T>::record(node.draws, *field_ptr, node);
+                if constexpr (PlainValue<T>)
+                    delegate_detail::draw_value_text(node.draws, value_text(field_ptr->get()), node);
+                else
+                    Widget<T>::record(node.draws, *field_ptr, node);
             };
             wn.record(wn);
             wn.wire = [field_ptr, &items, index, on_row_click, shifted_at, &tree](WidgetNode& node) {
-                node.connections.push_back(
-                    node.on_input.connect([field_ptr, &node](const InputEvent& ev) {
-                        Widget<T>::handle_input(*field_ptr, ev, node);
-                    })
-                );
+                if constexpr (!PlainValue<T>) {
+                    node.connections.push_back(
+                        node.on_input.connect([field_ptr, &node](const InputEvent& ev) {
+                            Widget<T>::handle_input(*field_ptr, ev, node);
+                        })
+                    );
+                }
                 node.connections.push_back(
                     field_ptr->on_change().connect([field_ptr, &items, index](const T&) {
                         if (index < items.size()) items.set(index, field_ptr->get());

@@ -107,4 +107,6 @@ struct Mixer {
 };
 ```
 
-Drag the slider in one window and the other follows; click in both and the two counters differ, because a `core::Field` is not bound. That difference is the point of the flavor: what is shared, and what is not, is written in the type.
+Type in the gain's spin box in one window and the other follows; click in both and the two counters
+differ, because a `core::Field` is not bound. That difference is the point of the flavor: what is
+shared, and what is not, is written in the type.

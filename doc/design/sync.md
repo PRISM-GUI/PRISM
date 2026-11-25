@@ -125,7 +125,7 @@ auto state = doc.state_vector();  auto missing = doc.encode_since(peer_state);  
 ### Proof app
 
 `examples/crdt_pair/`: one struct, two windows in one process, each with its own `Doc`, wired by
-passing updates. Moving a slider in one moves it in the other.
+passing updates. A value typed in one window shows in the other.
 
 ## Later steps
 

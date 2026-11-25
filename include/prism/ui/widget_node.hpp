@@ -463,8 +463,12 @@ Node node_readonly_leaf(Observable& obs, WidgetId& next_id) {
             wn.record = [&obs](WidgetNode& node) {
                 node.draws.clear();
                 node.overlay_draws.clear();
-                Field<T> tmp{obs.get()};
-                Widget<T>::record(node.draws, tmp, node);
+                if constexpr (PlainValue<T>) {
+                    delegate_detail::draw_value_text(node.draws, value_text(obs.get()), node);
+                } else {
+                    Field<T> tmp{obs.get()};
+                    Widget<T>::record(node.draws, tmp, node);
+                }
             };
         } else {
             wn.record = widget_node_detail::record_fallback_box;

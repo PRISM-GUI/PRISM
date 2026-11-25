@@ -42,18 +42,18 @@ later with `-freflection`.
 
 ### What each member becomes
 
-<img src="../screenshots/struct_to_ui.svg" alt="A plain C++ struct and the Inspector's rows: the string, int and double show their values as text, the bool a checkbox, the enum a dropdown" width="860"/>
+<img src="../screenshots/struct_to_ui.svg" alt="A plain C++ struct and the Inspector's rows: a text field for the string, spin boxes for the int and the double, a checkbox for the bool, a dropdown for the enum" width="860"/>
 
 | Member type | Row |
 |---|---|
-| A number (`int`, `float`, `double`...) | Its value, as text. Not editable: give it a `range` to edit it. |
+| A number (`int`, `float`, `double`...) | A spin box over the whole range of its type. |
 | A number with `range` | A slider, captioned with the member's name. |
 | `bool` | A checkbox. |
-| `std::string` | Its text. Not editable. |
+| `std::string` | A text field. |
 | A scoped enum | A drop-down of its values' names. |
 | A nested struct | Its own rows, under it. |
 
-The editable rows are the sliders, the checkboxes and the drop-downs.
+Every row is editable except a nested struct's own label; `readonly` (below) turns one back into text.
 
 ### Annotations
 
@@ -76,7 +76,7 @@ struct Settings {
 | Annotation | Effect | On |
 |---|---|---|
 | `core::skip` | The member gets no row. | Any member. |
-| `core::readonly` | Shown, not editable. | `bool` and enums (numbers and strings are read-only already). Not with `range`, not on a nested struct. |
+| `core::readonly` | Shown, not editable: the value as text. | Any member with a widget. Not with `range`, not on a nested struct. |
 | `core::label<"text">` | The caption shown instead of the member's name. | Any shown member. |
 | `core::section<"title">` | A header row above the member. | Any shown member. |
 | `core::range<min, max, step>` | A slider from `min` to `max`. `step` 0 (the default) is continuous. | Numbers only. |

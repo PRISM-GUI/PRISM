@@ -96,7 +96,7 @@ std::string golden_text(const prism::SceneSnapshot& snap) {
 }
 
 struct GoldenModel {
-    prism::Field<int> count{0};
+    prism::Field<int> count{0};   // a plain int: drawn as a spin box, whose arrows the golden pins
     prism::Field<prism::Checkbox> agree{prism::Checkbox{false, "agree"}};
 
     void view(prism::WidgetTree::ViewBuilder& vb) {
@@ -124,7 +124,10 @@ TEST_CASE("golden: initial publish of a small multi-widget model") {
     CHECK(golden_text(*raw->submitted().back()) == R"GOLDEN([widget 3] rect=(0.0,0.0,300.0,30.0)
     ClipPush rect=(0.0,0.0,300.0,30.0)
     FilledRect rect=(0.0,0.0,300.0,30.0) color=#2d2d37ff
-    Text "0" at=(4.0,4.0) size=14.0 color=#dcdcdcff
+    Text "0" at=(8.0,7.0) size=14.0 color=#dcdcdcff
+    FilledRect rect=(282.0,0.0,1.0,30.0) color=#5a5a69ff
+    FilledPolygon points=3 color=#dcdcdcff
+    FilledPolygon points=3 color=#dcdcdcff
     ClipPop
 [widget 4] rect=(0.0,30.0,300.0,30.0)
     ClipPush rect=(0.0,30.0,300.0,30.0)
@@ -157,7 +160,10 @@ TEST_CASE("golden: clicking the checkbox flips its rendered state") {
     CHECK(golden_text(*raw->submitted().back()) == R"GOLDEN([widget 3] rect=(0.0,0.0,300.0,30.0)
     ClipPush rect=(0.0,0.0,300.0,30.0)
     FilledRect rect=(0.0,0.0,300.0,30.0) color=#2d2d37ff
-    Text "0" at=(4.0,4.0) size=14.0 color=#dcdcdcff
+    Text "0" at=(8.0,7.0) size=14.0 color=#dcdcdcff
+    FilledRect rect=(282.0,0.0,1.0,30.0) color=#5a5a69ff
+    FilledPolygon points=3 color=#dcdcdcff
+    FilledPolygon points=3 color=#dcdcdcff
     ClipPop
 [widget 4] rect=(0.0,30.0,300.0,30.0)
     ClipPush rect=(0.0,30.0,300.0,30.0)

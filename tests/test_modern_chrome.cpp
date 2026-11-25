@@ -145,7 +145,12 @@ struct Text {
     Field<Menu> file{{.title = "File", .items = {{"Open"}}}};
     Field<std::string> value{"a read-only value"};
     Field<int> count{3};
-    void view(WidgetTree::ViewBuilder& vb) { vb.vstack(file, note, value, count); }
+    void view(WidgetTree::ViewBuilder& vb) {
+        vb.vstack(file, note);
+        // Read-only on purpose: this test is about what a value nobody edits looks like.
+        vb.widget_readonly(value);
+        vb.widget_readonly(count);
+    }
 };
 
 TEST_CASE("modern labels, read-only values and idle menu titles sit on the page, without a box") {

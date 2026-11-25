@@ -5,6 +5,7 @@
 #include <prism/app/widget_tree.hpp>
 #include <prism/delegates/form_delegates.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 namespace prism::core {} namespace prism::render {} namespace prism::input {}
@@ -20,11 +21,16 @@ namespace {
 Theme test_theme;
 
 // A one-widget window: routes real events, so focus, capture and localization are exercised.
+// `readonly` places the value through widget_readonly instead of widget.
 template <typename T>
 struct One {
     Field<T> f;
-    explicit One(T v) : f(std::move(v)) {}
-    void view(WidgetTree::ViewBuilder& vb) { vb.widget(f); }
+    bool readonly;
+    explicit One(T v, bool ro = false) : f(std::move(v)), readonly(ro) {}
+    void view(WidgetTree::ViewBuilder& vb) {
+        if (readonly) vb.widget_readonly(f);
+        else vb.widget(f);
+    }
 };
 
 template <typename T>
@@ -32,7 +38,7 @@ struct Window {
     One<T> model;
     WidgetTree tree{model};
     std::unique_ptr<SceneSnapshot> snap;
-    explicit Window(T v) : model(std::move(v)) {
+    explicit Window(T v, bool readonly = false) : model(std::move(v), readonly) {
         snap = tree.build_snapshot(300, 200, 1);
         tree.set_focused(tree.leaf_ids()[0]);
     }
@@ -280,6 +286,52 @@ TEST_CASE("progress: a short fill's corners are no rounder than it is wide") {
 TEST_CASE("spin box: no step is reported when the step is zero") {
     Field<SpinBox<int>> f{{.value = 1, .min = 0, .max = 9, .step = 0}};
     CHECK_FALSE(access_info(f).step.has_value());
+}
+
+// ---- A plain numeric field is a spin box ----
+
+TEST_CASE("plain int field: typed digits commit on Enter") {
+    Window<int> w{0};
+    w.type("4");
+    w.type("2");
+    w.key(keys::enter);
+    CHECK(w.value() == 42);
+}
+
+TEST_CASE("plain int field: arrow up, the wheel and the stepper add one") {
+    Window<int> w{41};
+    w.key(keys::up);
+    CHECK(w.value() == 42);
+    w.wheel(1.f);
+    CHECK(w.value() == 43);
+    Rect r = w.rect();
+    w.click(r.extent.w.raw() - 6, 5);   // upper half of the stepper column
+    CHECK(w.value() == 44);
+}
+
+TEST_CASE("plain double field: typed digits parse on Enter") {
+    Window<double> w{0.0};
+    w.type("2");
+    w.type(".");
+    w.type("5");
+    w.key(keys::enter);
+    CHECK(w.value() == doctest::Approx(2.5));
+}
+
+TEST_CASE("a read-only plain field draws its value and ignores input") {
+    Window<int> w{7, true};
+    auto id = w.tree.leaf_ids()[0];
+    w.tree.dispatch(id, TextInput{"42"});
+    w.tree.dispatch(id, KeyPress{keys::enter, 0});
+    w.tree.dispatch(id, KeyPress{keys::up, 0});
+    CHECK(w.value() == 7);
+    auto t = w.texts();   // the first publish drew every widget: no frame needed
+    CHECK(std::ranges::find(t, std::string{"7"}) != t.end());
+    int stepper_polygons = 0;   // a spin box's up/down arrows; a read-only value has none
+    for (auto& dl : w.snap->draw_lists)
+        for (auto& cmd : dl->commands)
+            if (std::holds_alternative<FilledPolygon>(cmd)) ++stepper_polygons;
+    CHECK(stepper_polygons == 0);
 }
 
 // ---- busy progress ----

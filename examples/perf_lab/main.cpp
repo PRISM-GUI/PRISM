@@ -106,7 +106,8 @@ struct PerfLab {
                     .depends_on(plot.cursor)
                     .depends_on(plot.revision);
             });
-            vb.widget(stats_line);
+            // The stats line is a readout: the lab writes it, nobody types into it.
+            vb.widget_readonly(stats_line);
         });
     }
 };

@@ -27,25 +27,27 @@ struct Labels {
 | `heading` | `bool` | `false` | a title: larger and brighter, with no box behind it |
 | `wrap` | `bool` | `false` | breaks into lines to fit its width, and grows as tall as they are |
 
-## Plain values
+## Read-only values
 
-A field of `std::string` or of a number shows as read-only text too:
-
-```cpp
-core::Field<std::string> status{"Ready"};
-core::Field<int> count{0};
-```
-
-So does a computed value or a value another thread publishes:
+A plain number is a spin box and a plain `std::string` a text field: both are editable. To show a
+value the user must not change, use one of:
 
 ```cpp
 struct Cart {
+    core::Field<ui::Label<>> status{{"Ready"}};               // a label
+    core::Field<ui::Label<>> count{{"3"}};                    // a number nobody edits, as text
     core::Field<int> items{3};
     core::Derived<std::string> summary{[this] { return std::to_string(items.get()) + " items"; }};
 
-    void view(app::ViewBuilder& vb) { vb.widget(summary); }   // follows `items`
+    void view(app::ViewBuilder& vb) {
+        vb.vstack(status, count, summary);   // a Derived follows `items`
+    }
 };
 ```
+
+A field of any type placed with `vb.widget_readonly(field)` shows its value as text too, and a
+plain struct shown by the inspector or by reflection keeps a member as text with
+`[[=core::readonly]]`.
 
 ## Using it
 

@@ -22,6 +22,21 @@ struct Print {
 | `max` | `T` | `100` | the largest value |
 | `step` | `T` | `1` | what the steppers, the arrows and the wheel add or take away |
 
+## From a plain number
+
+A plain `Field<int>` or `Field<double>` is a spin box over the whole range of its type, one step at
+a time:
+
+```cpp
+struct Counter {
+    core::Field<int> hits{0};
+    void view(app::ViewBuilder& vb) { vb.widget(hits); }
+};
+```
+
+Put `ui::SpinBox<T>` in the field for a range, a coarser step or a unit, and
+`[[=core::readonly]]` or a `Derived` when nobody should type into it.
+
 ## Using it
 
 - The steppers, Up and Down, and the mouse wheel step the value, kept between `min` and `max`.

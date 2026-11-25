@@ -18,6 +18,12 @@ using namespace ui; using namespace app; using namespace plot;
 
 enum class TestColor { Red, Green, Blue };
 
+// No Widget<T> specialization: the primary template's default delegate.
+struct Unstyled {
+    int value = 0;
+    bool operator==(const Unstyled&) const = default;
+};
+
 namespace {
 prism::Theme test_theme;
 
@@ -93,19 +99,19 @@ TEST_CASE("Widget<bool> renders checkbox box outline") {
     CHECK(has_outline);
 }
 
-TEST_CASE("Default Delegate record produces draws for int") {
-    prism::Field<int> field{42};
+TEST_CASE("Default Delegate record produces draws for an unknown type") {
+    prism::Field<Unstyled> field{{.value = 42}};
     prism::DrawList dl;
     auto node = make_node();
-    prism::Widget<int>::record(dl, field, node);
+    prism::Widget<Unstyled>::record(dl, field, node);
     CHECK_FALSE(dl.empty());
 }
 
-TEST_CASE("Default Delegate handle_input is a no-op for int") {
-    prism::Field<int> field{42};
+TEST_CASE("Default Delegate handle_input is a no-op") {
+    prism::Field<Unstyled> field{{.value = 42}};
     auto node = make_node();
-    prism::Widget<int>::handle_input(field, prism::MouseButton{P(0, 0), 1, true}, node);
-    CHECK(field.get() == 42);
+    prism::Widget<Unstyled>::handle_input(field, prism::MouseButton{P(0, 0), 1, true}, node);
+    CHECK(field.get().value == 42);
 }
 
 TEST_CASE("Label sentinel renders as read-only text") {
@@ -282,12 +288,14 @@ TEST_CASE("Button record differs with visual state") {
 }
 
 TEST_CASE("FocusPolicy: non-interactive delegates are not focusable") {
-    CHECK(prism::Widget<int>::focus_policy == prism::FocusPolicy::none);
-    CHECK(prism::Widget<std::string>::focus_policy == prism::FocusPolicy::none);
     CHECK(prism::Widget<prism::Label<>>::focus_policy == prism::FocusPolicy::none);
+    CHECK(prism::Widget<Unstyled>::focus_policy == prism::FocusPolicy::none);
 }
 
 TEST_CASE("FocusPolicy: interactive delegates are focusable") {
+    CHECK(prism::Widget<int>::focus_policy == prism::FocusPolicy::tab_and_click);
+    CHECK(prism::Widget<double>::focus_policy == prism::FocusPolicy::tab_and_click);
+    CHECK(prism::Widget<std::string>::focus_policy == prism::FocusPolicy::tab_and_click);
     CHECK(prism::Widget<bool>::focus_policy == prism::FocusPolicy::tab_and_click);
     CHECK(prism::Widget<prism::Slider<>>::focus_policy == prism::FocusPolicy::tab_and_click);
     CHECK(prism::Widget<prism::Button>::focus_policy == prism::FocusPolicy::tab_and_click);

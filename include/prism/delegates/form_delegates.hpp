@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <charconv>
 #include <chrono>
+#include <limits>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -202,25 +203,97 @@ std::optional<T> parse(const std::string& s) {
     return v;
 }
 
+// One step up (dir > 0) or down, or nothing when the step is zero or the value cannot move.
 template <typename T>
-void step_by(Field<SpinBox<T>>& f, int dir) {
-    auto s = f.get();
-    if (s.step <= T{0}) return;
+std::optional<T> stepped_to(const SpinBox<T>& s, int dir) {
+    if (s.step <= T{0}) return std::nullopt;
     T next = stepped(s, dir);
-    if (next != s.value) {
-        s.value = next;
+    if (next == s.value) return std::nullopt;
+    return next;
+}
+
+// The whole range of the type, one step at a time: what a plain numeric field edits.
+template <Numeric T>
+SpinBox<T> whole_range(T value) {
+    return SpinBox<T>{value, std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max(), T{1}};
+}
+
+// The box a spin box needs around text `text_px` wide: its padding, its number and its steppers.
+inline float width_for(float text_px) { return 2 * pad + std::max(text_px, 32.f) + stepper_w; }
+
+void draw(DrawList& dl, std::string_view shown, bool typing, WidgetNode& node);
+
+// The box showing `s`: the text being typed while there is some (dropped when the box is not
+// focused), else the formatted value.
+template <typename T>
+void record(DrawList& dl, const SpinBox<T>& s, WidgetNode& node) {
+    auto& es = node.get_or_create<SpinBoxEditState>();
+    if (!node_vs(node).focused) es.typed.reset();   // simplify: losing focus drops what was typed, like Escape
+    draw(dl, es.typed.value_or(format(s.value)), es.typed.has_value(), node);
+}
+
+// The value one event gives the box, if any. Typed digits live in the node's edit state (they
+// append, Backspace removes the last); Enter commits them, Escape drops them. Up, Down, the wheel
+// and the stepper column step the value itself.
+template <typename T>
+std::optional<T> event(const SpinBox<T>& s, const InputEvent& ev, WidgetNode& node) {
+    auto& es = node.get_or_create<SpinBoxEditState>();
+    if (auto* ti = std::get_if<TextInput>(&ev)) {
+        for (char c : ti->text)
+            if (accepts(s, es.typed.value_or(""), c)) es.typed = es.typed.value_or("") + c;
+        node.dirty = true;
+        return std::nullopt;
+    }
+    if (auto* kp = std::get_if<KeyPress>(&ev)) {
+        if (es.typed) {
+            std::optional<T> committed;
+            if (kp->key == keys::enter) {
+                if (auto v = parse<T>(*es.typed)) committed = clamped(s, *v);
+                es.typed.reset();
+            } else if (kp->key == keys::escape) {
+                es.typed.reset();
+            } else if (kp->key == keys::backspace && !es.typed->empty()) {
+                es.typed->pop_back();
+            }
+            node.dirty = true;
+            return committed;
+        }
+        // Page keys never arrive: routing scrolls the focused widget's container with them.
+        if (kp->key == keys::up) return stepped_to(s, 1);
+        if (kp->key == keys::down) return stepped_to(s, -1);
+        return std::nullopt;
+    }
+    if (auto* ms = std::get_if<MouseScroll>(&ev); ms && ms->dy.raw() != 0.f)
+        return stepped_to(s, ms->dy.raw() > 0.f ? 1 : -1);
+    if (auto* mb = std::get_if<MouseButton>(&ev); mb && mb->pressed && mb->button == buttons::left
+                                                    && mb->position.x.raw() >= delegate_detail::widget_w(node).raw() - stepper_w)
+        return stepped_to(s, mb->position.y.raw() < widget_h / 2 ? 1 : -1);
+    return std::nullopt;
+}
+
+template <typename T>
+void describe(const SpinBox<T>& s, AccessInfo& a) {
+    a.value = format(s.value);
+    a.numeric_value = static_cast<double>(s.value);
+    a.min_value = static_cast<double>(s.min);
+    a.max_value = static_cast<double>(s.max);
+    if (s.step > T{0}) a.step = static_cast<double>(s.step);
+}
+
+// A SpinBox field stores the number an event gives, keeping its range and step.
+template <typename T>
+void apply(Field<SpinBox<T>>& f, const InputEvent& ev, WidgetNode& node) {
+    if (auto v = event(f.get(), ev, node)) {
+        auto s = f.get();
+        s.value = *v;
         f.set(s);
     }
 }
 
+// A plain numeric field stores the number itself, over its type's whole range.
 template <typename T>
-void commit(Field<SpinBox<T>>& f, SpinBoxEditState& es) {
-    if (auto v = es.typed ? parse<T>(*es.typed) : std::nullopt) {
-        auto s = f.get();
-        s.value = clamped(s, *v);
-        f.set(s);
-    }
-    es.typed.reset();
+void apply_plain(Field<T>& f, const InputEvent& ev, WidgetNode& node) {
+    if (auto v = event(whole_range(f.get()), ev, node)) f.set(*v);
 }
 
 } // namespace spin_detail
@@ -229,67 +302,46 @@ template <Numeric T>
 struct Widget<SpinBox<T>> {
     static constexpr FocusPolicy focus_policy = FocusPolicy::tab_and_click;
     static constexpr Role access_role = Role::SpinButton;
-    static void describe(const Field<SpinBox<T>>& f, AccessInfo& a) {
-        const auto& s = f.get();
-        a.value = spin_detail::format(s.value);
-        a.numeric_value = static_cast<double>(s.value);
-        a.min_value = static_cast<double>(s.min);
-        a.max_value = static_cast<double>(s.max);
-        if (s.step > T{0}) a.step = static_cast<double>(s.step);
-    }
+    static void describe(const Field<SpinBox<T>>& f, AccessInfo& a) { spin_detail::describe(f.get(), a); }
     static float intrinsic_width(const Field<SpinBox<T>>& f, const WidgetNode& n) {
         using namespace spin_detail;
         const auto* m = node_theme(n).measurer;
-        float digits = std::max(text_width(m, format(f.get().min), font_size), text_width(m, format(f.get().max), font_size));
-        return 2 * pad + std::max(digits, 32.f) + stepper_w;
+        return width_for(std::max(text_width(m, format(f.get().min), font_size),
+                                  text_width(m, format(f.get().max), font_size)));
     }
 
     static void record(DrawList& dl, const Field<SpinBox<T>>& f, WidgetNode& node) {
-        using namespace spin_detail;
-        const auto& t = node_theme(node);
-        auto& vs = node_vs(node);
-        auto& es = node.get_or_create<SpinBoxEditState>();
-        if (!vs.focused) es.typed.reset();   // simplify: losing focus drops what was typed, like Escape
-        float w = delegate_detail::widget_w(node).raw();
-        delegate_detail::fill_widget_bg(dl, node, Height{widget_h});
-        dl.text(es.typed ? *es.typed : format(f.get().value), Point{X{pad}, Y{7}}, font_size,
-                es.typed ? t.accent : t.text);
-        float sx = w - stepper_w;
-        dl.filled_rect(Rect{Point{X{sx}, Y{0}}, Size{Width{1}, Height{widget_h}}}, t.border);
-        float cx = sx + stepper_w / 2, a = 4.f;
-        dl.filled_polygon({Point{X{cx - a}, Y{11}}, Point{X{cx + a}, Y{11}}, Point{X{cx}, Y{6}}}, t.text);
-        dl.filled_polygon({Point{X{cx - a}, Y{19}}, Point{X{cx + a}, Y{19}}, Point{X{cx}, Y{24}}}, t.text);
-        if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, Width{w}, Height{widget_h}, t);
+        spin_detail::record(dl, f.get(), node);
     }
 
     // simplify: typed text has no caret or selection -- digits append, Backspace removes the last;
     // reuse the TextField editing core if spin boxes need in-place editing.
     static void handle_input(Field<SpinBox<T>>& f, const InputEvent& ev, WidgetNode& node) {
-        using namespace spin_detail;
-        auto& es = node.get_or_create<SpinBoxEditState>();
-        auto changed = [&] { node.dirty = true; };
-        if (auto* ti = std::get_if<TextInput>(&ev)) {
-            for (char c : ti->text)
-                if (accepts(f.get(), es.typed.value_or(""), c)) es.typed = es.typed.value_or("") + c;
-            changed();
-        } else if (auto* kp = std::get_if<KeyPress>(&ev)) {
-            if (es.typed) {
-                if (kp->key == keys::enter) commit(f, es);
-                else if (kp->key == keys::escape) es.typed.reset();
-                else if (kp->key == keys::backspace && !es.typed->empty()) es.typed->pop_back();
-                changed();
-                return;
-            }
-            // Page keys never arrive: routing scrolls the focused widget's container with them.
-            if (kp->key == keys::up) step_by(f, 1);
-            else if (kp->key == keys::down) step_by(f, -1);
-        } else if (auto* ms = std::get_if<MouseScroll>(&ev); ms && ms->dy.raw() != 0.f) {
-            step_by(f, ms->dy.raw() > 0.f ? 1 : -1);
-        } else if (auto* mb = std::get_if<MouseButton>(&ev); mb && mb->pressed && mb->button == buttons::left) {
-            float sx = delegate_detail::widget_w(node).raw() - stepper_w;
-            if (mb->position.x.raw() >= sx) step_by(f, mb->position.y.raw() < widget_h / 2 ? 1 : -1);
-        }
+        spin_detail::apply(f, ev, node);
     }
 };
+
+// --- Widget<T> for a plain number: the spin box over the whole range of its type ---
+
+template <Numeric T>
+void Widget<T>::describe(const Field<T>& f, AccessInfo& a) {
+    spin_detail::describe(spin_detail::whole_range(f.get()), a);
+}
+
+template <Numeric T>
+float Widget<T>::intrinsic_width(const Field<T>& f, const WidgetNode& n) {
+    return spin_detail::width_for(
+        text_width(node_theme(n).measurer, spin_detail::format(f.get()), spin_detail::font_size));
+}
+
+template <Numeric T>
+void Widget<T>::record(DrawList& dl, const Field<T>& f, WidgetNode& node) {
+    spin_detail::record(dl, spin_detail::whole_range(f.get()), node);
+}
+
+template <Numeric T>
+void Widget<T>::handle_input(Field<T>& f, const InputEvent& ev, WidgetNode& node) {
+    spin_detail::apply_plain(f, ev, node);
+}
 
 } // namespace prism::ui

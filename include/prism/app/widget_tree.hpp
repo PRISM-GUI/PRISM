@@ -747,11 +747,13 @@ private:
         }
     }
 
-    // A model's Field member as a widget: its value type's, or a slider for a number with a
-    // [[=core::range<min, max, step>]] annotation.
+    // A model's Field member as a widget: its value type's, a slider for a number with a
+    // [[=core::range<min, max, step>]] annotation, or its value as text with [[=core::readonly]].
     template <std::meta::info Member, typename T>
     Node reflected_leaf(Field<T>& field) {
-        if constexpr (constexpr auto r = core::range_annotation<Member>(); r != std::meta::info{}) {
+        if constexpr (core::has_annotation<Member, decltype(core::readonly)>()) {
+            return node_readonly_leaf<T>(field, next_id_);
+        } else if constexpr (constexpr auto r = core::range_annotation<Member>(); r != std::meta::info{}) {
             static_assert(Numeric<T>, "[[=prism::core::range<...>]] is only supported on numbers");
             using R = [:r:];
             return node_slider_leaf(field, Slider<T>{.min = static_cast<T>(R::min), .max = static_cast<T>(R::max),

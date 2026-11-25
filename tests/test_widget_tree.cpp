@@ -31,7 +31,10 @@ struct SimpleModel {
     prism::Field<std::string> name{"hi"};
 
     void view(prism::WidgetTree::ViewBuilder& vb) {
-        vb.vstack(count, name);
+        // Read-only: this model is the fixture for tree plumbing, not for editing, and a plain
+        // value shown read-only takes no focus (see "no focusable widgets" below).
+        vb.widget_readonly(count);
+        vb.widget_readonly(name);
     }
 };
 
@@ -346,10 +349,11 @@ struct FocusModel {
     prism::Field<bool> toggle{false};
     prism::Field<prism::Slider<>> slider{{.value = 0.5}};
     prism::Field<prism::Button> btn{{"Click"}};
-    prism::Field<int> count{0};
+    prism::Field<int> count{0};   // a plain value shown read-only: never in the focus order
 
     void view(prism::WidgetTree::ViewBuilder& vb) {
-        vb.vstack(title, toggle, slider, btn, count);
+        vb.vstack(title, toggle, slider, btn);
+        vb.widget_readonly(count);
     }
 };
 
@@ -357,7 +361,7 @@ TEST_CASE("focus_order contains only focusable widgets in struct order") {
     FocusModel model;
     prism::WidgetTree tree(model);
     auto ids = tree.leaf_ids();
-    // ids: [0]=Label, [1]=bool, [2]=Slider, [3]=Button, [4]=int
+    // ids: [0]=Label, [1]=bool, [2]=Slider, [3]=Button, [4]=read-only int
     auto focus = tree.focus_order();
     REQUIRE(focus.size() == 3);
     CHECK(focus[0] == ids[1]);  // bool
@@ -443,7 +447,7 @@ TEST_CASE("focus_prev cycles backward through focusable widgets") {
 }
 
 TEST_CASE("focus_next on model with no focusable widgets is no-op") {
-    SimpleModel model;  // Field<int> + Field<string> -- both non-focusable
+    SimpleModel model;  // Field<int> + Field<string>, both shown read-only: nothing focusable
     prism::WidgetTree tree(model);
     tree.focus_next();
     CHECK(tree.focused_id() == 0);

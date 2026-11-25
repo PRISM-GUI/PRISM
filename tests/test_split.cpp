@@ -332,9 +332,12 @@ struct TwoPaneColumnModel {
 
     void view(WidgetTree::ViewBuilder& vb) {
         container_id = vb.vstack([&] {
-            vb.widget(a);
+            // Read-only panes: a plain value shown as text stretches with its pane. An editable one
+            // (spin box, text field) expands horizontally only, so it keeps one line of height and
+            // a vertical drag would not resize it.
+            vb.widget_readonly(a);
             vb.handle();
-            vb.widget(b);
+            vb.widget_readonly(b);
         });
     }
 };
@@ -385,11 +388,14 @@ struct ThreeThenHandleColumnModel {
 
     void view(WidgetTree::ViewBuilder& vb) {
         container_id = vb.vstack([&] {
-            vb.widget(a);
-            vb.widget(b);
-            vb.widget(c);
+            // Read-only panes: a plain value shown as text stretches with its pane. An editable one
+            // (spin box, text field) expands horizontally only, so it keeps one line of height and
+            // a vertical drag would not resize it.
+            vb.widget_readonly(a);
+            vb.widget_readonly(b);
+            vb.widget_readonly(c);
             vb.handle();
-            vb.widget(d);
+            vb.widget_readonly(d);
         });
     }
 };

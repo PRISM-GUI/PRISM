@@ -13,6 +13,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 
 namespace prism::ui {
 
@@ -129,8 +130,9 @@ void set_composition(EditState& es, WidgetNode& node, const Composition& c) {
 }
 
 // Writes an edit back: the field only if the text changed, the caret and selection always.
-template <typename Sentinel, typename EditState>
-void apply_edit(Field<Sentinel>& field, WidgetNode& node, EditState& es,
+// `FieldOf` is a Field, or a view of one (a plain string read as a TextField).
+template <typename FieldOf, typename EditState>
+void apply_edit(FieldOf& field, WidgetNode& node, EditState& es,
                 const TextEdit& before, const TextEdit& after) {
     if (after.text != before.text) {
         auto sf = field.get();
@@ -144,8 +146,8 @@ void apply_edit(Field<Sentinel>& field, WidgetNode& node, EditState& es,
     es.anchor = anchor;
 }
 
-template <typename Sentinel, typename EditState>
-TextEdit current_edit(const Field<Sentinel>& field, EditState& es) {
+template <typename FieldOf, typename EditState>
+TextEdit current_edit(const FieldOf& field, EditState& es) {
     const auto& v = field.get().value;
     TextEdit e{std::string(v.data(), v.size()), 0, 0};
     if (!es.history.tracks(e.text)) es.history.clear();   // changed by the program: steps are stale
@@ -182,8 +184,8 @@ struct SharedTextOutcome {
 
 // The part of a text event TextField and TextArea handle the same way: composition, typed and
 // pasted text, and the history and clipboard keys (pasteFn normalises the pasted text).
-template <typename Sentinel, typename EditState, typename PasteFn>
-SharedTextOutcome shared_text_event(Field<Sentinel>& field, const InputEvent& ev, WidgetNode& node,
+template <typename FieldOf, typename EditState, typename PasteFn>
+SharedTextOutcome shared_text_event(FieldOf& field, const InputEvent& ev, WidgetNode& node,
                                     EditState& es, const TextEdit& before, PasteFn paste_fn,
                                     bool takes_composition, bool allow_copy) {
     if (auto* co = std::get_if<Composition>(&ev)) {
@@ -212,8 +214,8 @@ SharedTextOutcome shared_text_event(Field<Sentinel>& field, const InputEvent& ev
 }
 
 // The tail both widgets end an edit with: one history step, then the edit itself.
-template <typename Sentinel, typename EditState>
-void record_and_apply(Field<Sentinel>& field, WidgetNode& node, EditState& es, const TextEdit& before,
+template <typename FieldOf, typename EditState>
+void record_and_apply(FieldOf& field, WidgetNode& node, EditState& es, const TextEdit& before,
                       const TextEdit& after, const InputEvent& ev) {
     es.history.record(before, after, std::holds_alternative<TextInput>(ev)
                                           ? EditHistory::Kind::Typing : EditHistory::Kind::Other);
@@ -221,8 +223,8 @@ void record_and_apply(Field<Sentinel>& field, WidgetNode& node, EditState& es, c
 }
 
 // allow_copy: false for secret fields (Password), which must never reach the clipboard.
-template <typename Sentinel, typename DisplayFn>
-void text_field_handle_input(Field<Sentinel>& field, const InputEvent& ev, WidgetNode& node,
+template <typename FieldOf, typename DisplayFn>
+void text_field_handle_input(FieldOf& field, const InputEvent& ev, WidgetNode& node,
                              DisplayFn display_fn, bool allow_copy) {
     const TextMeasurer* m = node.theme ? node.theme->measurer : nullptr;
     auto& es = node.get_or_create<TextEditState>();
@@ -507,6 +509,40 @@ template <StringLike T>
 void Widget<TextField<T>>::handle_input(Field<TextField<T>>& field, const InputEvent& ev,
                                           WidgetNode& node) {
     text_detail::text_field_handle_input(field, ev, node, text_detail::plain_display, true);
+}
+
+// --- Widget<T> for a plain string: the same single-line field, over the string itself ---
+
+namespace text_detail {
+// A Field<T> read as a Field<TextField<T>>: a plain string is a text field with no placeholder
+// and no length limit. The view lives as long as the adapter, so the editing core reads it the
+// way it reads a field's own sentinel.
+template <StringLike T>
+struct PlainTextField {
+    Field<T>& field;
+    TextField<T> view;
+    explicit PlainTextField(Field<T>& f) : field(f), view{f.get()} {}
+    const TextField<T>& get() const { return view; }
+    void set(TextField<T> v) {
+        view = std::move(v);
+        field.set(view.value);
+    }
+};
+} // namespace text_detail
+
+template <EditableString T>
+void Widget<T>::record(DrawList& dl, const Field<T>& f, WidgetNode& node) {
+    node.visual_state.cursor = CursorShape::Text;
+    text_detail::draw_text_field(dl, text_detail::TextFieldDraw{
+                                          std::string_view(f.get().data(), f.get().size()), {},
+                                          text_detail::plain_display},
+                                 node);
+}
+
+template <EditableString T>
+void Widget<T>::handle_input(Field<T>& f, const InputEvent& ev, WidgetNode& node) {
+    text_detail::PlainTextField<T> plain{f};
+    text_detail::text_field_handle_input(plain, ev, node, text_detail::plain_display, true);
 }
 
 // --- Widget<Password<T>> method bodies ---

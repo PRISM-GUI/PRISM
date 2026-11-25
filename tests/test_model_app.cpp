@@ -331,10 +331,8 @@ TEST_CASE("closing a secondary window removes it from the registry without quitt
     // this comment documents the risk for the implementer, not an automated check.)
 }
 
-// Two tab-focusable Field<bool> members: Widget<int> has FocusPolicy::none
-// (it's a plain read-only display), so IntFieldModel above can't exercise
-// focus_next(). Widget<bool> is FocusPolicy::tab_and_click, giving keys::tab
-// an observable effect via WidgetTree::focus_next().
+// Two tab-focusable Field<bool> members. A plain int is focusable too now (it edits as a spin
+// box), but Widget<bool> keeps this test on the simplest widget: a checkbox with no typed text.
 struct TwoFocusableFieldsModel {
     prism::Field<bool> first{false};
     prism::Field<bool> second{false};

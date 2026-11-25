@@ -21,6 +21,7 @@
 #include <cmath>
 #include <chrono>
 #include <charconv>
+#include <concepts>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -59,6 +60,16 @@ concept StringLike = requires(const T& t) {
     { t.data() } -> std::convertible_to<const char*>;
     { t.size() } -> std::convertible_to<std::size_t>;
 };
+
+// A string a field can be given new text in: an owned one (std::string). A borrowed view can be
+// shown but never typed into -- assigning it a new string would leave it pointing at a dead one.
+template <typename T>
+concept EditableString = StringLike<T> && std::same_as<std::remove_cv_t<T>, std::string>;
+
+// A plain value, edited where it is shown: a number, or a string that owns its text. Not a bool
+// (a checkbox), an enum (a dropdown) or a sentinel (which has a widget of its own).
+template <typename T>
+concept PlainValue = (Numeric<T> && !std::same_as<std::remove_cv_t<T>, bool>) || EditableString<T>;
 
 // click: focused by a click only, Tab passes it by (a node board, which takes Delete).
 enum class FocusPolicy : uint8_t { none, tab_and_click, click };
@@ -509,28 +520,36 @@ concept is_widget_v = requires(DrawList& dl, const Field<T>& cf, Field<T>& f,
     Widget<T>::handle_input(f, ev, node);
 };
 
-// Numeric specialization: displays the value as text
+// A plain number edits as a spin box over the whole range of its type, one step at a time. Its
+// body is in delegates/form_delegates.hpp, where it shares the SpinBox delegate's code.
 template <Numeric T>
 struct Widget<T> {
-    static constexpr FocusPolicy focus_policy = FocusPolicy::none;
-    static float intrinsic_width(const Field<T>& f, const WidgetNode& n) {
-        return 8.f + text_width(node_theme(n).measurer, std::to_string(f.get()), 14.f);
-    }
-    static constexpr Role access_role = Role::Label;
-    static void describe(const Field<T>& f, AccessInfo& a) { a.value = std::to_string(f.get()); }
-
-    static void record(DrawList& dl, const Field<T>& field, WidgetNode& node) {
-        auto& t = node_theme(node);
-        delegate_detail::fill_idle_bg(dl, node, delegate_detail::widget_h(node));
-        dl.text(std::to_string(field.get()),
-                delegate_detail::make_point(X{4}, Y{4}), 14, t.text);
-    }
-
-    static void handle_input(Field<T>&, const InputEvent&, WidgetNode&) {}
+    static constexpr FocusPolicy focus_policy = FocusPolicy::tab_and_click;
+    static constexpr Role access_role = Role::SpinButton;
+    static void describe(const Field<T>& f, AccessInfo& a);
+    static float intrinsic_width(const Field<T>& f, const WidgetNode& n);
+    static void record(DrawList& dl, const Field<T>& f, WidgetNode& node);
+    static void handle_input(Field<T>& f, const InputEvent& ev, WidgetNode& node);
 };
 
-// StringLike specialization: displays the string value
+// A plain string edits as a single-line text field with no placeholder. Its body is in
+// delegates/text_delegates.hpp, where it runs the TextField editing core over the string.
+template <EditableString T>
+struct Widget<T> {
+    static constexpr FocusPolicy focus_policy = FocusPolicy::tab_and_click;
+    static constexpr bool expand = true;   // fills its row, as a text field does
+    static constexpr ExpandAxis expand_axis = ExpandAxis::Horizontal;
+    static constexpr Role access_role = Role::TextInput;
+    static void describe(const Field<T>& f, AccessInfo& a) {
+        a.value = std::string(f.get().data(), f.get().size());
+    }
+    static void record(DrawList& dl, const Field<T>& f, WidgetNode& node);
+    static void handle_input(Field<T>& f, const InputEvent& ev, WidgetNode& node);
+};
+
+// A string that cannot be typed into (a borrowed view): shown as its text, no input.
 template <StringLike T>
+    requires (!EditableString<T>)
 struct Widget<T> {
     static constexpr FocusPolicy focus_policy = FocusPolicy::none;
     static float intrinsic_width(const Field<T>& f, const WidgetNode& n) {
@@ -548,6 +567,21 @@ struct Widget<T> {
 
     static void handle_input(Field<T>&, const InputEvent&, WidgetNode&) {}
 };
+
+// The text a plain value shows: a number as its digits, a string as it stands.
+template <Numeric T>
+std::string value_text(T v) { return std::to_string(v); }
+template <StringLike T>
+std::string value_text(const T& s) { return std::string(s.data(), s.size()); }
+
+namespace delegate_detail {
+// A value drawn as text and nothing else: how a read-only plain number or string looks.
+inline void draw_value_text(DrawList& dl, std::string_view text, WidgetNode& node) {
+    auto& t = node_theme(node);
+    fill_idle_bg(dl, node, widget_h(node));
+    dl.text(std::string(text), make_point(X{4}, Y{4}), 14, t.text);
+}
+} // namespace delegate_detail
 
 // Sentinel: checkbox with label
 struct Checkbox {

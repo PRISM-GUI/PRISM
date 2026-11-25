@@ -48,7 +48,8 @@ struct Bench {
 };
 ```
 
-The member's name is the caption. Without the annotation, a number is read-only text.
+The member's name is the caption. Without the annotation, a number is a spin box over the whole
+range of its type.
 
 ## Using it
 

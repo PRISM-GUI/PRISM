@@ -54,8 +54,9 @@ A struct with a `view()` always uses it, reflection or not, so `view()` is also 
 
 <img src="../screenshots/struct_widgets.svg" alt="A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes" width="900"/>
 
-A plain `int` or `std::string` is shown as read-only text.
-To get a control, put a widget type in the field:
+A plain `int` is a spin box over the whole range of its type, and a plain `std::string` a text
+field.
+For a different control, put a widget type in the field:
 
 ```cpp
 struct AudioMixer {
@@ -114,7 +115,7 @@ struct Rectangle {
 
 `value(width)` reads the number inside the spin box.
 There is no list of inputs to keep up to date, and no callback to remember to call.
-A `Derived` is shown as read-only text, like a plain value.
+A `Derived` is shown as read-only text: the app computes it, nobody types into it.
 
 ## 5. Lay it out
 

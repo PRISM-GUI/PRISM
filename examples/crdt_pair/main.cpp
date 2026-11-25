@@ -15,7 +15,8 @@ namespace model = prism::crdt;   // the whole swap: prism::core would be the loc
 enum class Mode { idle, run, hold };
 
 struct Mixer {
-    // What travels: plain values, the only kind a crdt::Field holds.
+    // What travels: plain values, the only kind a crdt::Field holds. A plain double is a spin box
+    // and a plain std::string a text field, so each window edits the shared values themselves.
     model::Field<double> gain{0.5};
     model::Field<Mode> mode{Mode::idle};
     model::Field<std::string> name{"lead"};
@@ -24,29 +25,11 @@ struct Mixer {
     // What does not: a core::Field is never bound, so it lives in this window alone.
     core::Field<int> local_clicks{0};
 
-    // The widgets you edit. A plain value draws as a label, so a slider and a text field keep the
-    // two editable values and copy each other's changes across (set() skips an equal value, so
-    // the copy cannot loop). Field<Mode> and Field<bool> are their own dropdown and checkbox.
-    core::Field<ui::Slider<double>> gain_editor{
-        {.value = 0.5, .min = 0.0, .max = 1.0, .step = 0.01, .label = "Gain"}};
-    core::Field<ui::TextField<>> name_editor{{.value = "lead", .placeholder = "Bus name"}};
     core::Field<ui::Button> nudge{{.text = "Click"}};
 
     model::Doc doc;   // this replica
 
     Mixer() {
-        gain_editor.observe([this](const ui::Slider<double>& s) { gain = s.value; });
-        gain.observe([this](const double& v) {
-            ui::Slider<double> s = gain_editor.get();
-            s.value = v;
-            gain_editor.set(std::move(s));
-        });
-        name_editor.observe([this](const ui::TextField<>& t) { name = t.value; });
-        name.observe([this](const std::string& v) {
-            ui::TextField<> t = name_editor.get();
-            t.value = v;
-            name_editor.set(std::move(t));
-        });
         nudge.observe([this](const ui::Button&) { ++local_clicks; });
     }
 
@@ -64,19 +47,15 @@ struct Mixer {
 
     void view(app::ViewBuilder& vb) {
         vb.vstack([&] {
-            vb.widget(gain_editor).tooltip("A double in the model, a slider here");
+            vb.widget(gain).tooltip("A double in the model, a spin box here");
             vb.hstack([&] {
                 vb.widget(mode).tooltip("An enum travels by name");
                 vb.widget(armed).tooltip("A bool is its own checkbox");
             });
-            vb.widget(name_editor).tooltip("A std::string in the model, a text field here");
-            vb.hstack([&] {
-                vb.widget(gain).tooltip("The shared value itself, as it travels");
-                vb.widget(name).tooltip("The shared value itself, as it travels");
-            });
+            vb.widget(name).tooltip("A std::string in the model, a text field here");
             vb.hstack([&] {
                 vb.widget(nudge);
-                vb.widget(local_clicks).tooltip("This window only: a core::Field is not bound");
+                vb.widget_readonly(local_clicks).tooltip("This window only: a core::Field is not bound");
             });
         });
     }

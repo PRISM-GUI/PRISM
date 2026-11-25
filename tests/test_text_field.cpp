@@ -841,3 +841,24 @@ TEST_CASE("a field whose text starts right to left sits on the right") {
         }
     CHECK(found);
 }
+
+// --- a plain string field is a text field ---
+
+namespace {
+struct PlainStringModel {
+    prism::Field<std::string> name;
+    void view(prism::WidgetTree::ViewBuilder& vb) { vb.widget(name); }
+};
+}
+
+TEST_CASE("a plain string field takes typing and editing like a TextField") {
+    PlainStringModel model;
+    prism::WidgetTree tree{model};
+    auto focus = tree.focus_order();
+    auto leaf = focus[0];
+    tree.set_focused(leaf);
+    tree.dispatch(leaf, prism::TextInput{"ada"});
+    CHECK(model.name.get() == "ada");
+    tree.dispatch(leaf, prism::KeyPress{prism::keys::backspace, 0});
+    CHECK(model.name.get() == "ad");
+}

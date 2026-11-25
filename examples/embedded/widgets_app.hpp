@@ -37,7 +37,7 @@ struct WidgetsModel {
         vb.vstack([&] {
             vb.widget(title);
             vb.gap(12.f);
-            vb.widget(counter);
+            vb.widget_readonly(counter);   // the button writes it, nobody types into it
             vb.gap(12.f);
             vb.hstack([&] {
                 vb.widget(increment);

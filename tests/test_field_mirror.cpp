@@ -240,12 +240,9 @@ TEST_CASE("readonly still produces the same leaf count as an editable member") {
 }
 
 struct DeviceStateReadonlyFocus {
-    // bool, not std::string/float: Widget<bool>::focus_policy is tab_and_click by default
-    // (delegate.hpp), so forcing it through node_readonly_leaf's focus_policy::none is the
-    // only thing standing between "focusable" and "not" -- this is what makes the test below
-    // discriminate. (std::string/float are Widget<T>::focus_policy == none even when NOT
-    // readonly, so a readonly member of those types can't tell node_readonly_leaf and
-    // node_leaf apart via focus_order.)
+    // bool, not std::string/float: any type's widget is focusable now (a plain number edits as a
+    // spin box, a plain string as a text field), so a bool discriminates here as well as any
+    // other, and its widget is the simplest to reason about.
     [[=prism::inspector::readonly]] bool locked;
     bool armed;
 };
