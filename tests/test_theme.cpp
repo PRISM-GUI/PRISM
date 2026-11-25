@@ -84,6 +84,9 @@ double contrast(prism::Color a, prism::Color b) {
 }
 void check_readable(const prism::Theme& t) {
     CHECK(contrast(t.text, t.surface) >= 4.5);
+    CHECK(contrast(t.text, t.button) >= 4.5);
+    CHECK(contrast(t.text, t.button_hover) >= 4.5);
+    CHECK(contrast(t.text, t.button_active) >= 4.5);
     CHECK(contrast(t.text, t.canvas_bg) >= 4.5);
     CHECK(contrast(t.text, t.popup_bg) >= 4.5);
     CHECK(contrast(t.text_on_primary, t.primary) >= 4.5);

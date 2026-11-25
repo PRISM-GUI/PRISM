@@ -305,7 +305,7 @@
 <clipPath id="clip-23"><rect x="849.92" y="600.536" width="358.08" height="20.764"/></clipPath>
 <g clip-path="url(#clip-23)">
 <rect x="849.92" y="600.536" width="358.08" height="30" fill="rgba(0,0,0,0)"/>
-<text xml:space="preserve" x="853.92" y="604.536" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">callback 1.224 ms mean · 6.022 ms max</text>
+<text xml:space="preserve" x="853.92" y="604.536" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">callback 0.466 ms mean · 0.479 ms max</text>
 </g>
 <clipPath id="clip-24"><rect x="849.92" y="640.536" width="358.08" height="0"/></clipPath>
 <g clip-path="url(#clip-24)">
@@ -314,8 +314,7 @@
 </g>
 <clipPath id="clip-25"><rect x="849.92" y="680.536" width="358.08" height="0"/></clipPath>
 <g clip-path="url(#clip-25)">
-<rect x="849.92" y="680.536" width="358.08" height="32" rx="8" fill="rgba(36,41,66,1)"/>
-<rect x="850.42" y="681.036" width="357.08" height="31" rx="8" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<rect x="849.92" y="680.536" width="358.08" height="32" rx="8" fill="rgba(52,59,92,1)"/>
 <text xml:space="preserve" x="857.92" y="687.536" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Stall the logic thread (2 s)</text>
 </g>
 <clipPath id="clip-26"><rect x="849.92" y="722.536" width="358.08" height="0"/></clipPath>
@@ -549,7 +548,7 @@
 <clipPath id="clip-48"><rect x="992" y="716" width="200" height="30"/></clipPath>
 <g clip-path="url(#clip-48)">
 <rect x="992" y="716" width="200" height="30" fill="rgba(0,0,0,0)"/>
-<text xml:space="preserve" x="996" y="720" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">callback 1.224 ms mean of 10.67 ms</text>
+<text xml:space="preserve" x="996" y="720" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">callback 0.466 ms mean of 10.67 ms</text>
 </g>
 <rect x="1200" y="44" width="6" height="77.911" rx="3" fill="rgba(140,150,200,0.431373)"/>
 <rect x="1200" y="250.203" width="6" height="104.545" rx="3" fill="rgba(140,150,200,0.431373)"/>

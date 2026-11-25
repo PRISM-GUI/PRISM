@@ -133,8 +133,7 @@
 </g>
 <clipPath id="clip-19"><rect x="948" y="88" width="48" height="32"/></clipPath>
 <g clip-path="url(#clip-19)">
-<rect x="948" y="88" width="48" height="32" rx="8" fill="rgba(36,41,66,1)"/>
-<rect x="948.5" y="88.5" width="47" height="31" rx="8" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<rect x="948" y="88" width="48" height="32" rx="8" fill="rgba(52,59,92,1)"/>
 <text xml:space="preserve" x="956" y="95" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Stop</text>
 </g>
 <clipPath id="clip-20"><rect x="348.2" y="130" width="647.8" height="34"/></clipPath>

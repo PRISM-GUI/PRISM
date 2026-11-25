@@ -65,12 +65,12 @@
 <clipPath id="clip-5"><rect x="12" y="500.56" width="548.4" height="30"/></clipPath>
 <g clip-path="url(#clip-5)">
 <rect x="12" y="500.56" width="548.4" height="30" fill="rgba(0,0,0,0)"/>
-<text xml:space="preserve" x="16" y="504.56" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">[  0.000s] [INFO] PRISM DAQ engine ready</text>
+<text xml:space="preserve" x="16" y="504.56" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">[  0.001s] [INFO] PRISM DAQ engine ready</text>
 </g>
 <clipPath id="clip-6"><rect x="12" y="530.56" width="548.4" height="30"/></clipPath>
 <g clip-path="url(#clip-6)">
 <rect x="12" y="530.56" width="548.4" height="30" fill="rgba(0,0,0,0)"/>
-<text xml:space="preserve" x="16" y="534.56" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">[  0.000s] [INFO] Virtual instrument on /dev/usbtmc0</text>
+<text xml:space="preserve" x="16" y="534.56" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">[  0.001s] [INFO] Virtual instrument on /dev/usbtmc0</text>
 </g>
 </g>
 <clipPath id="clip-7"><rect x="582.4" y="0" width="6" height="604"/></clipPath>

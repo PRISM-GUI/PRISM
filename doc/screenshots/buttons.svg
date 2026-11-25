@@ -12,8 +12,7 @@
 </g>
 <clipPath id="clip-1"><rect x="56" y="0" width="59" height="32"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="56" y="0" width="59" height="32" rx="8" fill="rgba(36,41,66,1)"/>
-<rect x="56.5" y="0.5" width="58" height="31" rx="8" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<rect x="56" y="0" width="59" height="32" rx="8" fill="rgba(52,59,92,1)"/>
 <text xml:space="preserve" x="64" y="7" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Cancel</text>
 </g>
 <clipPath id="clip-2"><rect x="123" y="0" width="48" height="32"/></clipPath>

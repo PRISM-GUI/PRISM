@@ -96,6 +96,7 @@ widget. `_hover` and `_active` variants are used under the pointer and while pre
 | Group | Members | Used for |
 |---|---|---|
 | Surfaces | `surface`, `surface_hover`, `surface_active` | The fill of input widgets: fields, boxes, combo boxes. |
+| Buttons | `button`, `button_hover`, `button_active` | An ordinary (not primary) button. The modern themes fill it apart from the fields and draw no border, so it never reads as a text box; the classic ones use the surface colors. |
 | Primary | `primary`, `primary_hover`, `primary_active`, `primary_outline` | Buttons. |
 | Accent | `accent`, `accent_hover`, `accent_active` | Slider thumbs, ticked checkboxes, chosen radio buttons. |
 | Text | `text`, `text_muted`, `text_placeholder`, `text_on_primary` | Text; secondary text; a field's hint while empty; text on a button. |

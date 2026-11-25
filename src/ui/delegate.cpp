@@ -237,7 +237,7 @@ void Widget<Button>::record(DrawList& dl, const Field<Button>& field, WidgetNode
     bool down = vs.pressed || b.checked.value_or(false);
     const bool on = b.checked.value_or(false);
     Color bg = b.primary ? (down ? t.primary_active : vs.hovered ? t.primary_hover : t.primary)
-                         : (down ? t.surface_active : vs.hovered ? t.surface_hover : t.surface);
+                         : (down ? t.button_active : vs.hovered ? t.button_hover : t.button);
     const Rect box = delegate_detail::make_rect(X{0}, Y{0}, w, Height{32});
     // A primary button, and a toggle that is on, are filled with their theme's gradient; a theme
     // without one (the classic looks) keeps the flat colours, and an ordinary button stays plain.
@@ -250,10 +250,10 @@ void Widget<Button>::record(DrawList& dl, const Field<Button>& field, WidgetNode
                                        t.corner_radius);
     else
         delegate_detail::fill_box(dl, box, bg, t.corner_radius);
-    if (b.primary || t.corner_radius > 0.f)
+    // Only a primary button is outlined: a border is what marks a text field.
+    if (b.primary)
         delegate_detail::outline_box(dl, delegate_detail::make_rect(X{0.5f}, Y{0.5f}, w - Width{1.f}, Height{31}),
-                                     b.primary ? t.primary_outline : (vs.hovered ? t.border_hover : t.border), 1.0f,
-                                     t.corner_radius);
+                                     t.primary_outline, 1.0f, t.corner_radius);
     float x = 8.f;
     Color fg = b.primary || gradient ? t.text_on_primary : t.text;
     if (b.icon) {

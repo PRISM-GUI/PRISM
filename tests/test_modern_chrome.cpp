@@ -180,3 +180,48 @@ TEST_CASE("the modern themes give the window chrome their own palette") {
         CHECK(t.scrollbar_thumb != classic_dark_theme().scrollbar_thumb);
     }
 }
+
+struct FieldAndButton {
+    Field<TextField<>> find{{.placeholder = "Find"}};
+    Field<Button> go{{.text = "Replace all", .primary = false}};
+    void view(WidgetTree::ViewBuilder& vb) { vb.vstack(find, go); }
+};
+
+// The colour a widget's box is filled with: its first opaque fill.
+const DrawList& draws_of(const SceneSnapshot& snap, WidgetId id) {
+    for (std::size_t i = 0; i < snap.geometry.size(); ++i)
+        if (snap.geometry[i].first == id) return *snap.draw_lists[i];
+    FAIL("no such widget");
+    throw;
+}
+
+Color box_fill(const SceneSnapshot& snap, WidgetId id) {
+    for (const auto& cmd : draws_of(snap, id).commands) {
+        if (const auto* r = std::get_if<RoundedRect>(&cmd); r && r->thickness == 0.f && r->color.a) return r->color;
+        if (const auto* r = std::get_if<FilledRect>(&cmd); r && r->color.a) return r->color;
+    }
+    return Color::rgba(0, 0, 0, 0);
+}
+
+TEST_CASE("a modern button is filled apart from a text field, and has no border") {
+    for (const Theme& theme : {modern_dark_theme(), modern_light_theme()}) {
+        Shown<FieldAndButton> app{theme};
+        auto ids = app.tree.leaf_ids();   // the field above the button
+        std::ranges::sort(ids, {}, [&](WidgetId id) { return app.rect_of(id).origin.y.raw(); });
+        const WidgetId field = ids[0], button = ids[1];
+        CHECK(box_fill(*app.snap, field) != box_fill(*app.snap, button));
+        CHECK(box_fill(*app.snap, button) == theme.button);
+        for (const auto& cmd : draws_of(*app.snap, button).commands)
+            if (const auto* r = std::get_if<RoundedRect>(&cmd)) CHECK(r->thickness == 0.f);
+    }
+    const Theme classic = classic_dark_theme();
+    CHECK(classic.button == classic.surface);
+}
+
+TEST_CASE("a classic button is filled like the classic fields") {
+    for (const Theme& t : {classic_dark_theme(), classic_light_theme()}) {
+        CHECK(t.button == t.surface);
+        CHECK(t.button_hover == t.surface_hover);
+        CHECK(t.button_active == t.surface_active);
+    }
+}

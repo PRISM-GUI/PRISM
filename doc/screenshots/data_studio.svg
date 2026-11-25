@@ -134,8 +134,7 @@
 </g>
 <clipPath id="clip-18"><rect x="453.76" y="48" width="59" height="32"/></clipPath>
 <g clip-path="url(#clip-18)">
-<rect x="453.76" y="48" width="59" height="32" rx="8" fill="rgba(36,41,66,1)"/>
-<rect x="454.26" y="48.5" width="58" height="31" rx="8" stroke="rgba(74,82,122,1)" fill="none" stroke-width="1"/>
+<rect x="453.76" y="48" width="59" height="32" rx="8" fill="rgba(52,59,92,1)"/>
 <text xml:space="preserve" x="461.76" y="55" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Cancel</text>
 </g>
 <clipPath id="clip-19"><rect x="956" y="48" width="228" height="32"/></clipPath>

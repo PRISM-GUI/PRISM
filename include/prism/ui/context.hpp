@@ -40,6 +40,11 @@ struct Theme {
     Color surface         = Color::rgba(45, 45, 55);
     Color surface_hover   = Color::rgba(55, 55, 68);
     Color surface_active  = Color::rgba(65, 65, 78);
+    // An ordinary (not primary) button. The modern themes set it apart from the fields' surface
+    // and draw it without a border, so a button never reads as a text box.
+    Color button          = surface;
+    Color button_hover    = surface_hover;
+    Color button_active   = surface_active;
 
     // Primary accent (buttons)
     Color primary         = Color::rgba(40, 105, 180);
@@ -187,6 +192,7 @@ inline Theme classic_light_theme() {
     Theme t;
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
     t.surface = c(236, 237, 242);         t.surface_hover = c(226, 228, 235);   t.surface_active = c(214, 217, 226);
+    t.button = t.surface;                 t.button_hover = t.surface_hover;     t.button_active = t.surface_active;
     t.link = c(0, 88, 190);               t.code_bg = c(224, 226, 233);
     t.syntax_keyword = c(150, 30, 150);   t.syntax_type = c(140, 90, 0);       t.syntax_string = c(40, 110, 40);
     t.syntax_number = c(160, 70, 0);      t.syntax_comment = c(95, 100, 110);  t.syntax_preprocessor = c(190, 20, 60);
@@ -250,6 +256,7 @@ inline Theme modern_dark_theme() {
     t.tab_text = c(152, 160, 196);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(150, 122, 255);
     t.table_row_even = c(32, 37, 60);     t.table_row_odd = c(29, 33, 55);      t.table_selected = c(60, 58, 120);
     t.table_header = c(40, 46, 74);       t.table_header_text = c(160, 168, 220);
+    t.button = c(52, 59, 92);             t.button_hover = c(62, 70, 108);      t.button_active = c(44, 50, 80);
     t.chrome_bg = c(24, 28, 47);          t.chrome_border = c(40, 46, 74);
     t.chrome_text = c(214, 218, 236);     t.chrome_icon = c(170, 178, 210);
     t.divider = c(44, 50, 80);            t.divider_hover = c(88, 200, 210);
@@ -281,6 +288,7 @@ inline Theme modern_light_theme() {
     t.popup_bg = c(255, 255, 255);        t.popup_border = c(206, 211, 230);    t.popup_highlight = c(18, 128, 146);
     t.tab_bar_bg = c(234, 237, 247);      t.tab_active_bg = c(255, 255, 255);
     t.tab_text = c(96, 102, 132);         t.tab_text_active = c(26, 29, 48);    t.tab_accent = c(108, 76, 230);
+    t.button = c(226, 231, 244);          t.button_hover = c(214, 220, 238);    t.button_active = c(202, 209, 232);
     t.chrome_bg = c(243, 245, 251);       t.chrome_border = c(214, 219, 234);
     t.chrome_text = c(26, 29, 48);        t.chrome_icon = c(70, 76, 104);
     t.divider = c(214, 219, 234);         t.divider_hover = c(40, 160, 175);
