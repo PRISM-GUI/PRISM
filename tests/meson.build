@@ -386,6 +386,12 @@ if prism_crdt_dep.found()
     dependencies : [prism_crdt_dep, doctest_dep]))
 endif
 
+# crdt::SyncSession and the y-protocols sync codec (doc/design/sync.md, "Step 2").
+if prism_crdt_dep.found()
+  test('crdt_sync', executable('test_crdt_sync', files('test_crdt_sync.cpp'),
+    dependencies : [prism_crdt_dep, doctest_dep]))
+endif
+
 # The crdt flavor: one model body compiled against core, then against crdt.
 if prism_crdt_dep.found()
   test('crdt_flavor', executable('test_crdt_flavor', files('test_crdt_flavor.cpp'),

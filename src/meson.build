@@ -360,7 +360,7 @@ prism_crdt_dep = dependency('', required : false)
 if crdt_on
   # Internal: only prism-crdt and its test see libyrs.h, whose types never reach our headers.
   prism_yrs_internal_dep = dependency('yffi')
-  prism_crdt_lib = static_library('prism-crdt', 'crdt/doc.cpp',
+  prism_crdt_lib = static_library('prism-crdt', 'crdt/doc.cpp', 'crdt/sync.cpp',
     dependencies : [prism_core_dep, prism_yrs_internal_dep],
     install : true,
   )
