@@ -463,11 +463,13 @@ TEST_CASE("a thin polyline (one pixel or less) is its segments, pixel for pixel"
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
 // The bounds check is always on, so the child is a fork whose death is inspected with waitpid.
+// The child drops doctest's SIGABRT handler: it allocates, and under TSAN that report replaces the
+// abort with an ordinary exit.
 namespace {
 template <typename F>
 bool aborts(F f) {
     const pid_t pid = fork();
-    if (pid == 0) { f(); _exit(0); }
+    if (pid == 0) { std::signal(SIGABRT, SIG_DFL); f(); _exit(0); }
     int status = 0;
     waitpid(pid, &status, 0);
     return WIFSIGNALED(status) && WTERMSIG(status) == SIGABRT;
@@ -499,7 +501,7 @@ int channel(std::uint32_t argb, int k) { return static_cast<int>((argb >> (8 * (
 int channel8(Color c, int k) { return k == 0 ? c.r : (k == 1 ? c.g : c.b); }
 
 // Every channel of `got` within `tol` of `want`'s.
-bool near(std::uint32_t got, Color want, int tol) {
+bool close_to(std::uint32_t got, Color want, int tol) {
     if (channel(got, 3) != 255) return false;
     for (int k = 0; k < 3; ++k)
         if (std::abs(channel(got, k) - channel8(want, k)) > tol) return false;
@@ -512,9 +514,9 @@ TEST_CASE("a horizontal gradient runs from its start colour to its end colour") 
     Fb<8, 4> fb;
     fb.canvas.gradient_rect(rect(0, 0, 8, 4), prism::render::Gradient{kTeal, kBlue}, 0.f);
     CHECK(fb.count_touched() == 8 * 4);
-    CHECK(near(fb.at(0, 2), kTeal, 20));      // the first pixel holds the start colour
-    CHECK(near(fb.at(7, 2), kBlue, 20));      // the last one the end colour
-    CHECK(near(fb.at(3, 2), Color::rgba(51, 145, 212), 12));   // and the middle is halfway
+    CHECK(close_to(fb.at(0, 2), kTeal, 20));      // the first pixel holds the start colour
+    CHECK(close_to(fb.at(7, 2), kBlue, 20));      // the last one the end colour
+    CHECK(close_to(fb.at(3, 2), Color::rgba(51, 145, 212), 12));   // and the middle is halfway
     CHECK(fb.at(0, 0) == fb.at(0, 3));        // a horizontal run does not change down a column
 }
 
@@ -522,9 +524,9 @@ TEST_CASE("a vertical gradient runs down, the same colours") {
     Fb<4, 8> fb;
     fb.canvas.gradient_rect(rect(0, 0, 4, 8), prism::render::Gradient{kTeal, kBlue, prism::render::Gradient::Axis::vertical}, 0.f);
     CHECK(fb.count_touched() == 4 * 8);
-    CHECK(near(fb.at(2, 0), kTeal, 20));
-    CHECK(near(fb.at(2, 7), kBlue, 20));
-    CHECK(near(fb.at(2, 3), Color::rgba(51, 145, 212), 12));
+    CHECK(close_to(fb.at(2, 0), kTeal, 20));
+    CHECK(close_to(fb.at(2, 7), kBlue, 20));
+    CHECK(close_to(fb.at(2, 3), Color::rgba(51, 145, 212), 12));
     CHECK(fb.at(0, 0) == fb.at(3, 0));        // a vertical run does not change across a row
 }
 

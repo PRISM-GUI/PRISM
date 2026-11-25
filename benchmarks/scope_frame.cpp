@@ -118,7 +118,7 @@ int main()
         prism::render::SceneSnapshot one;
         one.window = snap->window;
         one.draw_lists = {snap->draw_lists[i]};
-        one.z_order = {0};
+        one.z_order.assign(1, 0);   // not = {0}: GCC 14 under ASan misreads it as an out-of-bounds copy
         const auto t0 = Clock::now();
         for (int r = 0; r < 20; ++r)
             prism::raster::draw(canvas, one, fonts);
