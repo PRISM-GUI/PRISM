@@ -332,8 +332,15 @@ void WidgetTree::set_focused(WidgetId id) {
     if (id == focused_id_ || !enabled(id)) return;
     if (std::find(focus_order_.begin(), focus_order_.end(), id) == focus_order_.end()) return;
     flip_visual_flag(focused_id_, &WidgetVisualState::focused, false);
+    flip_visual_flag(focused_id_, &WidgetVisualState::focus_visible, false);
     focused_id_ = id;
     flip_visual_flag(focused_id_, &WidgetVisualState::focused, true);
+    flip_visual_flag(focused_id_, &WidgetVisualState::focus_visible, focus_shown_);
+}
+
+void WidgetTree::show_focus(bool on) {
+    focus_shown_ = on;
+    flip_visual_flag(focused_id_, &WidgetVisualState::focus_visible, on);
 }
 
 [[nodiscard]] std::vector<WidgetId> WidgetTree::focus_ring() const {
@@ -363,6 +370,7 @@ static WidgetId next_in_ring(const std::vector<WidgetId>& order, const std::vect
 // From a widget focused by a click but not by Tab (a board), Tab goes on from its place in the
 // tree: the focus order lists content built later (a board's) after the rest.
 void WidgetTree::step_focus(int dir) {
+    show_focus(true);
     auto ring = focus_ring();
     if (ring.empty()) return;
     auto it = std::ranges::find(ring, focused_id_);

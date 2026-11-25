@@ -50,6 +50,8 @@ struct WidgetVisualState {
     bool hovered = false;
     bool pressed = false;
     bool focused = false;
+    // The focus ring shows: the focus came from the keyboard (Tab), not from a click.
+    bool focus_visible = false;
     CursorShape cursor = CursorShape::Default;
 };
 
@@ -535,6 +537,13 @@ inline void fill_widget_bg(DrawList& dl, const WidgetNode& node, Height h) {
     fill_box(dl, make_rect(X{0}, Y{0}, widget_w(node), h), bg, t.corner_radius);
 }
 
+// Behind something shown but not edited (a value, a group of radios): a box like a label's in
+// a theme with idle boxes, else nothing -- the clear rect still gives the widget its size.
+inline void fill_idle_bg(DrawList& dl, const WidgetNode& node, Height h) {
+    if (node_theme(node).idle_boxes) return fill_widget_bg(dl, node, h);
+    dl.filled_rect(make_rect(X{0}, Y{0}, widget_w(node), h), Color::rgba(0, 0, 0, 0));
+}
+
 // Inset inside the widget's own box on purpose: Leaf measurement sizes widgets from
 // draws.bounding_box(), so a ring painted outside the box feeds back into layout and
 // grows the widget on every publish (see commit 9d0e78c).
@@ -591,7 +600,7 @@ struct Widget<T> {
 
     static void record(DrawList& dl, const Field<T>& field, WidgetNode& node) {
         auto& t = node_theme(node);
-        delegate_detail::fill_widget_bg(dl, node, delegate_detail::widget_h(node));
+        delegate_detail::fill_idle_bg(dl, node, delegate_detail::widget_h(node));
         dl.text(std::to_string(field.get()),
                 delegate_detail::make_point(X{4}, Y{4}), 14, t.text);
     }
@@ -611,7 +620,7 @@ struct Widget<T> {
 
     static void record(DrawList& dl, const Field<T>& field, WidgetNode& node) {
         auto& t = node_theme(node);
-        delegate_detail::fill_widget_bg(dl, node, delegate_detail::widget_h(node));
+        delegate_detail::fill_idle_bg(dl, node, delegate_detail::widget_h(node));
         dl.text(std::string(field.get().data(), field.get().size()),
                 delegate_detail::make_point(X{4}, Y{4}), 14, t.text);
     }

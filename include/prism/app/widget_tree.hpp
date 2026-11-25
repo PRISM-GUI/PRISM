@@ -323,6 +323,9 @@ public:
     [[nodiscard]] const std::vector<WidgetId>& focus_order() const { return focus_order_; }
 
     void set_focused(WidgetId id);
+    // Whether the focused widget shows its ring: Tab shows it, a click hides it (as a browser's
+    // :focus-visible). A widget focused later shows it or not the same way.
+    void show_focus(bool on);
 
     // Touch: whether a finger that presses `id` may be starting a pan. True when a scroll view, list or
     // table is at or above it and the widget does not take drags itself (a slider, a text field, a
@@ -339,6 +342,7 @@ public:
 
     void clear_focus() {
         flip_visual_flag(focused_id_, &WidgetVisualState::focused, false);
+        flip_visual_flag(focused_id_, &WidgetVisualState::focus_visible, false);
         focused_id_ = 0;
     }
 
@@ -531,6 +535,7 @@ private:
     std::vector<WidgetId> popup_stack_;   // open popups, bottom to top (see popup_owner())
     WidgetId hovered_id_ = 0;
     WidgetId focused_id_ = 0;
+    bool focus_shown_ = false;   // see show_focus()
     WidgetId captured_id_ = 0;
     std::uint8_t captured_button_ = input::buttons::left;
     std::optional<DragState> drag_;

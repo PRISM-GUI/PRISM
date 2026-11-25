@@ -2,27 +2,22 @@
 <rect width="420" height="110" fill="rgba(24,28,47,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="420" height="32"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="327" height="32" rx="16" fill="rgba(30,34,56,1)"/>
-<defs><linearGradient id="g-0" x1="0" y1="0" x2="1" y2="0">
-<stop offset="0" stop-color="rgba(35,128,142,1)"/>
-<stop offset="1" stop-color="rgba(52,114,216,1)"/>
-</linearGradient></defs>
-<rect x="0" y="0" width="104" height="32" rx="16" fill="url(#g-0)"/>
-<text xml:space="preserve" x="16" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(255,255,255,1)" dominant-baseline="hanging">main.cpp</text>
-<line x1="84.5" y1="12.5" x2="91.5" y2="19.5" stroke="rgba(255,255,255,1)" stroke-width="1.5"/>
-<line x1="84.5" y1="19.5" x2="91.5" y2="12.5" stroke="rgba(255,255,255,1)" stroke-width="1.5"/>
-<rect x="104" y="0" width="98" height="32" rx="16" fill="rgba(30,34,56,1)"/>
-<text xml:space="preserve" x="120" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,148,186,1)" dominant-baseline="hanging">app.hpp</text>
-<line x1="182.5" y1="12.5" x2="189.5" y2="19.5" stroke="rgba(140,148,186,1)" stroke-width="1.5"/>
-<line x1="182.5" y1="19.5" x2="189.5" y2="12.5" stroke="rgba(140,148,186,1)" stroke-width="1.5"/>
-<rect x="202" y="0" width="125" height="32" rx="16" fill="rgba(30,34,56,1)"/>
-<text xml:space="preserve" x="218" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(140,148,186,1)" dominant-baseline="hanging">README.md</text>
-<line x1="307.5" y1="12.5" x2="314.5" y2="19.5" stroke="rgba(140,148,186,1)" stroke-width="1.5"/>
-<line x1="307.5" y1="19.5" x2="314.5" y2="12.5" stroke="rgba(140,148,186,1)" stroke-width="1.5"/>
+<rect x="0" y="0" width="420" height="32" fill="rgba(0,0,0,0)"/>
+<line x1="0" y1="31.5" x2="420" y2="31.5" stroke="rgba(44,50,80,1)" stroke-width="1"/>
+<text xml:space="preserve" x="16" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(236,238,250,1)" dominant-baseline="hanging">main.cpp</text>
+<line x1="84.5" y1="12.5" x2="91.5" y2="19.5" stroke="rgba(236,238,250,1)" stroke-width="1.5"/>
+<line x1="84.5" y1="19.5" x2="91.5" y2="12.5" stroke="rgba(236,238,250,1)" stroke-width="1.5"/>
+<rect x="16" y="29" width="60" height="3" rx="1.5" fill="rgba(150,122,255,1)"/>
+<text xml:space="preserve" x="120" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">app.hpp</text>
+<line x1="182.5" y1="12.5" x2="189.5" y2="19.5" stroke="rgba(152,160,196,1)" stroke-width="1.5"/>
+<line x1="182.5" y1="19.5" x2="189.5" y2="12.5" stroke="rgba(152,160,196,1)" stroke-width="1.5"/>
+<text xml:space="preserve" x="218" y="8" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">README.md</text>
+<line x1="307.5" y1="12.5" x2="314.5" y2="19.5" stroke="rgba(152,160,196,1)" stroke-width="1.5"/>
+<line x1="307.5" y1="19.5" x2="314.5" y2="12.5" stroke="rgba(152,160,196,1)" stroke-width="1.5"/>
 </g>
-<clipPath id="clip-1"><rect x="0" y="32" width="420" height="24"/></clipPath>
+<clipPath id="clip-1"><rect x="12" y="44" width="396" height="24"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="32" width="420" height="24" fill="rgba(36,41,66,1)"/>
-<text xml:space="preserve" x="4" y="36" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">The shown file's editor goes here.</text>
+<rect x="12" y="44" width="396" height="24" fill="rgba(0,0,0,0)"/>
+<text xml:space="preserve" x="16" y="48" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">The shown file's editor goes here.</text>
 </g>
 </svg>

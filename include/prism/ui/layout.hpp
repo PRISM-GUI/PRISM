@@ -56,7 +56,10 @@ namespace scrollbar {
         thumb_rect = visible(thumb_rect);
         track_rect = visible(track_rect);
         if (empty(track_rect)) return;
-        if (!empty(thumb_rect)) snap.overlay.filled_rect(thumb_rect, theme.scrollbar_thumb);
+        if (!empty(thumb_rect) && theme.corner_radius > 0.f)
+            snap.overlay.rounded_rect(thumb_rect, theme.scrollbar_thumb, track_width.raw() / 2.f);
+        else if (!empty(thumb_rect))
+            snap.overlay.filled_rect(thumb_rect, theme.scrollbar_thumb);
         snap.overlay_geometry.push_back({id, thumb_rect});   // [0]: the thumb, even if cut away
         snap.overlay_geometry.push_back({id, track_rect});
         snap.scrollbar_geometry.push_back({id, track_rect});
@@ -215,7 +218,7 @@ inline void measure_linear(LayoutNode& node, LayoutAxis own_axis, LayoutAxis par
 // past them for chrome it draws over its content.
 inline void add_frame_insets(LayoutNode& node, LayoutAxis parent_axis) {
     if (!node.frame) return;
-    auto in = frame_insets(*node.frame);
+    auto in = frame_insets(*node.frame, node.theme);
     float across = in.left + in.right + frame_reserved_width(*node.frame, node.theme);
     float down = in.top + in.bottom;
     bool horiz = parent_axis == LayoutAxis::Horizontal;
@@ -227,7 +230,7 @@ inline void add_frame_insets(LayoutNode& node, LayoutAxis parent_axis) {
 inline Rect apply_frame(LayoutNode& node, Rect available) {
     if (!node.frame || !node.theme) return available;
     node.draws = frame_draws(*node.frame, available.extent, *node.theme);
-    auto in = frame_insets(*node.frame);
+    auto in = frame_insets(*node.frame, node.theme);
     return Rect{Point{available.origin.x + DX{in.left}, available.origin.y + DY{in.top}},
                 Size{Width{std::max(0.f, available.extent.w.raw() - in.left - in.right)},
                      Height{std::max(0.f, available.extent.h.raw() - in.top - in.bottom)}}};

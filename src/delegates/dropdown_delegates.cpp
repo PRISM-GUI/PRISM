@@ -27,7 +27,7 @@ void dropdown_record(DrawList& dl, WidgetNode& node,
 
     dl.text("\xe2\x96\xbe", delegate_detail::make_point(X{w.raw() - 20.f}, Y{7}), dd_font_size, t.text_muted);
 
-    if (vs.focused)
+    if (vs.focus_visible)
         delegate_detail::draw_focus_ring(dl, w, dd_widget_h, t);
 
     node.overlay_draws.clear();

@@ -80,7 +80,7 @@ void draw_box(DrawList& dl, Color c, const WidgetNode& node, const Theme& t) {
     dl.filled_rect(chip, Color::rgba(c.r, c.g, c.b));
     dl.rect_outline(chip, t.border, 1.f);
     dl.text(to_hex(c), delegate_detail::make_point(X{swatch + 12.f}, Y{7}), 14, t.text);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, t);
 }
 
 void draw_marker(DrawList& dl, Point at, float half) {

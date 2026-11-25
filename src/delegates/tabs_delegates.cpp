@@ -26,6 +26,27 @@ void draw_detach(DrawList& dl, X x0, Color ink) {
     dl.rect_outline(Rect{Point{x0 + DX{3.f}, Y{y0 + 3.f}}, Size{Width{9.f}, Height{9.f}}}, ink, 1.f);
     dl.rect_outline(Rect{Point{x0 + DX{8.f}, Y{y0 - 1.f}}, Size{Width{9.f}, Height{9.f}}}, ink, 1.f);
 }
+constexpr float underline_h = 3.f;
+
+// The line the modern bar sits on, the whole width of the widget.
+void draw_hairline(DrawList& dl, Width w, const Theme& t) {
+    dl.filled_rect(Rect{Point{X{0}, Y{0}}, Size{w, tab_h}}, Color::rgba(0, 0, 0, 0));   // the bar's size
+    dl.line(Point{X{0}, Y{tab_h.raw() - 0.5f}}, Point{X{w.raw()}, Y{tab_h.raw() - 0.5f}}, t.divider, 1.f);
+}
+
+// A hovered modern tab: a soft rounded shade inside its slot.
+void draw_hover(DrawList& dl, Rect face, bool hovered, const Theme& t) {
+    if (!hovered) return;
+    const Rect shade{Point{face.origin.x + DX{2.f}, face.origin.y + DY{4.f}},
+                     Size{Width{face.extent.w.raw() - 4.f}, Height{face.extent.h.raw() - 8.f}}};
+    dl.rounded_rect(shade, t.surface_hover, t.corner_radius);
+}
+
+// The selected modern tab: a short rounded bar under its label, on the bar's bottom edge.
+void draw_underline(DrawList& dl, X x0, Width label_w, const Theme& t) {
+    const Rect mark{Point{x0, Y{tab_h.raw() - underline_h}}, Size{label_w, Height{underline_h}}};
+    dl.rounded_rect(mark, t.tab_accent, underline_h / 2.f);
+}
 } // namespace
 
 void tabs_record(DrawList& dl, WidgetNode& node,
@@ -42,10 +63,12 @@ void tabs_record(DrawList& dl, WidgetNode& node,
     for (auto w : widths)
         total_w += w;
 
-    // A pill theme draws the bar as a segmented control: a pill track, each tab a pill in it.
-    const bool pills = t.pill_controls && t.corner_radius > 0.f;
-    const float radius = pills ? tab_h.raw() / 2.f : 0.f;
-    delegate_detail::fill_box(dl, delegate_detail::make_rect(X{0}, Y{0}, total_w, tab_h), t.tab_bar_bg, radius);
+    // The modern looks (rounded) mark the selected tab with an underline over a hairline that
+    // runs under the whole bar; the classic look fills the bar and the selected tab.
+    const bool underline = t.corner_radius > 0.f;
+    const Rect bar = delegate_detail::make_rect(X{0}, Y{0}, total_w, tab_h);
+    if (underline) draw_hairline(dl, std::max(total_w, delegate_detail::widget_w(node)), t);
+    else dl.filled_rect(bar, t.tab_bar_bg);
 
     es.header_x_ranges.clear();
     es.header_x_ranges.reserve(names.size());
@@ -57,20 +80,11 @@ void tabs_record(DrawList& dl, WidgetNode& node,
 
         bool is_selected = (i == selected);
         bool is_hovered = es.hovered_tab.has_value() && es.hovered_tab.value() == i;
-
-        auto bg = is_selected ? t.tab_active_bg
-                : is_hovered  ? t.surface_hover
-                :               t.tab_bar_bg;
-        // A pill theme (the modern looks) shows the selected tab as a rounded segment filled with
-        // the primary gradient; the classic look keeps its flat tab and its accent strip.
-        const bool pill = is_selected && pills;
         const Rect face = delegate_detail::make_rect(x, Y{0}, w, tab_h);
-        if (pill) delegate_detail::fill_gradient(dl, face, t.primary_fill, radius);
-        else delegate_detail::fill_box(dl, face, bg, radius);
+        if (underline) draw_hover(dl, face, is_hovered && !is_selected, t);
+        else dl.filled_rect(face, is_selected ? t.tab_active_bg : is_hovered ? t.surface_hover : t.tab_bar_bg);
 
-        auto text_color = pill ? t.text_on_primary
-                        : is_selected ? t.tab_text_active
-                                      : t.tab_text;
+        auto text_color = is_selected ? t.tab_text_active : t.tab_text;
         dl.text(names[i], delegate_detail::make_point(x + DX{tab_padding.raw()}, Y{8}), tab_font_size, text_color);
 
         if (has_close(es, i)) {
@@ -79,7 +93,9 @@ void tabs_record(DrawList& dl, WidgetNode& node,
             draw_close(dl, cx0, es.close_hovered && is_hovered, text_color, t);
         }
 
-        if (is_selected && !pill)
+        if (is_selected && underline)
+            draw_underline(dl, x + DX{tab_padding.raw()}, Width{text_width(t.measurer, names[i], tab_font_size)}, t);
+        else if (is_selected)
             dl.filled_rect(delegate_detail::make_rect(x, Y{(tab_h - tab_accent_h).raw()}, w, tab_accent_h),
                            t.tab_accent);
         x += DX{w.raw()};
@@ -91,7 +107,7 @@ void tabs_record(DrawList& dl, WidgetNode& node,
         draw_detach(dl, x0, t.tab_text);
     }
 
-    if (vs.focused)
+    if (vs.focus_visible)
         delegate_detail::draw_focus_ring(dl, total_w, tab_h, t);
 }
 

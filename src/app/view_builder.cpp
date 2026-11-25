@@ -172,8 +172,16 @@ void ViewBuilder::draw_divider(WidgetNode& node) {
     auto& vs = node_vs(node);
     auto& t = node_theme(node);
     auto sz = node_allocated(node);
-    auto color = (vs.pressed || vs.hovered) ? t.divider_hover : t.divider;
-    node.draws.filled_rect(ui::delegate_detail::make_rect(X{0}, Y{0}, sz.w, sz.h), color);
+    const bool active = vs.pressed || vs.hovered;
+    const Rect handle = ui::delegate_detail::make_rect(X{0}, Y{0}, sz.w, sz.h);
+    // A rounded theme shows a resting handle as a hairline down its middle; the classic look,
+    // and any handle under the pointer, fill the whole grab area.
+    if (t.corner_radius <= 0.f || active) return node.draws.filled_rect(handle, active ? t.divider_hover : t.divider);
+    node.draws.filled_rect(handle, Color::rgba(0, 0, 0, 0));
+    const bool across = sz.w.raw() < sz.h.raw();   // a vertical handle, between side-by-side panes
+    const Rect line = across ? ui::delegate_detail::make_rect(X{sz.w.raw() / 2.f - 0.5f}, Y{0}, Width{1.f}, sz.h)
+                             : ui::delegate_detail::make_rect(X{0}, Y{sz.h.raw() / 2.f - 0.5f}, sz.w, Height{1.f});
+    node.draws.filled_rect(line, t.divider);
 }
 
 void ViewBuilder::wire_split_handles(Node& container) {

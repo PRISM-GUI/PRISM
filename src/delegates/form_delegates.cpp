@@ -23,7 +23,7 @@ void draw(DrawList& dl, const std::vector<std::string>& labels, std::size_t sele
     const auto& t = node_theme(node);
     auto& vs = node_vs(node);
     Height h{height(labels.size())};
-    delegate_detail::fill_widget_bg(dl, node, h);
+    delegate_detail::fill_idle_bg(dl, node, h);
     for (std::size_t i = 0; i < labels.size(); ++i) {
         float y = pad + row_h * static_cast<float>(i);
         Point centre{X{8.f + dot_r}, Y{y + row_h / 2}};
@@ -43,7 +43,7 @@ void draw(DrawList& dl, const std::vector<std::string>& labels, std::size_t sele
         }
         dl.text(labels[i], Point{X{label_x}, Y{y + 5.f}}, font_size, t.text);
     }
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, delegate_detail::widget_w(node), h, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, delegate_detail::widget_w(node), h, t);
 }
 
 std::optional<std::size_t> pick(const InputEvent& ev, std::size_t selected, std::size_t n) {

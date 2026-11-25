@@ -39,7 +39,7 @@ void draw_row(render::DrawList& dl, core::Rect r, const ui::WidgetNode& n, const
     dl.circle(core::Point{r.origin.x + core::DX{dot_inset}, core::Y{mid}}, ui::node_family_dot_radius, ui::node_family_color(t, kind.family));
     const float lh = ui::line_height(t.measurer, title_size);
     dl.text(kind.title, core::Point{r.origin.x + core::DX{title_inset}, core::Y{mid - lh / 2.f}}, title_size, t.text);
-    if (vs.focused) ui::delegate_detail::draw_focus_ring(dl, r.extent.w, r.extent.h, t);
+    if (vs.focus_visible) ui::delegate_detail::draw_focus_ring(dl, r.extent.w, r.extent.h, t);
 }
 
 // Room for the widest title, whatever the theme's font makes of it.

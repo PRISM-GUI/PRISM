@@ -122,10 +122,10 @@ TEST_CASE("Enum delegate record shows arrow indicator") {
     CHECK(has_arrow);
 }
 
-TEST_CASE("Enum delegate renders focus ring when focused") {
+TEST_CASE("Enum delegate renders focus ring when focused from the keyboard") {
     prism::Field<Color> field{Color::Red};
     prism::DrawList dl;
-    auto node = make_node({.focused = true});
+    auto node = make_node({.focused = true, .focus_visible = true});
     prism::Widget<Color>::record(dl, field, node);
 
     bool has_outline = false;

@@ -18,7 +18,7 @@
 </g>
 <clipPath id="clip-2"><rect x="0" y="80" width="360" height="30"/></clipPath>
 <g clip-path="url(#clip-2)">
-<rect x="0" y="80" width="360" height="30" rx="8" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="80" width="360" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="84" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">area: 6</text>
 </g>
 </svg>

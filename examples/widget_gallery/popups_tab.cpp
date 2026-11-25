@@ -48,27 +48,20 @@ void PopupsTab::dropped(const prism::input::FileDrop& drop) {
 void PopupsTab::view(prism::app::ViewBuilder& vb) {
     vb.widget(title);
     vb.widget(hint);
-    vb.gap(8.f);
     vb.hstack([&] {
         vb.widget(ask).tooltip("A modal dialog: Enter picks the first button, Escape cancels");
-        vb.gap(8.f);
         vb.widget(rename).tooltip("A dialog holding a form");
-        vb.gap(8.f);
         vb.widget(options).tooltip("A popover: a click outside closes it");
         // Declared here, it opens here: a non-modal popup is placed at its declaration.
         vb.popup(options_popup, [&](prism::app::ViewBuilder& p) { p.vstack(grid, snap); });
         vb.spacer();
     });
-    vb.gap(8.f);
     vb.hstack([&] {
         vb.widget(open_file).tooltip("The platform's file dialog (in a browser: not available)");
-        vb.gap(8.f);
         vb.widget(save_file);
-        vb.gap(8.f);
         vb.widget(message).tooltip("The platform's message box");
         vb.spacer();
     });
-    vb.gap(8.f);
     vb.widget(result);
     vb.spacer();   // the page fills the tab, so a right-click anywhere on it is inside
     vb.context_menu(edit_menu);

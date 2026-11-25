@@ -1134,6 +1134,7 @@ private:
         content.id = tree_.next_id_++;
         content.is_leaf = false;
         content.layout_kind = LayoutKind::Column;
+        if (header) content.frame = Framing{.look = FrameLook::Page};
         tabs_node.children.push_back(std::move(content));
 
         current_parent().children.push_back(std::move(tabs_node));
@@ -1223,6 +1224,7 @@ public:
         content.id = tree_.next_id_++;
         content.is_leaf = false;
         content.layout_kind = LayoutKind::Column;
+        content.frame = Framing{.look = FrameLook::Page};
         tabs_node.children.push_back(std::move(content));
 
         current_parent().children.push_back(std::move(tabs_node));

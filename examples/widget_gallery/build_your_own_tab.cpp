@@ -52,7 +52,6 @@ void BuildYourOwnTab::view(Vb& vb) {
     vb.hstack([&] {
         for (auto& strip : strips) {
             vb.block(strip);
-            vb.gap(6.f);
         }
         vb.spacer();
         vb.widget(master);

@@ -336,9 +336,9 @@ TEST_CASE("Button ignores other keys") {
     CHECK(field.get().click_count == 0);
 }
 
-TEST_CASE("Widget<bool> renders focus ring when focused") {
+TEST_CASE("Widget<bool> renders focus ring when focused from the keyboard") {
     prism::Field<bool> field{false};
-    auto node = make_node({.focused = true});
+    auto node = make_node({.focused = true, .focus_visible = true});
     prism::DrawList dl;
     prism::Widget<bool>::record(dl, field, node);
     bool has_outline = false;
@@ -361,9 +361,9 @@ TEST_CASE("Widget<bool> no focus ring when not focused") {
     CHECK(outline_count == 1);  // only box border, no focus ring
 }
 
-TEST_CASE("Slider renders focus ring when focused") {
+TEST_CASE("Slider renders focus ring when focused from the keyboard") {
     prism::Field<prism::Slider<>> field{{.value = 0.5}};
-    auto node = make_node({.focused = true});
+    auto node = make_node({.focused = true, .focus_visible = true});
     prism::DrawList dl;
     prism::Widget<prism::Slider<>>::record(dl, field, node);
     bool has_outline = false;
@@ -373,9 +373,9 @@ TEST_CASE("Slider renders focus ring when focused") {
     CHECK(has_outline);
 }
 
-TEST_CASE("Button renders focus ring when focused") {
+TEST_CASE("Button renders focus ring when focused from the keyboard") {
     prism::Field<prism::Button> field{{"Go"}};
-    auto node = make_node({.focused = true});
+    auto node = make_node({.focused = true, .focus_visible = true});
     prism::DrawList dl;
     prism::Widget<prism::Button>::record(dl, field, node);
     int outline_count = 0;
@@ -460,9 +460,9 @@ TEST_CASE("Checkbox focus policy is tab_and_click") {
     CHECK(prism::Widget<prism::Checkbox>::focus_policy == prism::FocusPolicy::tab_and_click);
 }
 
-TEST_CASE("Checkbox renders focus ring when focused") {
+TEST_CASE("Checkbox renders focus ring when focused from the keyboard") {
     prism::Field<prism::Checkbox> field{{.label = "X"}};
-    auto node = make_node({.focused = true});
+    auto node = make_node({.focused = true, .focus_visible = true});
     prism::DrawList dl;
     prism::Widget<prism::Checkbox>::record(dl, field, node);
     bool has_outline = false;

@@ -22,43 +22,30 @@ void ControlsTab::view(prism::app::ViewBuilder& vb) {
     vb.widget(title);
     vb.hstack([&] {
         vb.widget(name).tooltip("A text field: selection, clipboard, undo, input methods");
-        vb.gap(8.f);
         vb.widget(secret).tooltip("A password field: shows dots, never copies");
     });
-    vb.gap(6.f);
     vb.widget(fruit).tooltip("A combo box: type freely, or pick a suggestion with the arrows");
     vb.widget(port).tooltip("A choice among options known at run time, nothing else");
-    vb.gap(6.f);
     vb.widget(lock).tooltip("Greys out the settings below, down to the checkboxes");
-    vb.gap(6.f);
     vb.enabled_if(unlocked, [&] { settings(vb); });
-    vb.gap(6.f);
     vb.hstack([&] {
         vb.widget(save).enabled(has_name).tooltip("Enabled once the name is filled in");
-        vb.gap(8.f);
         vb.widget(reset).tooltip("A quieter button: clears the form");
-        vb.gap(8.f);
         vb.widget(trash).tooltip("An icon-only button needs a tooltip as its name");
         vb.spacer();
     });
-    vb.gap(6.f);
     vb.widget(progress).tooltip("Follows the slider");
     vb.widget(busy).tooltip("For work whose length is unknown");
-    vb.gap(6.f);
     vb.widget(summary);
 }
 
 void ControlsTab::settings(prism::app::ViewBuilder& vb) {
     vb.hstack([&] {
         vb.widget(copies).tooltip("Whole numbers: arrows, the wheel, or type a value");
-        vb.gap(8.f);
         vb.widget(scale).tooltip("Steps of 0.25");
-        vb.gap(8.f);
         vb.widget(theme).tooltip("An enum field is a dropdown. This one switches the theme, and is remembered");
     });
-    vb.gap(6.f);
     vb.widget(volume).tooltip("Drag, click, or use the arrow keys");
-    vb.gap(6.f);
     vb.hstack([&] {
         vb.widget(notify).tooltip("A checkbox");
         vb.gap(16.f);

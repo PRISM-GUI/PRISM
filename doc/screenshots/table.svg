@@ -3,18 +3,18 @@
 <clipPath id="clip-0"><rect x="0" y="0" width="320" height="24"/></clipPath>
 <g clip-path="url(#clip-0)">
 <rect x="0" y="0" width="320" height="24" fill="rgba(40,46,74,1)"/>
-<rect x="0" y="22" width="320" height="2" fill="rgba(74,74,106,1)"/>
+<rect x="0" y="22" width="320" height="2" fill="rgba(60,68,104,1)"/>
 <clipPath id="clip-1"><rect x="0" y="0" width="160" height="24"/></clipPath>
 <g clip-path="url(#clip-1)">
 <text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">Sensor</text>
 </g>
-<rect x="160" y="4" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<rect x="160" y="4" width="1" height="16" fill="rgba(60,68,104,1)"/>
 <clipPath id="clip-2"><rect x="160" y="0" width="160" height="24"/></clipPath>
 <g clip-path="url(#clip-2)">
 <text xml:space="preserve" x="164" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(160,168,220,1)" dominant-baseline="hanging">Value</text>
 <polygon points="306,9.5 314,9.5 310,14.5" fill="rgba(160,168,220,1)"/>
 </g>
-<rect x="320" y="4" width="1" height="16" fill="rgba(74,74,106,1)"/>
+<rect x="320" y="4" width="1" height="16" fill="rgba(60,68,104,1)"/>
 </g>
 <clipPath id="clip-3"><rect x="0" y="24" width="320" height="104"/></clipPath>
 <g clip-path="url(#clip-3)">
@@ -29,7 +29,7 @@
 <g clip-path="url(#clip-6)">
 <text xml:space="preserve" x="164" y="28" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">41.2</text>
 </g>
-<rect x="160" y="24" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<rect x="160" y="24" width="1" height="24" fill="rgba(40,46,74,1)"/>
 </g>
 <clipPath id="clip-7"><rect x="0" y="48" width="320" height="24"/></clipPath>
 <g clip-path="url(#clip-7)">
@@ -42,7 +42,7 @@
 <g clip-path="url(#clip-9)">
 <text xml:space="preserve" x="164" y="52" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">12.1</text>
 </g>
-<rect x="160" y="48" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<rect x="160" y="48" width="1" height="24" fill="rgba(40,46,74,1)"/>
 </g>
 <clipPath id="clip-10"><rect x="0" y="72" width="320" height="24"/></clipPath>
 <g clip-path="url(#clip-10)">
@@ -55,7 +55,7 @@
 <g clip-path="url(#clip-12)">
 <text xml:space="preserve" x="164" y="76" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">3.7</text>
 </g>
-<rect x="160" y="72" width="1" height="24" fill="rgba(50,50,70,1)"/>
+<rect x="160" y="72" width="1" height="24" fill="rgba(40,46,74,1)"/>
 </g>
 </g>
 </svg>

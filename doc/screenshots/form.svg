@@ -2,7 +2,7 @@
 <rect width="360" height="260" fill="rgba(24,28,47,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="89" height="86"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="89" height="86" rx="8" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="0" width="89" height="86" fill="rgba(0,0,0,0)"/>
 <circle cx="16" cy="17" r="8" stroke="rgba(74,82,122,1)" fill="none" stroke-width="2"/>
 <text xml:space="preserve" x="32" y="9" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Draft</text>
 <circle cx="16" cy="43" r="8" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
@@ -17,7 +17,7 @@
 </g>
 <clipPath id="clip-1"><rect x="99" y="0" width="95" height="86"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="99" y="0" width="95" height="60" rx="8" fill="rgba(36,41,66,1)"/>
+<rect x="99" y="0" width="95" height="60" fill="rgba(0,0,0,0)"/>
 <circle cx="115" cy="17" r="8" stroke="rgba(132,98,245,1)" fill="none" stroke-width="2"/>
 <defs><linearGradient id="g-1" x1="0" y1="0" x2="1" y2="0">
 <stop offset="0" stop-color="rgba(118,90,226,1)"/>

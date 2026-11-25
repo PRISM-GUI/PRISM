@@ -68,7 +68,7 @@ void draw(DrawList& dl, TimeOfDay t, const TimeEditState& es, const WidgetNode& 
         dl.filled_rect(delegate_detail::make_rect(X{x - 1}, Y{5}, Width{two + 2}, Height{20}), th.text_selection);
     }
     dl.text(to_text(t), delegate_detail::make_point(X{text_x}, Y{7}), font, th.text);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, th);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, th);
 }
 
 void on_key(TimeEditState& es, int32_t k, Field<TimeOfDay>& field, WidgetNode& node) {

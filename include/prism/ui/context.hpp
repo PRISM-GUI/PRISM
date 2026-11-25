@@ -129,10 +129,12 @@ struct Theme {
     // square, the classic look; the modern themes round them and draw sliders as pills.
     float corner_radius   = 0.f;
 
-    // Pill controls: switches, segmented menus and sliders with fully rounded ends.
-    bool pill_controls    = false;
     // Between the children of a vstack/hstack that set no gap of its own (an explicit gap wins).
     float spacing         = 0.f;
+    // Between a tab page's content and the edges of the page (the window's, for the main tabs).
+    float page_margin     = 0.f;
+    // Whether a label and an idle menu title sit on a surface box (classic) or on the page.
+    bool idle_boxes       = true;
     // What a control that is primary or "on" is filled with.
     // Solid by default (both ends the member above), as the classic look paints them.
     Gradient primary_fill{primary, primary};   // a primary button, a progress bar, a filled slider track
@@ -176,7 +178,7 @@ struct Theme {
 };
 
 // The look PRISM shipped before the modern one, still what a plain Theme{} holds: square boxes,
-// no pills, no spacing between a stack's children, and solid fills.
+// boxes behind labels, no page margin, no spacing between a stack's children, and solid fills.
 inline Theme classic_dark_theme() { return {}; }
 
 // Dark text on light surfaces; every text color keeps at least WCAG AA contrast (4.5:1) with
@@ -227,9 +229,9 @@ inline Theme classic_light_theme() {
     return t;
 }
 
-// The modern look: rounded boxes, pill controls, a gap between a stack's children, a navy
-// base and two gradient fills, teal-blue for primary actions and violet for the controls that are
-// "on". Light and dark share the shapes.
+// The modern look: rounded boxes, underlined tabs, labels on the page, a gap between a stack's
+// children, a navy base and two gradient fills, teal-blue for primary actions and violet for the
+// controls that are "on". Light and dark share the shapes.
 inline Theme modern_dark_theme() {
     Theme t = classic_dark_theme();
     auto c = [](std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) { return Color::rgba(r, g, b, a); };
@@ -245,11 +247,19 @@ inline Theme modern_dark_theme() {
     t.track = c(70, 78, 116);             t.track_hover = c(84, 92, 134);
     t.popup_bg = c(34, 39, 63);           t.popup_border = c(74, 82, 122);      t.popup_highlight = c(35, 128, 142);
     t.tab_bar_bg = c(30, 34, 56);         t.tab_active_bg = c(40, 46, 74);
-    t.tab_text = c(140, 148, 186);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(132, 98, 245);
+    t.tab_text = c(152, 160, 196);        t.tab_text_active = c(236, 238, 250); t.tab_accent = c(150, 122, 255);
     t.table_row_even = c(32, 37, 60);     t.table_row_odd = c(29, 33, 55);      t.table_selected = c(60, 58, 120);
     t.table_header = c(40, 46, 74);       t.table_header_text = c(160, 168, 220);
-    t.pill_controls = true;
+    t.chrome_bg = c(24, 28, 47);          t.chrome_border = c(40, 46, 74);
+    t.chrome_text = c(214, 218, 236);     t.chrome_icon = c(170, 178, 210);
+    t.divider = c(44, 50, 80);            t.divider_hover = c(88, 200, 210);
+    t.scrollbar_thumb = c(140, 150, 200, 110);
+    t.text_selection = c(132, 98, 245, 90);
+    t.code_bg = c(30, 34, 56);
+    t.table_divider = c(40, 46, 74);      t.table_header_divider = c(60, 68, 104);
     t.spacing = 10.f;
+    t.page_margin = 12.f;
+    t.idle_boxes = false;
     t.primary_fill = Gradient{c(35, 128, 142), c(52, 114, 216)};
     t.accent_fill = Gradient{c(118, 90, 226), c(88, 58, 200)};
     return t;
@@ -271,8 +281,16 @@ inline Theme modern_light_theme() {
     t.popup_bg = c(255, 255, 255);        t.popup_border = c(206, 211, 230);    t.popup_highlight = c(18, 128, 146);
     t.tab_bar_bg = c(234, 237, 247);      t.tab_active_bg = c(255, 255, 255);
     t.tab_text = c(96, 102, 132);         t.tab_text_active = c(26, 29, 48);    t.tab_accent = c(108, 76, 230);
-    t.pill_controls = true;
+    t.chrome_bg = c(243, 245, 251);       t.chrome_border = c(214, 219, 234);
+    t.chrome_text = c(26, 29, 48);        t.chrome_icon = c(70, 76, 104);
+    t.divider = c(214, 219, 234);         t.divider_hover = c(40, 160, 175);
+    t.scrollbar_thumb = c(90, 98, 130, 110);
+    t.text_selection = c(108, 76, 230, 60);
+    t.code_bg = c(236, 239, 247);
+    t.table_divider = c(226, 230, 242);   t.table_header_divider = c(206, 211, 230);
     t.spacing = 10.f;
+    t.page_margin = 12.f;
+    t.idle_boxes = false;
     t.primary_fill = Gradient{c(18, 128, 146), c(37, 99, 235)};
     t.accent_fill = Gradient{c(118, 90, 226), c(84, 54, 196)};
     return t;

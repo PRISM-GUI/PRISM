@@ -22,27 +22,27 @@
 <rect width="300" height="285" fill="rgba(243,245,251,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="0" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">name</text>
 </g>
 <clipPath id="clip-1"><rect x="0" y="34" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="34" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="34" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="38" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">Ada Lovelace</text>
 </g>
 <clipPath id="clip-2"><rect x="0" y="74" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-2)">
-<rect x="0" y="74" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="74" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="78" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">age</text>
 </g>
 <clipPath id="clip-3"><rect x="0" y="108" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="0" y="108" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="108" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="112" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">36</text>
 </g>
 <clipPath id="clip-4"><rect x="0" y="148" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-4)">
-<rect x="0" y="148" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="148" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="152" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">newsletter</text>
 </g>
 <clipPath id="clip-5"><rect x="0" y="182" width="300" height="30"/></clipPath>
@@ -58,7 +58,7 @@
 </g>
 <clipPath id="clip-6"><rect x="0" y="222" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-6)">
-<rect x="0" y="222" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="222" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="226" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">theme</text>
 </g>
 <clipPath id="clip-7"><rect x="0" y="256" width="300" height="30"/></clipPath>
@@ -70,12 +70,12 @@
 </g>
 <clipPath id="clip-8"><rect x="0" y="296" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-8)">
-<rect x="0" y="296" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="296" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="300" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">volume</text>
 </g>
 <clipPath id="clip-9"><rect x="0" y="330" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-9)">
-<rect x="0" y="330" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="330" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="334" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">0.7</text>
 </g>
 </svg>

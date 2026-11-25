@@ -75,7 +75,7 @@ void draw_box(DrawList& dl, year_month_day d, const WidgetNode& node, const Them
     dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, Height{box_h}), vs.hovered ? t.surface_hover : t.surface);
     dl.text(to_iso(d), delegate_detail::make_point(X{8}, Y{7}), 14, t.text);
     dl.text("\xe2\x96\xbe", delegate_detail::make_point(X{w.raw() - 20.f}, Y{7}), 14, t.text_muted);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, Height{box_h}, t);
 }
 
 void draw_day(DrawList& dl, Rect cell, year_month_day d, bool picked, bool in_month, const Theme& t) {

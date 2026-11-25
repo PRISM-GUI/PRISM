@@ -34,7 +34,7 @@ void Widget<Checkbox>::record(DrawList& dl, const Field<Checkbox>& field, Widget
     if (!cb.label.empty())
         dl.text(cb.label, delegate_detail::make_point(X{32}, Y{7}), 14, t.text);
 
-    if (vs.focused)
+    if (vs.focus_visible)
         delegate_detail::draw_focus_ring(dl, delegate_detail::widget_w(node), widget_h, t);
 }
 
@@ -58,7 +58,7 @@ void Widget<bool>::record(DrawList& dl, const Field<bool>& field, WidgetNode& no
     Y box_y{(widget_h.raw() - box_size.raw()) / 2.f};
     draw_check_box(dl, X{8}, box_y, field.get(), vs, t);
 
-    if (vs.focused)
+    if (vs.focus_visible)
         delegate_detail::draw_focus_ring(dl, delegate_detail::widget_w(node), widget_h, t);
 }
 
@@ -76,8 +76,10 @@ void delegate_detail::draw_label(DrawList& dl, const WidgetNode& node, std::stri
     float line_h = line_height(t.measurer, size);
     float one_line = heading ? 30.f : 24.f;
     Height h{one_line + line_h * static_cast<float>(std::max<std::size_t>(lines.size(), 1) - 1)};
-    // A heading's box is clear, and so is a flat label's: both still give the widget its height.
-    dl.filled_rect(make_rect(X{0}, Y{0}, w, h), heading || flat ? Color::rgba(0, 0, 0, 0) : t.surface);
+    // A heading's box is clear, and so is a flat label's or one in a theme without idle boxes:
+    // the clear box still gives the widget its height.
+    const bool boxed = !heading && !flat && t.idle_boxes;
+    dl.filled_rect(make_rect(X{0}, Y{0}, w, h), boxed ? t.surface : Color::rgba(0, 0, 0, 0));
     for (std::size_t i = 0; i < lines.size(); ++i)
         dl.text(std::string(text.substr(lines[i].start, lines[i].length)),
                 make_point(X{4}, Y{4 + line_h * static_cast<float>(i)}), size,
@@ -114,7 +116,7 @@ void Widget<Link>::record(DrawList& dl, const Field<Link>& field, WidgetNode& no
     dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, Width{w + 8.f}, Height{24}), Color::rgba(0, 0, 0, 0));
     dl.text(l.text, delegate_detail::make_point(X{4}, Y{4}), font_size, c);
     dl.line(Point{X{4}, Y{20}}, Point{X{4 + w}, Y{20}}, c, 1.f);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, Width{w + 8.f}, Height{24}, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, Width{w + 8.f}, Height{24}, t);
 }
 
 void Widget<Link>::handle_input(Field<Link>& field, const InputEvent& ev, WidgetNode& node) {
@@ -139,7 +141,7 @@ void Widget<Expander>::record(DrawList& dl, const Field<Expander>& field, Widget
                    vs.pressed ? t.surface_active : vs.hovered ? t.surface_hover : Color::rgba(0, 0, 0, 0));
     dl.text(e.open ? "\xe2\x96\xbe" : "\xe2\x96\xb8", delegate_detail::make_point(X{6}, Y{5}), font_size, t.text_muted);   // ▾ ▸
     dl.text(e.title, delegate_detail::make_point(X{22}, Y{5}), font_size, t.text);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, w, header_h, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, header_h, t);
 }
 
 void Widget<Expander>::handle_input(Field<Expander>& field, const InputEvent& ev, WidgetNode& node) {
@@ -172,7 +174,7 @@ void draw_slider(DrawList& dl, const SliderLook& look, const WidgetNode& node) {
         dl.filled_rect(make_rect(track_x, Y{0}, Width{slider_track_thick}, Height{look.track_len}), track_bg);
         Y thumb_y{(1.f - look.ratio) * (look.track_len - slider_thumb_len)};
         dl.filled_rect(make_rect(X{0}, thumb_y, Width{slider_widget_extent}, Height{slider_thumb_len}), thumb_color);
-        if (vs.focused)
+        if (vs.focus_visible)
             draw_focus_ring(dl, Width{slider_widget_extent}, Height{look.track_len}, t);
         return;
     }
@@ -207,7 +209,7 @@ void draw_slider(DrawList& dl, const SliderLook& look, const WidgetNode& node) {
         dl.filled_rect(make_rect(X{0}, track_y, Width{look.track_len}, Height{slider_track_thick}), track_bg);
         dl.filled_rect(make_rect(thumb_x, Y{top}, Width{slider_thumb_len}, Height{slider_widget_extent}), thumb_color);
     }
-    if (vs.focused)
+    if (vs.focus_visible)
         draw_focus_ring(dl, Width{look.track_len}, Height{top + slider_widget_extent}, t);
 }
 
@@ -265,7 +267,7 @@ void Widget<Button>::record(DrawList& dl, const Field<Button>& field, WidgetNode
         float kx = w.raw() - 8.f - text_width(t.measurer, keys, 14.f);
         dl.text(keys, delegate_detail::make_point(X{kx}, Y{7}), 14, b.primary ? fg : t.text_muted);
     }
-    if (vs.focused)
+    if (vs.focus_visible)
         delegate_detail::draw_focus_ring(dl, w, Height{32}, t);
 }
 

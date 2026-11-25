@@ -47,7 +47,6 @@ void PlotTab::view(prism::app::ViewBuilder& vb) {
     });
     vb.hstack([&] {
         vb.widget(frequency);
-        vb.gap(8.f);
         vb.widget(amplitude);
     });
     vb.hstack([&] {

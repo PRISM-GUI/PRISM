@@ -16,17 +16,17 @@
 </g>
 <clipPath id="clip-1"><rect x="0" y="58" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="58" width="300" height="24" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="58" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="62" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">mode</text>
 </g>
 <clipPath id="clip-2"><rect x="0" y="92" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-2)">
-<rect x="0" y="92" width="300" height="30" rx="8" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="92" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="96" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(232,235,248,1)" dominant-baseline="hanging">2</text>
 </g>
 <clipPath id="clip-3"><rect x="0" y="132" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="0" y="132" width="300" height="24" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="132" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="136" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">enabled</text>
 </g>
 <clipPath id="clip-4"><rect x="0" y="166" width="300" height="30"/></clipPath>

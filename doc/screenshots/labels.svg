@@ -7,7 +7,7 @@
 </g>
 <clipPath id="clip-1"><rect x="0" y="40" width="320" height="44"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="40" width="320" height="44" fill="rgba(36,41,66,1)"/>
+<rect x="0" y="40" width="320" height="44" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="44" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">The copy goes next to the original, which stays </text>
 <text xml:space="preserve" x="4" y="64" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(152,160,196,1)" dominant-baseline="hanging">as it was.</text>
 </g>
@@ -33,6 +33,6 @@
 <rect x="0" y="172" width="320" height="34" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="0" y="173" font-family="Noto Sans, sans-serif" font-size="12" fill="rgba(232,235,248,1)" dominant-baseline="hanging">Connecting</text>
 <rect x="0" y="194" width="320" height="8" rx="4" fill="rgba(70,78,116,1)"/>
-<rect x="78.4233" y="194" width="96" height="8" rx="4" fill="rgba(35,128,142,1)"/>
+<rect x="211.634" y="194" width="96" height="8" rx="4" fill="rgba(35,128,142,1)"/>
 </g>
 </svg>

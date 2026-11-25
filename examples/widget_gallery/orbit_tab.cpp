@@ -208,11 +208,9 @@ void OrbitTab::view(app::ViewBuilder& vb) {
     vb.widget(intro);
     vb.hstack([&] {
         vb.widget(pick).tooltip("A hand-made level, or a random scene");
-        vb.gap(8.f);
         vb.widget(difficulty_label).enabled(random_scene);
         vb.gap(4.f);
         vb.widget(difficulty).enabled(random_scene).tooltip("Difficulty of random scenes, 1 to 5");
-        vb.gap(8.f);
         vb.widget(new_scene);
         vb.spacer();
     });

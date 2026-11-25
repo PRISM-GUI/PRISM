@@ -135,9 +135,7 @@ std::vector<Entry> catalog_entries(Samples& s) {
               vb.vstack([&] {
                   vb.hstack([&] {
                       vb.widget(s.chip_a).drag_source([] { return std::string("Alpha"); });
-                      vb.gap(8.f);
                       vb.widget(s.chip_b).drag_source([] { return std::string("Beta"); });
-                      vb.gap(8.f);
                       vb.widget(s.chip_c).drag_source([] { return std::string("Gamma"); });
                       vb.spacer();
                   });

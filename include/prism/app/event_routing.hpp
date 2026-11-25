@@ -250,6 +250,7 @@ inline void route_mouse_button(WidgetTree& tree, const SceneSnapshot& snap,
         if (mb.pressed) {
             if (*id != tree.focused_id())
                 tree.close_overlays();
+            tree.show_focus(false);
             tree.set_focused(*id);
             if (mb.button == buttons::left && place) tree.arm_drag(*id, mb.position, *place);
         }

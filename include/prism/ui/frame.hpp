@@ -16,7 +16,8 @@ namespace prism::ui {
 // Card: a raised surface on its own background (a floating panel over a dock).
 // NodeCard and NodeHeader: a node board's card and the band on top of it (src/app/node_board.cpp);
 // the header's colour comes from the family's name through the theme, so the look stays a name.
-enum class FrameLook { Toolbar, StatusBar, Group, Card, NodeCard, NodeHeader };
+// Page: a tab page's content, kept the theme's page margin from the page's edges; it draws nothing.
+enum class FrameLook { Toolbar, StatusBar, Group, Card, NodeCard, NodeHeader, Page };
 
 struct Framing {
     FrameLook look = FrameLook::Group;
@@ -64,8 +65,12 @@ inline float node_badge_width(const Framing& f, const TextMeasurer* measurer) {
          + frame_detail::node_label_gap;
 }
 
-inline Insets frame_insets(const Framing& f) {
+inline Insets frame_insets(const Framing& f, const Theme* t = nullptr) {
     switch (f.look) {
+    case FrameLook::Page: {
+        const float m = t ? t->page_margin : 0.f;
+        return {m, m, m, m};
+    }
     case FrameLook::Toolbar: return {4, 4, 4, 4};
     case FrameLook::StatusBar: return {8, 2, 8, 2};
     case FrameLook::Group: return {9, f.title.empty() ? 9.f : frame_detail::title_h + 6.f, 9, 9};
@@ -90,6 +95,7 @@ inline render::DrawList frame_draws(const Framing& f, Size size, const Theme& t)
     float w = size.w.raw(), h = size.h.raw();
     auto line = [&](float y) { dl.line(Point{X{0}, Y{y}}, Point{X{w}, Y{y}}, t.chrome_border, 1.f); };
     switch (f.look) {
+    case FrameLook::Page: break;
     case FrameLook::Toolbar:
         dl.filled_rect(Rect{Point{X{0}, Y{0}}, size}, t.chrome_bg);
         line(h - 0.5f);

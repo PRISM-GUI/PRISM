@@ -126,7 +126,7 @@ struct Widget<gallery::Knob> {
         dl.text(delegate_detail::slider_value_text(k.value, k.step, k.unit),
                 delegate_detail::make_point(middle, value_y), caption_size, t.text, 0.f,
                 TextAnchor::Center);
-        if (vs.focused) delegate_detail::draw_focus_ring(dl, w, extent, t);
+        if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, extent, t);
     }
 
     // A press only grabs the knob, so a click to focus it never moves it; moves while pressed turn it.

@@ -36,9 +36,7 @@ void DataTab::view(prism::app::ViewBuilder& vb) {
         vb.vstack([&] {
             vb.hstack([&] {
                 vb.widget(new_item);
-                vb.gap(8.f);
                 vb.widget(add);
-                vb.gap(8.f);
                 vb.widget(remove);
             });
             vb.list(todo).reorderable();

@@ -77,14 +77,6 @@ struct Rendered {
     }
 };
 
-std::vector<const GradientRect*> gradients_in(const DrawList& dl) { return commands_of<GradientRect>(dl); }
-
-bool uses(const std::vector<const GradientRect*>& list, const Gradient& fill) {
-    return std::any_of(list.begin(), list.end(), [&](const GradientRect* g) {
-        return g->from == fill.from && g->to == fill.to;
-    });
-}
-
 } // namespace
 
 TEST_CASE("a group frame is rounded by the theme's corner radius") {
@@ -143,52 +135,6 @@ TEST_CASE("a tooltip is rounded by the theme's corner radius") {
 
 // The model types live here, at file scope: reflection needs a name that is not local to a
 // function.
-struct Tabs {
-    Field<TabBar<>> bar;
-    Field<Label<>> first{{"one"}};
-    Field<Label<>> second{{"two"}};
-
-    void view(WidgetTree::ViewBuilder& vb) {
-        vb.tabs(bar, [&] {
-            vb.tab("Alpha", [&](WidgetTree::ViewBuilder& page) { page.widget(first); });
-            vb.tab("Beta", [&](WidgetTree::ViewBuilder& page) { page.widget(second); });
-        });
-    }
-};
-
-TEST_CASE("the selected tab is a gradient pill") {
-    const Theme modern = modern_dark_theme();
-    const Theme classic = classic_dark_theme();
-
-    Tabs model;
-    WidgetTree modern_tree{model};
-    modern_tree.set_theme(modern);
-    static_cast<void>(modern_tree.build_snapshot(400, 200, 1));
-    modern_tree.clear_dirty();
-    const auto snap = modern_tree.build_snapshot(400, 200, 2);
-
-    DrawList tabs;
-    for (const auto& dl : snap->draw_lists)
-        for (const auto& cmd : dl->commands) tabs.commands.push_back(cmd);
-    const auto pills = gradients_in(tabs);
-    REQUIRE_FALSE(pills.empty());
-    CHECK(uses(pills, modern.primary_fill));
-    CHECK(std::any_of(pills.begin(), pills.end(), [](const GradientRect* g) {
-        return g->radius > 0.f && g->rect.extent.w.raw() > g->rect.extent.h.raw();
-    }));
-
-    Tabs other;
-    WidgetTree classic_tree{other};
-    classic_tree.set_theme(classic);
-    static_cast<void>(classic_tree.build_snapshot(400, 200, 1));
-    classic_tree.clear_dirty();
-    const auto old = classic_tree.build_snapshot(400, 200, 2);
-    DrawList classic_tabs;
-    for (const auto& dl : old->draw_lists)
-        for (const auto& cmd : dl->commands) classic_tabs.commands.push_back(cmd);
-    CHECK(gradients_in(classic_tabs).empty());
-}
-
 struct Rows {
     List<std::string> rows;
     Field<std::optional<std::size_t>> picked{std::size_t{1}};

@@ -259,7 +259,7 @@ struct Widget<SpinBox<T>> {
         float cx = sx + stepper_w / 2, a = 4.f;
         dl.filled_polygon({Point{X{cx - a}, Y{11}}, Point{X{cx + a}, Y{11}}, Point{X{cx}, Y{6}}}, t.text);
         dl.filled_polygon({Point{X{cx - a}, Y{19}}, Point{X{cx + a}, Y{19}}, Point{X{cx}, Y{24}}}, t.text);
-        if (vs.focused) delegate_detail::draw_focus_ring(dl, Width{w}, Height{widget_h}, t);
+        if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, Width{w}, Height{widget_h}, t);
     }
 
     // simplify: typed text has no caret or selection -- digits append, Backspace removes the last;

@@ -166,7 +166,6 @@ TEST_CASE("golden: clicking the checkbox flips its rendered state") {
     Text "✓" at=(10.0,38.0) size=13.0 color=#f0f0f0ff
     RectOutline rect=(8.0,37.0,16.0,16.0) color=#5a5a69ff thickness=1.5
     Text "agree" at=(32.0,37.0) size=14.0 color=#dcdcdcff
-    RectOutline rect=(1.0,31.0,298.0,28.0) color=#50a0f0ff thickness=2.0
     ClipPop
 )GOLDEN");
 }

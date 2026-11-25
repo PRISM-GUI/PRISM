@@ -230,10 +230,13 @@ void Widget<Menu>::record(DrawList& dl, const Field<Menu>& field, WidgetNode& no
     auto& t = *node.theme;
     Width w = delegate_detail::widget_w(node);
     bool is_open = node.popup_area.has_value();
-    dl.filled_rect(delegate_detail::make_rect(X{0}, Y{0}, w, title_h),
-                   is_open ? t.surface_active : vs.hovered ? t.surface_hover : t.surface);
+    const Rect title = delegate_detail::make_rect(X{0}, Y{0}, w, title_h);
+    const Color idle = t.idle_boxes ? t.surface : Color::rgba(0, 0, 0, 0);
+    dl.filled_rect(title, Color::rgba(0, 0, 0, 0));   // the title's size, whatever it shows
+    delegate_detail::fill_box(dl, title, is_open ? t.surface_active : vs.hovered ? t.surface_hover : idle,
+                              t.corner_radius);
     draw_label(dl, m.title, delegate_detail::make_point(X{pad}, Y{7}), t.text, t.measurer);
-    if (vs.focused) delegate_detail::draw_focus_ring(dl, w, title_h, t);
+    if (vs.focus_visible) delegate_detail::draw_focus_ring(dl, w, title_h, t);
     node.overlay_draws.clear();
     if (is_open) draw_popup(m.items, node);
 }

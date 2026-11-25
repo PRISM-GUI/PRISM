@@ -295,7 +295,8 @@ TEST_CASE("a gradient of one colour draws solid") {
 TEST_CASE("the classic themes keep square boxes, no pills and solid fills") {
     for (const auto& t : {prism::ui::classic_dark_theme(), prism::ui::classic_light_theme()}) {
         CHECK(t.corner_radius == 0.f);
-        CHECK_FALSE(t.pill_controls);
+        CHECK(t.page_margin == 0.f);
+        CHECK(t.idle_boxes);
         CHECK(t.spacing == 0.f);
         CHECK(t.primary_fill.solid());
         CHECK(t.primary_fill.from == t.primary);
@@ -309,7 +310,8 @@ TEST_CASE("the classic themes keep square boxes, no pills and solid fills") {
 TEST_CASE("the modern themes are pills, with spacing and two gradients") {
     for (const auto& t : {prism::ui::modern_dark_theme(), prism::ui::modern_light_theme()}) {
         CHECK(t.corner_radius == 8.f);
-        CHECK(t.pill_controls);
+        CHECK(t.page_margin > 0.f);
+        CHECK_FALSE(t.idle_boxes);
         CHECK(t.spacing == 10.f);
         CHECK_FALSE(t.primary_fill.solid());
         CHECK_FALSE(t.accent_fill.solid());
@@ -354,7 +356,8 @@ void same_look(const prism::Theme& a, const prism::Theme& b) {
     CHECK(a.surface == b.surface);
     CHECK(a.primary == b.primary);
     CHECK(a.corner_radius == b.corner_radius);
-    CHECK(a.pill_controls == b.pill_controls);
+    CHECK(a.page_margin == b.page_margin);
+    CHECK(a.idle_boxes == b.idle_boxes);
     CHECK(a.spacing == b.spacing);
     CHECK(a.primary_fill == b.primary_fill);
     CHECK(a.accent_fill == b.accent_fill);

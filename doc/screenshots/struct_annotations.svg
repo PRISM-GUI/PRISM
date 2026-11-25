@@ -20,12 +20,12 @@
 <rect width="300" height="262" fill="rgba(243,245,251,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-0)">
-<rect x="0" y="0" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="0" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="4" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Sample rate</text>
 </g>
 <clipPath id="clip-1"><rect x="0" y="34" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-1)">
-<rect x="0" y="34" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="34" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="38" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">48000</text>
 </g>
 <clipPath id="clip-2"><rect x="0" y="74" width="300" height="48"/></clipPath>
@@ -44,22 +44,22 @@
 </g>
 <clipPath id="clip-3"><rect x="0" y="132" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-3)">
-<rect x="0" y="132" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="132" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="136" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">serial</text>
 </g>
 <clipPath id="clip-4"><rect x="0" y="166" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-4)">
-<rect x="0" y="166" width="300" height="30" rx="8" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="166" width="300" height="30" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="170" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(26,29,48,1)" dominant-baseline="hanging">PX-0042</text>
 </g>
 <clipPath id="clip-5"><rect x="0" y="206" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-5)">
-<rect x="0" y="206" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="206" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="210" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">Output</text>
 </g>
 <clipPath id="clip-6"><rect x="0" y="240" width="300" height="24"/></clipPath>
 <g clip-path="url(#clip-6)">
-<rect x="0" y="240" width="300" height="24" fill="rgba(255,255,255,1)"/>
+<rect x="0" y="240" width="300" height="24" fill="rgba(0,0,0,0)"/>
 <text xml:space="preserve" x="4" y="244" font-family="Noto Sans, sans-serif" font-size="14" fill="rgba(86,92,122,1)" dominant-baseline="hanging">enabled</text>
 </g>
 <clipPath id="clip-7"><rect x="0" y="274" width="300" height="30"/></clipPath>

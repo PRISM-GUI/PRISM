@@ -1,8 +1,8 @@
 # Themes
 
 A theme is the set of colors and shapes every widget draws with. PRISM ships a modern look, in
-dark and light: rounded boxes, pill-shaped controls, gradients on whatever is "on", and space
-between the widgets of a stack. The look PRISM had before stays available as the classic themes.
+dark and light: rounded boxes, underlined tabs, labels straight on the page, gradients only on
+what is "on" or primary, and space between the widgets of a stack. The look PRISM had before stays available as the classic themes.
 An app can follow the system's choice, pick one, or bring its own.
 
 ## Follow the system
@@ -64,7 +64,7 @@ both ends of the gradients included. A test checks it.
 
 The modern look in dark and light:
 
-<img src="../screenshots/modern_dark.svg" alt="The modern dark look: a pill tab bar, rounded fields, a gradient slider and buttons on navy" width="320"/>
+<img src="../screenshots/modern_dark.svg" alt="The modern dark look: an underlined tab bar, rounded fields, a gradient slider and buttons on navy" width="320"/>
 <img src="../screenshots/modern_light.svg" alt="The same widgets in the modern light look" width="320"/>
 
 ## Make your own
@@ -99,7 +99,7 @@ widget. `_hover` and `_active` variants are used under the pointer and while pre
 | Primary | `primary`, `primary_hover`, `primary_active`, `primary_outline` | Buttons. |
 | Accent | `accent`, `accent_hover`, `accent_active` | Slider thumbs, ticked checkboxes, chosen radio buttons. |
 | Text | `text`, `text_muted`, `text_placeholder`, `text_on_primary` | Text; secondary text; a field's hint while empty; text on a button. |
-| Borders | `border`, `border_hover`, `focus_ring` | Outlines; the ring around the widget with the keyboard focus. |
+| Borders | `border`, `border_hover`, `focus_ring` | Outlines; the ring around the widget the keyboard moved the focus to (Tab shows it, a click hides it). |
 | Tracks | `track`, `track_hover`, `scrollbar_thumb` | Slider and scroll bar tracks; the scroll bar's handle. |
 | Dividers | `divider`, `divider_hover` | The handle between split panes. |
 | Editing | `cursor`, `text_selection`, `text_match` | The caret; selected text; search hits. |
@@ -119,9 +119,10 @@ widget. `_hover` and `_active` variants are used under the pointer and while pre
 | Member | Classic | Modern | What it does |
 |---|---|---|---|
 | `corner_radius` | `0` | `8` | The rounding of boxes: fields, buttons, cards, popups, menus, tooltips. |
-| `pill_controls` | `false` | `true` | Fully rounded ends on the tab bar and slider tracks. |
+| `page_margin` | `0` | `12` | The room around a tab page's content. |
+| `idle_boxes` | `true` | `false` | Whether a label, a read-only value and an idle menu title sit on a box. |
 | `spacing` | `0` | `10` | The gap a stack leaves between its children. A stack with a `vb.gap()` of its own keeps only its own gaps. |
-| `primary_fill` | `primary`, flat | teal to blue | A primary button, a progress bar, a slider's filled track, the open tab. |
+| `primary_fill` | `primary`, flat | teal to blue | A primary button, a progress bar, a slider's filled track. |
 | `accent_fill` | `accent`, flat | lavender to violet | A ticked checkbox, a chosen radio button, a toggle that is on. |
 
 A fill is a `ui::Gradient{from, to}`, horizontal unless its `axis` says vertical. A gradient whose
