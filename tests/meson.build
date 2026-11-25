@@ -399,6 +399,31 @@ if prism_crdt_dep.found() and prism_net_dep.found()
     dependencies : [prism_crdt_dep, prism_net_dep, httplib_dep, doctest_dep]))
 endif
 
+# The Python agent peer (examples/crdt_pair/agent.py) against a real hub: it needs an
+# interpreter carrying pycrdt and its websocket adapter, which the bindings test does not.
+if prism_crdt_dep.found() and prism_net_dep.found()
+  crdt_python = find_program('python3', required : false)
+  crdt_agent_ready = false
+  if crdt_python.found()
+    crdt_agent_ready = run_command(crdt_python, '-c', 'import pycrdt, pycrdt.websocket',
+      check : false).returncode() == 0
+  endif
+  if crdt_agent_ready
+    crdt_hub_fixture = executable('crdt_hub_fixture', files('crdt_hub_fixture.cpp'),
+      dependencies : [prism_crdt_dep, prism_net_dep, httplib_dep])
+    crdt_agent_script = meson.project_source_root() / 'examples/crdt_pair/agent.py'
+    crdt_agent_test = files('test_crdt_agent.py')
+    test('crdt_agent', crdt_python,
+      args : ['-m', 'pytest', crdt_agent_test, '-q', '-ra'],
+      env : [
+        'PRISM_CRDT_HUB_FIXTURE=' + crdt_hub_fixture.full_path(),
+        'PRISM_CRDT_AGENT=' + crdt_agent_script,
+      ],
+      depends : crdt_hub_fixture,
+      timeout : 60)
+  endif
+endif
+
 # The crdt flavor: one model body compiled against core, then against crdt.
 if prism_crdt_dep.found()
   test('crdt_flavor', executable('test_crdt_flavor', files('test_crdt_flavor.cpp'),
