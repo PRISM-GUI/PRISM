@@ -214,12 +214,15 @@ struct DialogParts {
 
     Field<Label<>> title{{.heading = true}};
     Field<TextArea<>> message{{.read_only = true, .font = FontRole::Ui}};
+    float message_w = 0.f;   // the width its rows were counted at: the message asks for it
     std::vector<std::unique_ptr<Field<Button>>> buttons;
     std::vector<Connection> clicks;
     bool syncing = false;   // updating a button's text is not a click
 
     // The parts as the dialog now says; a new button closes the dialog with its index.
     void sync(Field<Dialog>& d, const TextMeasurer* m);
+    // The message's leaf asks for message_w, so its rows are counted at the width it gets.
+    void place_message(Node& leaf);
 
 private:
     void add_button(Field<Dialog>& d);
@@ -546,7 +549,7 @@ public:
         attach_popup_content([&tree = tree_, &d, parts, cb = std::forward<F>(content)](ViewBuilder& vb) mutable {
             parts->sync(d, tree.theme().measurer);
             vb.widget(parts->title);
-            if (!d.get().message.empty()) vb.widget(parts->message);
+            if (!d.get().message.empty()) parts->place_message(vb.widget(parts->message).node_ref);
             cb(vb);
             vb.hstack([&] {
                 vb.spacer();

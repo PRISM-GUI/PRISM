@@ -332,3 +332,17 @@ TEST_CASE("a dialog can hold a form: its fields take typing, its buttons still c
     CHECK(model.ask.get().chosen == std::optional<std::size_t>{0});
     CHECK_FALSE(model.ask.get().open);
 }
+
+TEST_CASE("a one-sentence message shows whole, without a scrollbar, in every theme") {
+    for (const Theme& theme : {classic_dark_theme(), modern_light_theme(), modern_dark_theme()}) {
+        Fixture f;
+        f.tree.set_theme(theme);
+        show_message(f, "They go to the trash. You can restore them from there.");
+        CHECK(f.snap->scrollbar_geometry.empty());
+        CHECK(drawn_starting_with(f, "They go") == 1);
+        bool whole = false;
+        for (auto& c : f.snap->overlay.commands)
+            if (auto* t = std::get_if<TextCmd>(&c); t && t->text.ends_with("from there.")) whole = true;
+        CHECK(whole);
+    }
+}

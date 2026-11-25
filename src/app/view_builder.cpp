@@ -8,6 +8,7 @@
 #include <prism/ui/text_metrics.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <any>
 #include <cstddef>
 #include <cstdint>
@@ -95,8 +96,13 @@ void DialogParts::sync(Field<Dialog>& d, const TextMeasurer* m) {
     title.set({.value = v.title, .heading = true});
     auto msg = message.get();
     msg.value = v.message;
-    msg.rows = std::clamp<std::size_t>(
-        ui::wrap_lines(v.message, Width{message_wrap_w}, m, 14.f, FontRole::Ui).size(), 1, max_message_rows);
+    const auto lines = ui::wrap_lines(v.message, Width{message_wrap_w}, m, 14.f, FontRole::Ui);
+    float widest = 0.f;
+    for (const auto& l : lines)
+        widest = std::max(widest, ui::text_width(m, std::string_view(v.message).substr(l.start, l.length), 14.f, FontRole::Ui));
+    // +1 px: the widest line must still fit when the text area wraps it again at this width.
+    message_w = std::ceil(widest) + 1.f + 2.f * Widget<TextArea<>>::padding_x.raw();
+    msg.rows = std::clamp<std::size_t>(lines.size(), 1, max_message_rows);
     message.set(msg);
     while (buttons.size() < v.buttons.size()) add_button(d);
     for (std::size_t i = 0; i < v.buttons.size(); ++i) {
@@ -106,6 +112,13 @@ void DialogParts::sync(Field<Dialog>& d, const TextMeasurer* m) {
         buttons[i]->set(b);
     }
     syncing = false;
+}
+
+void DialogParts::place_message(Node& leaf) {
+    leaf.build_widget = [build = std::move(leaf.build_widget), this](WidgetNode& wn) {
+        build(wn);
+        wn.intrinsic_width = [this](const WidgetNode&) { return message_w; };
+    };
 }
 
 void DialogParts::add_button(Field<Dialog>& d) {
