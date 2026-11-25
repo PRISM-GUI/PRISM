@@ -129,14 +129,58 @@ passing updates. A value typed in one window shows in the other.
 
 ## Later steps
 
-2. **Network and an agent peer.** Updates over `net`/`io` using the y-sync protocol, and a short
-   Python `pycrdt` script that joins and edits: the agent story, end to end.
+2. **Network and an agent peer.** Designed below, in "Step 2".
 3. **`crdt::List<T>`.** A Yrs array with stable ids inside; the index API stays.
 4. **`crdt::Document`.** Yrs text with Peritext-style formatting; `{block, byte}` positions
    converted at the edge.
 5. **Undo per peer** (Yrs undo manager with tracked origins: undo reverts *my* edits only),
    **presence** (carets, selections: Yjs awareness, not the document), **agent forks** (review an
    agent's edits before merging them).
+
+## Step 2: over the network, and in the browser
+
+Goal: the desktop `crdt_pair` model, a browser tab running the same model as WASM, and a Python
+`pycrdt` script all edit one document live. This is the ESP32 demo minus the board: the board
+later plays the desktop's part (serve the page, relay updates, run its own replica).
+
+### The protocol: y-sync over WebSocket
+
+The standard Yjs one (`y-protocols/sync`), so `y-websocket` and `pycrdt-websocket` clients join
+unchanged. A WebSocket binary message is a var-uint message type, then its body:
+
+- type 0 = sync. Sub-type 0 *SyncStep1* (my state vector), 1 *SyncStep2* (an update: what you
+  lack), 2 *Update* (a live edit). Each payload is a var-uint length then the bytes.
+- type 1 = awareness (presence): ignored in step 2, never an error.
+
+On connect each side sends SyncStep1; a SyncStep1 is answered with SyncStep2
+(`encode_since(their_state)`); SyncStep2 and Update are applied. A local edit goes out as Update.
+
+### Pieces
+
+- **`crdt::SyncSession`** (pure, no socket): wraps a `Doc` and a `send(bytes)` function; `start()`
+  sends SyncStep1, `receive(bytes)` handles one message, local updates go out through `send`.
+  Encoding and decoding are free functions, unit-tested against byte strings taken from Yjs.
+  Any transport (desktop, browser, ESP-IDF) is a thin shell around it.
+- **`crdt::Hub`** (desktop, over cpp-httplib's WebSocket server, already a dependency through
+  `prism-net`): one HTTP port that serves a static directory (the WASM page, with the
+  COOP/COEP headers threads need) and a WebSocket route `/<room>`. It relays each client's
+  updates to the others and holds one `Doc` of its own, so a late joiner catches up from it and
+  the desktop app's own model is a peer like the others.
+- **`crdt::connect(doc, url)`**: a client session. Native: cpp-httplib's WebSocket client. Browser:
+  `emscripten/websocket.h`. Same API; the browser's is the one the WASM page uses.
+- **Threading:** sockets run on their own threads; received bytes cross to the logic thread through
+  a `Channel`, and local updates leave through one. `Doc` stays logic-thread only.
+
+### crdt in the browser build
+
+yffi built by cargo for `wasm32-unknown-emscripten`. PRISM's web build uses threads, so the Rust
+objects must be compiled with `+atomics,+bulk-memory` (nightly `-Zbuild-std`), or the link fails
+on shared memory. Risky enough to spike first (Task 1).
+
+### The agent
+
+`examples/crdt_pair/agent.py`: `pycrdt` + `pycrdt-websocket` join the hub's room, print the map,
+and set `gain` every second. A test runs it against a hub when `pycrdt` is installed.
 
 ## Restrictions users must know
 
