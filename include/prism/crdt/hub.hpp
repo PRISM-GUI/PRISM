@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <span>
 #include <string>
@@ -38,6 +39,7 @@ public:
     ~Hub();                            // stops and joins
     std::uint16_t port() const;
     void drain();                      // logic thread: apply what clients sent, relay, send local edits
+    void set_waker(std::function<void()> fn);   // any thread: wake the logic thread, so it drains
 
 private:
     struct Impl;
@@ -52,6 +54,7 @@ public:
     ~Client();
     void drain();                       // logic thread
     bool connected() const;
+    void set_waker(std::function<void()> fn);   // any thread: wake the logic thread, so it drains
 
 private:
     struct Impl;

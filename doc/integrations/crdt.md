@@ -54,6 +54,94 @@ Catching up on a session you were not part of: send your `state_vector()` to the
 
 Bytes from a network thread are applied on the logic thread, like every other model change.
 
+## Over the network
+
+Step 2 turns a `Doc` into something a network carries (`doc/design/sync.md`). The pieces are
+`crdt::Hub` and `crdt::Client`: both speak the y-protocols sync messages, so the other end can be
+any Yjs implementation. `Hub` comes with `prism-net`; `Client` exists both natively and in the
+browser.
+
+A hub serves one `Doc` on one port: a WebSocket route at `/<room>`, and, when `static_dir` is set,
+the directory the page that joins it was built into.
+
+```cpp
+crdt::Hub hub(experiment.doc, {.port = 8000, .static_dir = "builddir-wasm/examples/crdt_pair"});
+std::printf("ws://127.0.0.1:%d/room\n", hub.port());   // port 0 picks a free one
+```
+
+A peer joins with a `Client`:
+
+```cpp
+crdt::Client client(experiment.doc, "ws://127.0.0.1:8000/room");
+```
+
+Both carry bytes across threads: socket threads only enqueue what arrived, the `Doc` stays on the
+logic thread. So both need draining there, and `set_waker` is how the logic thread learns it has
+something to do:
+
+```cpp
+const auto drain = [&client] { client.drain(); };
+client.set_waker([poster = ctx.poster(), drain] { poster(drain); });
+ctx.post_deferred(drain);   // covers what arrived before the waker existed
+```
+
+`examples/crdt_pair/model.hpp` has exactly that as `drain_on_logic_thread()`, used by both of its
+mains. A `Hub` works the same way: `hub.drain()` applies what clients sent and relays it, and a
+hub's own edits leave from that same call.
+
+The other end does not have to be PRISM. `examples/crdt_pair/agent.py` is a short pycrdt program
+that joins a room, prints the document as one line of JSON, and can edit one key:
+
+```console
+$ python3 examples/crdt_pair/agent.py ws://127.0.0.1:8000/room 0.75
+{}
+SET gain=0.75
+```
+
+The map starts empty because binding never writes, and the agent is a peer like any other: there is
+no PRISM code in it.
+
+### What a hub refuses, and what it does not
+
+- It binds `127.0.0.1` unless `Options::host` says otherwise: serving the network is an explicit
+  opt-in.
+- A browser upgrade must carry an `Origin` the hub knows. An `Origin` equal to the request's own
+  `Host` counts only when that host is an IP literal or `localhost` -- a DNS-rebinding page reaches
+  the port under its own name, so both agree and are refused. Any other page origin has to be listed
+  in `Options::allowed_origins`. A native client (ours, pycrdt) sends no `Origin` at all, and no
+  page can forge the absence, so that is accepted.
+- A served page carries `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Embedder-Policy: require-corp`, which the threaded wasm build needs for shared
+  memory.
+- There is no authentication yet: anyone who can reach the port can join. `hub.hpp` marks where the
+  missing token goes -- a per-session value in the URL, checked before the upgrade, once a hub is
+  exposed beyond one machine.
+- A client that stops reading is dropped instead of being allowed to stall the logic thread: its
+  outgoing queue is bounded by bytes, and the socket has a write timeout.
+
+### The browser
+
+The browser build can host the same model, but it is an opt-in:
+
+```console
+$ meson setup builddir-wasm --cross-file <wasm cross file> -Dcrdt=enabled
+$ PRISM_WEB_CRDT=1 scripts/build_web_site.sh builddir-wasm _site
+```
+
+`auto` does not turn crdt on for emscripten: yffi there is a wasm cross build whose std has to be
+rebuilt with atomics, so it needs a nightly `cargo` with the `rust-src` component
+(`subprojects/packagefiles/yffi/`). `-Dcrdt=enabled` says you have one. `examples/crdt_pair` then
+builds its page instead of its desktop window, and `scripts/build_web_site.sh` publishes that page
+only with `PRISM_WEB_CRDT=1`: a page that joins a hub is only useful next to one.
+
+```console
+$ builddir/examples/crdt_pair/crdt_pair --hub 8000 --static _site
+$ $BROWSER http://127.0.0.1:8000/
+```
+
+The page joins `ws://<page host>/room`, so open it from the hub that served it, and both sides edit
+the same `Mixer`. `--listen ADDR` moves the hub off loopback when another machine has to reach it.
+
 ## What syncs
 
 | Type | Travels |
@@ -76,10 +164,13 @@ Bytes from a network thread are applied on the logic thread, like every other mo
 
 | Part | Meson option | Link with |
 |---|---|---|
-| The flavor | `-Dcrdt=auto` | `prism_crdt_dep` |
+| The flavor | `-Dcrdt=auto` (the browser: `-Dcrdt=enabled`) | `prism_crdt_dep` |
 | The engine | (with the flavor) | built by `cargo` from the pinned `yffi` wrap |
 
-`auto` builds it when `cargo` is found and the target is hosted, and it is off on bare metal and in the browser. Everything is behind `prism_crdt_dep`: a program that does not link it never sees Yrs, and no Rust type appears in a PRISM header.
+`auto` builds it when `cargo` is found and the target is hosted, and it is off on bare metal. A
+browser build opts in with `-Dcrdt=enabled`, because `yffi` there needs a nightly toolchain with
+`rust-src` (see [The browser](#the-browser)). Everything is behind `prism_crdt_dep`: a program that
+does not link it never sees Yrs, and no Rust type appears in a PRISM header.
 
 ## A complete example
 
@@ -110,3 +201,6 @@ struct Mixer {
 Type in the gain's spin box in one window and the other follows; click in both and the two counters
 differ, because a `core::Field` is not bound. That difference is the point of the flavor: what is
 shared, and what is not, is written in the type.
+
+With `--hub 8000` it is one window instead, and its `Doc` is the room a hub serves: a browser peer
+built from the same sources joins it (see [Over the network](#over-the-network)).

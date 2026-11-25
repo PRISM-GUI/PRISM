@@ -368,11 +368,19 @@ if crdt_on
     crdt_sources += 'crdt/hub.cpp'
     crdt_deps += [prism_net_dep, httplib_dep]
   endif
+  crdt_link_args = []
+  # The browser has no server sockets, and its client is emscripten/websocket.h: same Client API,
+  # implemented in client_web.cpp, whose symbols -lwebsocket.js provides at link time.
+  if host_machine.system() == 'emscripten'
+    crdt_sources += 'crdt/client_web.cpp'
+    crdt_link_args += '-lwebsocket.js'
+  endif
   prism_crdt_lib = static_library('prism-crdt', crdt_sources,
     dependencies : crdt_deps,
     install : true,
   )
   prism_crdt_dep = declare_dependency(link_with : prism_crdt_lib,
+    link_args : crdt_link_args,
     dependencies : [prism_core_dep, prism_yrs_internal_dep.partial_dependency(links : true)])
 endif
 

@@ -1,79 +1,104 @@
-// crdt_pair: one model, two windows, two Doc replicas wired to each other in-process. Edit a
-// window and the other follows; a core::Field stays where it was edited (doc/integrations/crdt.md).
-#include <prism/prism.hpp>
-#include <prism/crdt/bind.hpp>
+// crdt_pair, desktop. Without arguments: two windows, two Docs, wired in-process (the pair demo of
+// doc/integrations/crdt.md). With --hub: one window whose Doc a hub serves on a port, next to the
+// browser page it can serve -- the same model, as a peer on the network.
+#include "model.hpp"
 
-#include <cstddef>
-#include <span>
+#include <prism/crdt/hub.hpp>
+
+#include <charconv>
+#include <cstdint>
+#include <cstdio>
+#include <optional>
 #include <string>
-#include <utility>
+#include <string_view>
+#include <system_error>
 
 using namespace prism;
 
-namespace model = prism::crdt;   // the whole swap: prism::core would be the local version
+namespace {
 
-enum class Mode { idle, run, hold };
+constexpr std::string_view usage_text =
+    "usage: crdt_pair [--hub PORT [--static DIR] [--listen ADDR]]\n"
+    "  no arguments: two windows, two Docs, wired in-process\n"
+    "  --hub PORT:   one window, its Doc served on PORT (127.0.0.1 unless --listen)\n"
+    "  --static DIR: also serve DIR as the browser page\n";
 
-struct Mixer {
-    // What travels: plain values, the only kind a crdt::Field holds. A plain double is a spin box
-    // and a plain std::string a text field, so each window edits the shared values themselves.
-    model::Field<double> gain{0.5};
-    model::Field<Mode> mode{Mode::idle};
-    model::Field<std::string> name{"lead"};
-    model::Field<bool> armed{false};
-
-    // What does not: a core::Field is never bound, so it lives in this window alone.
-    core::Field<int> local_clicks{0};
-
-    core::Field<ui::Button> nudge{{.text = "Click"}};
-
-    model::Doc doc;   // this replica
-
-    Mixer() {
-        nudge.observe([this](const ui::Button&) { ++local_clicks; });
-    }
-
-    // Every window's model gets this once, before its first frame.
-    void attach(app::AppContext&) {
-#if __cpp_impl_reflection
-        model::bind(doc, *this);   // every crdt::Field member, by its name
-#else
-        doc.bind("gain", gain);    // the manual tier: one line per field, no reflection needed
-        doc.bind("mode", mode);
-        doc.bind("name", name);
-        doc.bind("armed", armed);
-#endif
-    }
-
-    void view(app::ViewBuilder& vb) {
-        vb.vstack([&] {
-            vb.widget(gain).tooltip("A double in the model, a spin box here");
-            vb.hstack([&] {
-                vb.widget(mode).tooltip("An enum travels by name");
-                vb.widget(armed).tooltip("A bool is its own checkbox");
-            });
-            vb.widget(name).tooltip("A std::string in the model, a text field here");
-            vb.hstack([&] {
-                vb.widget(nudge);
-                vb.widget_readonly(local_clicks).tooltip("This window only: a core::Field is not bound");
-            });
-        });
-    }
+struct Args {
+    bool hub = false;
+    std::uint16_t port = 0;
+    std::string static_dir;
+    std::string listen = "127.0.0.1";   // listening on the network is an opt-in
 };
 
-int main() {
-    Mixer a;
-    Mixer b;
+std::optional<std::uint16_t> port_from(std::string_view text) {
+    unsigned value = 0;
+    const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+    if (error != std::errc{} || end != text.data() + text.size() || value > 65535) return std::nullopt;
+    return static_cast<std::uint16_t>(value);
+}
+
+// `--flag value` pairs; anything else is a usage error.
+std::optional<Args> parse_args(int argc, char** argv) {
+    Args args;
+    for (int i = 1; i < argc; ++i) {
+        const std::string_view flag = argv[i];
+        const bool has_value = i + 1 < argc;
+        if (flag == "--hub" && has_value) {
+            const auto port = port_from(argv[++i]);
+            if (!port) return std::nullopt;
+            args.hub = true;
+            args.port = *port;
+        } else if (flag == "--static" && has_value) {
+            args.static_dir = argv[++i];
+        } else if (flag == "--listen" && has_value) {
+            args.listen = argv[++i];
+        } else {
+            return std::nullopt;
+        }
+    }
+    if (!args.static_dir.empty() && !args.hub) return std::nullopt;
+    return args;
+}
+
+int run_pair() {
+    crdt_pair::Mixer a;
+    crdt_pair::Mixer b;
 
     // The pair, wired in-process: each Doc's updates go straight into the other. Over a network
-    // they would arrive through a channel and be applied on the logic thread.
-    core::Connection a_to_b =
+    // they arrive through a channel and are applied on the logic thread instead.
+    const auto a_to_b =
         a.doc.on_update().connect([&b](std::span<const std::byte> update) { b.doc.apply_update(update); });
-    core::Connection b_to_a =
+    const auto b_to_a =
         b.doc.on_update().connect([&a](std::span<const std::byte> update) { a.doc.apply_update(update); });
 
     return app::run(a, {.title = "Peer A", .width = 340, .height = 220},
                     [&b](app::AppContext& ctx) {
                         ctx.open_window(b, {.title = "Peer B", .width = 340, .height = 220});
                     });
+}
+
+int run_hub(const Args& args) {
+    crdt_pair::Mixer a;
+    crdt::Hub hub(a.doc,
+                  {.host = args.listen, .port = args.port, .static_dir = args.static_dir});
+
+    // The page needs the address to join; with --hub 0 the port is only known now.
+    std::printf("serving %s on ws://%s:%d/room\n",
+                args.static_dir.empty() ? "the model" : args.static_dir.c_str(), args.listen.c_str(),
+                static_cast<int>(hub.port()));
+    std::fflush(stdout);
+
+    return app::run(a, {.title = "Peer A (hub)", .width = 340, .height = 220},
+                    [&hub](app::AppContext& ctx) { crdt_pair::drain_on_logic_thread(ctx, hub); });
+}
+
+} // namespace
+
+int main(int argc, char** argv) {
+    const auto args = parse_args(argc, argv);
+    if (!args) {
+        std::fputs(usage_text.data(), stderr);
+        return 2;
+    }
+    return args->hub ? run_hub(*args) : run_pair();
 }

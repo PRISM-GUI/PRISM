@@ -94,16 +94,18 @@ foreach o : ['http', 'io', 'markdown']
 endforeach
 
 # CRDT (doc/design/sync.md): model fields shared between replicas through Yrs, whose C ABI cargo
-# builds (src/meson.build). Rust's runtime wants a hosted target's threads, so bare metal and the
-# browser stay off whatever cargo says; auto otherwise means "on when cargo is here", and asking
-# for it where cargo is missing is an error rather than a silent downgrade to prism::core.
+# builds (src/meson.build). Rust's runtime wants threads, so bare metal is always off. A browser
+# can host it, but yffi there needs a nightly cargo with the rust-src component
+# (subprojects/packagefiles/yffi/build.py), which a plain `meson setup` cannot assume: that build
+# opts in with -Dcrdt=enabled. auto otherwise means "on when cargo is here", and asking for it
+# where cargo is missing is an error rather than a silent downgrade to prism::core.
 crdt_opt = get_option('crdt')
-crdt_hosted = host_machine.system() != 'none' and host_machine.system() != 'emscripten'
-if crdt_opt.enabled() and not crdt_hosted
-  error('crdt=enabled needs a hosted target: yffi is not built for bare metal or the browser')
+if crdt_opt.enabled() and host_machine.system() == 'none'
+  error('crdt=enabled needs a hosted target: yffi is not built for bare metal')
 endif
 cargo = find_program('cargo', required : crdt_opt.enabled())
-crdt_on = (crdt_opt.enabled() or (crdt_opt.auto() and crdt_hosted)) and cargo.found()
+crdt_auto = host_machine.system() != 'none' and host_machine.system() != 'emscripten'
+crdt_on = cargo.found() and (crdt_opt.enabled() or (crdt_opt.auto() and crdt_auto))
 
 prism_inc = include_directories('include')
 

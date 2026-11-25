@@ -359,6 +359,8 @@ void Hub::drain() {
     impl_->sweep_dropped();
 }
 
+void Hub::set_waker(std::function<void()> fn) { impl_->events.set_waker(std::move(fn)); }
+
 struct Client::Impl {
     Impl(Doc& document, std::string address)
         : doc(&document), url(std::move(address)) {
@@ -430,5 +432,7 @@ Client::~Client() = default;
 void Client::drain() { impl_->events.drain_notifications(); }
 
 bool Client::connected() const { return impl_->connected; }
+
+void Client::set_waker(std::function<void()> fn) { impl_->events.set_waker(std::move(fn)); }
 
 } // namespace prism::crdt
