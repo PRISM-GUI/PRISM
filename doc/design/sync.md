@@ -90,10 +90,12 @@ auto state = doc.state_vector();  auto missing = doc.encode_since(peer_state);  
 - A remote update sets the field with `set()`, so views and `Derived` follow as for a local edit.
   While the `Doc` applies it, its own change handler ignores the field: no echo back out.
 - Nested structs (reflection tier) become nested maps, keyed by member name.
-- Binding a key the Yrs map already holds takes the map's value: joining a session loads its
-  state. Otherwise the field's current value is written.
+- Binding never writes. A key the Yrs map already holds takes the map's value, so joining a session
+  loads its state; an absent one leaves the field alone. Defaults live in the code, so every peer
+  starts from the same ones, and a peer that binds before catching up can never push its default
+  over a value somebody edited. Only a real local change reaches the map.
 - Encoding, chosen so a Python or JS peer reads it naturally: numbers as Yjs numbers (integers
-  beyond 2^53 as strings), `bool`, strings, **enums by name** (magic_enum), not by value.
+  beyond 2^53 as strings), `bool`, strings, **enums by name** (core's enum helpers), not by value.
 - Logic thread only, like every model value. Bytes from a network thread arrive through a
   `Channel` and are applied on the logic thread (step 2).
 - Concurrent writes to one field: Yjs resolves them, every peer ends with the same value.

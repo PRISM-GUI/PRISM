@@ -1,0 +1,232 @@
+#pragma once
+
+#include <prism/core/connection.hpp>
+#include <prism/core/enum_names.hpp>
+#include <prism/core/field.hpp>
+
+#include <charconv>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <span>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
+
+namespace prism::crdt {
+
+// What one shared key holds: the scalars a Yrs map carries, in the shape a peer in another
+// language reads back. bind() converts to and from T, so libyrs.h stays in src/crdt/.
+using Value = std::variant<std::monostate, std::int64_t, double, bool, std::string>;
+
+namespace value_detail {
+
+// A double holds integers exactly up to this magnitude. A wider one travels as decimal text,
+// because a peer sees Yrs numbers as IEEE 754 doubles (a JS Number).
+inline constexpr std::int64_t largest_exact_integer = std::int64_t{1} << 53;
+
+template <typename T>
+concept shared_scalar = std::integral<T> || std::floating_point<T> ||
+                        std::same_as<T, std::string> || std::is_scoped_enum_v<T>;
+
+// A whole number a double holds exactly travels as a Yjs number, which a JS peer reads as a plain
+// Number. A wider one travels as decimal text: every peer sees a Yrs number as an IEEE 754 double
+// and would round it.
+inline Value integral_value(std::int64_t value) {
+    if (value > largest_exact_integer || value < -largest_exact_integer)
+        return std::to_string(value);
+    return static_cast<double>(value);
+}
+
+inline Value integral_value(std::uint64_t value) {
+    if (value > static_cast<std::uint64_t>(largest_exact_integer)) return std::to_string(value);
+    return static_cast<double>(value);
+}
+
+template <typename T>
+bool parse_integer(std::string_view text, T& out) {
+    const char* const first = text.data();
+    const char* const last = first + text.size();
+    if constexpr (std::is_signed_v<T>) {
+        std::int64_t parsed{};
+        const auto [end, error] = std::from_chars(first, last, parsed);
+        if (error != std::errc{} || end != last || !std::in_range<T>(parsed)) return false;
+        out = static_cast<T>(parsed);
+    } else {
+        std::uint64_t parsed{};
+        const auto [end, error] = std::from_chars(first, last, parsed);
+        if (error != std::errc{} || end != last || !std::in_range<T>(parsed)) return false;
+        out = static_cast<T>(parsed);
+    }
+    return true;
+}
+
+// An enum travels as its enumerator name, so a peer that does not share the C++ numbering still
+// reads the same value. The name is matched against the type's own enumerators, which is what
+// core's enum helpers give whether or not the build has reflection.
+template <typename T>
+bool enum_from_name(std::string_view name, T& out) {
+    for (std::size_t i = 0; i < core::enum_count<T>(); ++i) {
+        if (core::enum_label<T>(i) != name) continue;
+        out = core::enum_from_index<T>(i);
+        return true;
+    }
+    return false;
+}
+
+// A field value on its way to a Doc. The order matters: bool is an integer, and every case that a
+// Yrs key can hold must be matched before the numeric ones.
+template <typename T>
+Value to_value(const T& value) {
+    if constexpr (std::is_scoped_enum_v<T>) {
+        return core::enum_label<T>(core::enum_index(value));
+    } else if constexpr (std::same_as<T, std::string>) {
+        return value;
+    } else if constexpr (std::same_as<T, bool>) {
+        return value;
+    } else if constexpr (std::floating_point<T>) {
+        return static_cast<double>(value);
+    } else if constexpr (std::integral<T>) {
+        if constexpr (std::is_signed_v<T>)
+            return integral_value(static_cast<std::int64_t>(value));
+        else
+            return integral_value(static_cast<std::uint64_t>(value));
+    } else {
+        static_assert(shared_scalar<T>,
+                      "a crdt field holds an integer, a floating point number, a bool, a "
+                      "std::string or a scoped enum, and nothing else");
+        return std::monostate{};
+    }
+}
+
+// Reads value into out, or returns false and leaves out alone when the types disagree: a peer can
+// write anything into a key, and an unknown enum name is as wrong as a string in a number.
+template <typename T>
+bool from_value(const Value& value, T& out) {
+    if constexpr (std::is_scoped_enum_v<T>) {
+        const auto* name = std::get_if<std::string>(&value);
+        return name && enum_from_name(*name, out);
+    } else if constexpr (std::same_as<T, std::string>) {
+        const auto* text = std::get_if<std::string>(&value);
+        if (!text) return false;
+        out = *text;
+        return true;
+    } else if constexpr (std::same_as<T, bool>) {
+        const auto* flag = std::get_if<bool>(&value);
+        if (!flag) return false;
+        out = *flag;
+        return true;
+    } else if constexpr (std::floating_point<T>) {
+        if (const auto* number = std::get_if<double>(&value)) {
+            out = static_cast<T>(*number);
+            return true;
+        }
+        // A peer that stores whole numbers sends an integer where a double field is expected.
+        if (const auto* integer = std::get_if<std::int64_t>(&value)) {
+            out = static_cast<T>(*integer);
+            return true;
+        }
+        return false;
+    } else if constexpr (std::integral<T>) {
+        // A Yjs number is a double: an exact whole one converts back, 2.5 and 1e300 do not.
+        if (const auto* number = std::get_if<double>(&value)) {
+            const double whole = std::trunc(*number);
+            if (whole != *number || whole < -static_cast<double>(largest_exact_integer) ||
+                whole > static_cast<double>(largest_exact_integer))
+                return false;
+            const auto rounded = static_cast<std::int64_t>(whole);
+            if (!std::in_range<T>(rounded)) return false;
+            out = static_cast<T>(rounded);
+            return true;
+        }
+        // A wide integer comes as decimal text, and a peer that is not a JS one may send a long.
+        if (const auto* integer = std::get_if<std::int64_t>(&value)) {
+            if (!std::in_range<T>(*integer)) return false;
+            out = static_cast<T>(*integer);
+            return true;
+        }
+        if (const auto* text = std::get_if<std::string>(&value)) return parse_integer(*text, out);
+        return false;
+    } else {
+        static_assert(shared_scalar<T>,
+                      "a crdt field holds an integer, a floating point number, a bool, a "
+                      "std::string or a scoped enum, and nothing else");
+        return false;
+    }
+}
+
+// The key a field is bound to, with the token that says the field is still there. The field's own
+// hub holds this, so the token dies with the field; the Doc keeps the weak side.
+struct Tracked_key {
+    std::string key;
+    std::shared_ptr<const bool> alive;
+};
+
+} // namespace value_detail
+
+// One Yrs document, and the fields bound to keys of its root map: a local edit goes out as an
+// update (Yjs v1, which a JS or Python peer reads), an applied update lands in the field through
+// set(), so views and Derived follow it like any other edit. Logic thread only, like every model
+// value. Field<T> values are converted here; libyrs.h never reaches this header.
+class Doc {
+public:
+    Doc();
+    ~Doc();
+    Doc(const Doc&) = delete;
+    Doc& operator=(const Doc&) = delete;
+
+    // Binds field to key of the root map. Binding never writes: a key the map already holds wins
+    // over the field's value, and an absent one leaves the field alone. The defaults come from the
+    // code, so every peer starts from the same ones and nobody pushes a default over a value. What
+    // travels is a real local edit. Takes a crdt::Field too: it is-a core::Field, and binding does
+    // not care which.
+    template <typename T>
+    void bind(std::string_view key, core::Field<T>& field) {
+        static_assert(value_detail::shared_scalar<T>,
+                      "a crdt field holds an integer, a floating point number, a bool, a "
+                      "std::string or a scoped enum, and nothing else");
+        // The token below is owned by the lambda watching the field, and held weakly by the lambda
+        // writing to it: a Doc outliving its field stops hearing from it, and never calls into the
+        // field again.
+        auto alive = std::make_shared<const bool>(true);
+        auto write = [&field, token = std::weak_ptr<const bool>(alive)](const Value& value) {
+            if (token.expired()) return false;
+            T next{};
+            if (!value_detail::from_value(value, next)) return false;
+            field.set(std::move(next));
+            return true;
+        };
+        core::Connection changed = field.on_change().connect(
+            [this, bound = value_detail::Tracked_key{std::string(key), std::move(alive)}](
+                const T& next) { field_changed(bound.key, value_detail::to_value(next)); });
+        bind_value(key, std::move(write), std::move(changed));
+    }
+
+    // A local edit, encoded: what to hand a peer.
+    core::SenderHub<std::span<const std::byte>>& on_update();
+    void apply_update(std::span<const std::byte> update);
+
+    std::vector<std::byte> state_vector() const;
+    std::vector<std::byte> encode_since(std::span<const std::byte> peer_state) const;
+
+    // The root map as JSON: what a peer in another language sees of this document.
+    std::string to_json() const;
+
+private:
+    // The non-template half of bind(): the header converts T to a Value and back, and hands over
+    // the connection that reports the field's own edits, because a SenderHub<const T&> cannot be
+    // named without T.
+    void bind_value(std::string_view key, std::function<bool(const Value&)> write,
+                    core::Connection changed);
+    void field_changed(std::string_view key, const Value& value);
+
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
+
+} // namespace prism::crdt
