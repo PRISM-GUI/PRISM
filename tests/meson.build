@@ -392,6 +392,13 @@ if prism_crdt_dep.found()
     dependencies : [prism_crdt_dep, doctest_dep]))
 endif
 
+# crdt::Hub and the native Client (doc/design/sync.md, "Step 2"): a WebSocket relay around a Doc,
+# so only built where prism-net (cpp-httplib) is.
+if prism_crdt_dep.found() and prism_net_dep.found()
+  test('crdt_hub', executable('test_crdt_hub', files('test_crdt_hub.cpp'),
+    dependencies : [prism_crdt_dep, prism_net_dep, httplib_dep, doctest_dep]))
+endif
+
 # The crdt flavor: one model body compiled against core, then against crdt.
 if prism_crdt_dep.found()
   test('crdt_flavor', executable('test_crdt_flavor', files('test_crdt_flavor.cpp'),
