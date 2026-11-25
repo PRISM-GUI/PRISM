@@ -16,9 +16,11 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 using namespace prism;
 using namespace prism::crdt;
@@ -168,6 +170,85 @@ TEST_CASE("static files are served with the COOP and COEP headers") {
     CHECK(page->get_header_value("Cross-Origin-Embedder-Policy") == "require-corp");
 
     std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("a WebSocket origin is trusted only when it is this hub's own") {
+    const std::vector<std::string> none;
+    const std::span<const std::string> no_origins = none;
+
+    // A native client (ours, pycrdt) sends no Origin, and no page can forge an absent header.
+    CHECK(origin_allowed("", "127.0.0.1:8000", no_origins));
+    CHECK(origin_allowed("http://127.0.0.1:8000", "127.0.0.1:8000", no_origins));
+    CHECK(origin_allowed("http://localhost:8000", "localhost:8000", no_origins));
+    CHECK(origin_allowed("https://[::1]:8000", "[::1]:8000", no_origins));
+
+    CHECK_FALSE(origin_allowed("http://127.0.0.1:9000", "127.0.0.1:8000", no_origins));
+    // A DNS-rebinding page reaches this hub under its own name, so both headers name that name.
+    CHECK_FALSE(origin_allowed("http://evil.example:8000", "evil.example:8000", no_origins));
+    CHECK_FALSE(origin_allowed("http://evil.example", "127.0.0.1:8000", no_origins));
+
+    const std::vector<std::string> listed{"https://panel.example"};
+    CHECK(origin_allowed("https://panel.example", "127.0.0.1:8000", listed));
+    CHECK_FALSE(origin_allowed("https://other.example", "127.0.0.1:8000", listed));
+}
+
+TEST_CASE("a WebSocket upgrade from a foreign page is refused") {
+    Doc doc;
+    Hub hub(doc, local_options());
+
+    httplib::ws::WebSocketClient foreign(room_url(hub.port(), "room"),
+                                        {{"Origin", "http://evil.example"}});
+    CHECK_FALSE(static_cast<bool>(foreign.connect()));
+
+    // The page this hub served is the one origin a browser may connect from.
+    const std::string own_origin = "http://127.0.0.1:" + std::to_string(hub.port());
+    httplib::ws::WebSocketClient own(room_url(hub.port(), "room"), {{"Origin", own_origin}});
+    CHECK(static_cast<bool>(own.connect()));
+}
+
+TEST_CASE("a peer that never reads is dropped instead of stalling the logic thread") {
+    Doc hub_doc;
+    Field<std::string> hub_blob;
+    hub_doc.bind("blob", hub_blob);
+    Hub hub(hub_doc, local_options());
+
+    // Completes the upgrade, then never reads: the hub's writes fill this socket's buffers.
+    httplib::ws::WebSocketClient stuck(room_url(hub.port(), "room"));
+    stuck.set_read_timeout(std::chrono::milliseconds{500});
+    REQUIRE(static_cast<bool>(stuck.connect()));
+
+    Doc b_doc;
+    Field<std::string> b_blob;
+    b_doc.bind("blob", b_blob);
+    Client b(b_doc, room_url(hub.port(), "room"));
+
+    const Pump pump = [&] { hub.drain(); b.drain(); };
+    REQUIRE(until(pump, [&] { return b.connected(); }));
+
+    const std::string chunk(64 * 1024, 'x');
+    for (int round = 0; round < 300; ++round) {
+        const auto began = std::chrono::steady_clock::now();
+        hub_blob = chunk + std::to_string(round);
+        hub.drain();
+        b.drain();
+        CHECK(std::chrono::steady_clock::now() - began < std::chrono::milliseconds{50});
+    }
+
+    // The stuck peer costs nothing while it is stuck: the normal client still catches up.
+    CHECK(until(pump, [&] { return b_blob.get() == hub_blob.get(); }));
+
+    // The hub gave up on it and closed its socket, so reading through what it had buffered ends in
+    // a failure instead of timing out forever.
+    std::string ignored;
+    bool dropped = false;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds{5};
+    while (std::chrono::steady_clock::now() < deadline) {
+        if (stuck.read(ignored) == httplib::ws::ReadResult::Fail) {
+            dropped = true;
+            break;
+        }
+    }
+    CHECK(dropped);
 }
 
 TEST_CASE("hub shutdown with clients connected joins its threads") {
