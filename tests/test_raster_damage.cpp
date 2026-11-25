@@ -1,6 +1,13 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
 
+// GCC 14 with -fsanitize misreads a DrawList command vector's growth (emplace_back of a ClipPop
+// into std::variant storage) as a 1-byte write into a 0-byte region, the same false positive
+// adcbe7d dodged for z_order. GCC 16 does not report it.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 16
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 #include <embedded/audio_scope.hpp>
 #include <embedded/widgets_app.hpp>
 
