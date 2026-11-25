@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1082.2 266" width="1082.2" height="266" role="img" aria-label="A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1082.2 298" width="1082.2" height="298" role="img" aria-label="A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes.">
 <style>
   .hl { opacity: 0; animation: walk 6.4s infinite; }
   @keyframes walk { 0% { opacity: 0 } 3% { opacity: 1 } 22.00% { opacity: 1 } 25.00% { opacity: 0 } 100% { opacity: 0 } }
   @media (prefers-reduced-motion: reduce) { .hl { animation: none; opacity: 0.55; } }
 </style>
-<rect width="1082.2" height="266" fill="#ffffff"/>
+<rect width="1082.2" height="298" fill="#ffffff"/>
 <text x="24" y="42" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#1f2328">Or pick the widget yourself: a Field holds it</text>
 <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d1242f"/></marker>
 <rect x="24" y="64" width="644.2" height="144" rx="8" fill="#f6f8fa" stroke="#d0d7de"/>
@@ -14,9 +14,9 @@
 <text x="38" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Checkbox&gt; shuffle{{.checked = true, .label = &quot;shuffle&quot;}};</text>
 <text x="38" y="162" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">    core::Field&lt;ui::Button&gt; play{{.text = &quot;Play&quot;}};</text>
 <text x="38" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#1f2328" xml:space="preserve">};</text>
-<rect x="757.2" y="63" width="302" height="152" rx="8" fill="none" stroke="#d0d7de"/>
-<g transform="translate(758.2,64)"><svg width="300" height="150" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150">
-<rect width="300" height="150" fill="rgba(243,245,251,1)"/>
+<rect x="757.2" y="63" width="302" height="184" rx="8" fill="none" stroke="#d0d7de"/>
+<g transform="translate(758.2,64)"><svg width="300" height="182" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 182">
+<rect width="300" height="182" fill="rgba(243,245,251,1)"/>
 <clipPath id="clip-0"><rect x="0" y="0" width="300" height="30"/></clipPath>
 <g clip-path="url(#clip-0)">
 <rect x="0" y="0" width="300" height="30" fill="rgba(0,0,0,0)"/>
@@ -64,5 +64,5 @@
 <g class="hl" style="animation-delay: 1.60s"><rect x="30" y="109" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="103" width="306" height="54" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,119 C707.2,119 707.2,130 752.2,130" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <g class="hl" style="animation-delay: 3.20s"><rect x="30" y="129" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="159" width="306" height="36" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,139 C707.2,139 707.2,177 752.2,177" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <g class="hl" style="animation-delay: 4.80s"><rect x="30" y="149" width="632.2" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="755.2" y="199" width="306" height="38" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M662.2,159 C707.2,159 707.2,218 752.2,218" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<text x="24" y="246" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">A Field of a widget type is that widget: a label, a slider, a checkbox, a button.</text>
+<text x="24" y="278" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">A Field of a widget type is that widget: a label, a slider, a checkbox, a button.</text>
 </svg>

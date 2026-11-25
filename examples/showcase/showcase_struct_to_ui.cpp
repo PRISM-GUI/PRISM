@@ -237,10 +237,19 @@ std::string diagram(const Picture& p)
     return o.str();
 }
 
+// The height the UI's widgets take: its lowest widget's bottom, plus a margin.
+float content_height(const render::SceneSnapshot& snap)
+{
+    float bottom = 0.f;
+    for (const auto& [id, r] : snap.geometry) bottom = std::max(bottom, r.origin.y.raw() + r.extent.h.raw());
+    return bottom + 12.f;
+}
+
 // One scene: a model, the code lines that declare its shown members, and how to find each
 // member's widget box. Fails loudly when the two do not line up, rather than draw a wrong arrow.
+// The UI panel takes the height its widgets need, so a theme with more spacing cannot cut one off.
 template <class Model>
-bool render_scene(Model& model, const std::string& source, const std::string& scene, float ui_height,
+bool render_scene(Model& model, const std::string& source, const std::string& scene,
                   bool by_row, Picture picture, const std::string& out_path)
 {
     picture.code = read_scene(source, scene);
@@ -248,7 +257,14 @@ bool render_scene(Model& model, const std::string& source, const std::string& sc
     const auto fonts = backends::headless_text_measurer();
     tree.set_text_measurer(fonts.get());
     tree.set_theme(ui::light_theme());   // beside the light code panel
-    const auto snap = tree.build_snapshot(kUiWidth, ui_height, 1);
+    const auto probe = tree.build_snapshot(kUiWidth, 4000.f, 1);
+    if (!probe) {
+        std::cerr << scene << ": no snapshot\n";
+        return false;
+    }
+    const float ui_height = content_height(*probe);
+    tree.mark_dirty_by_id(tree.root().id);
+    const auto snap = tree.build_snapshot(kUiWidth, ui_height, 2);
     if (!snap) {
         std::cerr << scene << ": no snapshot\n";
         return false;
@@ -302,17 +318,17 @@ int main(int argc, char* argv[])
     Player player;
 
     const bool ok =
-        render_scene(profile_view, source, "plain", 285.f, true,
+        render_scene(profile_view, source, "plain", true,
                      {.title = "A struct is a UI: each field becomes a widget",
                       .caption = "No view code: PRISM reads the members through C++26 reflection and picks a widget for each type.",
                       .alt = "A plain C++ struct and the UI PRISM makes from it: a string becomes a text field, an int and a double number fields, a bool a checkbox, an enum a dropdown."},
                      argv[2])
-        && render_scene(bench_view, source, "annotations", 262.f, true,
+        && render_scene(bench_view, source, "annotations", true,
                         {.title = "Annotations change how a member is shown",
                          .caption = "label renames the caption, range and unit make a slider, readonly shows the value without an editor, section adds a header, skip hides it.",
                          .alt = "A struct with annotations: label renames a caption, range and unit turn a double into a slider, readonly shows a value without an editor, section adds a header, skip hides a member."},
                         argv[3])
-        && render_scene(player, source, "widgets", 150.f, false,
+        && render_scene(player, source, "widgets", false,
                         {.title = "Or pick the widget yourself: a Field holds it",
                          .caption = "A Field of a widget type is that widget: a label, a slider, a checkbox, a button.",
                          .alt = "A model of Fields holding widget types: a heading label, a slider, a checkbox and a button, each pointing at the widget it becomes."},
