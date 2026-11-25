@@ -39,7 +39,7 @@ struct Profile {
 struct Bench {
     [[=core::label<"Sample rate">]] int rate = 48000;
     [[=core::range<0.0, 30.0, 0.5>, =core::unit<"V">]] double supply = 12.0;
-    [[=core::readonly]] std::string serial = "PX-0042";
+    [[=core::readonly]] bool connected = true;
     [[=core::section<"Output">]] bool enabled = true;
     [[=core::skip]] int build_number = 1187;
 };
@@ -320,13 +320,13 @@ int main(int argc, char* argv[])
     const bool ok =
         render_scene(profile_view, source, "plain", true,
                      {.title = "A struct is a UI: each field becomes a widget",
-                      .caption = "No view code: PRISM reads the members through C++26 reflection and picks a widget for each type.",
-                      .alt = "A plain C++ struct and the UI PRISM makes from it: a string becomes a text field, an int and a double number fields, a bool a checkbox, an enum a dropdown."},
+                      .caption = "No view code: PRISM reads the members through C++26 reflection. Strings and numbers show as text.",
+                      .alt = "A plain C++ struct and the UI PRISM makes from it: the string, the int and the double show their values as text, the bool becomes a checkbox, the enum a dropdown."},
                      argv[2])
         && render_scene(bench_view, source, "annotations", true,
                         {.title = "Annotations change how a member is shown",
-                         .caption = "label renames the caption, range and unit make a slider, readonly shows the value without an editor, section adds a header, skip hides it.",
-                         .alt = "A struct with annotations: label renames a caption, range and unit turn a double into a slider, readonly shows a value without an editor, section adds a header, skip hides a member."},
+                         .caption = "label renames the caption, range and unit make a slider, readonly makes a checkbox not editable, section adds a header, skip hides it.",
+                         .alt = "A struct with annotations: label renames a caption, range and unit turn a double into a slider, readonly makes a checkbox not editable, section adds a header, skip hides a member."},
                         argv[3])
         && render_scene(player, source, "widgets", false,
                         {.title = "Or pick the widget yourself: a Field holds it",

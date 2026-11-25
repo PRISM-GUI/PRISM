@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 488" width="858" height="488" role="img" aria-label="A plain C++ struct and the UI PRISM makes from it: a string becomes a text field, an int and a double number fields, a bool a checkbox, an enum a dropdown.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 488" width="858" height="488" role="img" aria-label="A plain C++ struct and the UI PRISM makes from it: the string, the int and the double show their values as text, the bool becomes a checkbox, the enum a dropdown.">
 <style>
   .hl { opacity: 0; animation: walk 8s infinite; }
   @keyframes walk { 0% { opacity: 0 } 3% { opacity: 1 } 17.00% { opacity: 1 } 20.00% { opacity: 0 } 100% { opacity: 0 } }
@@ -85,5 +85,5 @@
 <g class="hl" style="animation-delay: 3.20s"><rect x="30" y="169" width="408" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="531" y="209" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M438,179 C483,179 483,244 528,244" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <g class="hl" style="animation-delay: 4.80s"><rect x="30" y="189" width="408" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="531" y="283" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M438,199 C483,199 483,318 528,318" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
 <g class="hl" style="animation-delay: 6.40s"><rect x="30" y="209" width="408" height="20" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><rect x="531" y="357" width="306" height="70" rx="4" fill="#d1242f" fill-opacity="0.08" stroke="#d1242f" stroke-width="2"/><path d="M438,219 C483,219 483,392 528,392" fill="none" stroke="#d1242f" stroke-width="2" marker-end="url(#arrow)"/></g>
-<text x="24" y="468" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">No view code: PRISM reads the members through C++26 reflection and picks a widget for each type.</text>
+<text x="24" y="468" font-family="system-ui, sans-serif" font-size="13" fill="#57606a">No view code: PRISM reads the members through C++26 reflection. Strings and numbers show as text.</text>
 </svg>
