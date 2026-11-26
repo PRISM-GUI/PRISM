@@ -2,7 +2,7 @@
 # Assemble the GitHub Pages site from an emscripten build of the examples.
 # Usage: scripts/build_web_site.sh [wasm-builddir] [outdir]
 # A crdt build (meson -Dcrdt=enabled) also has the browser peer: set PRISM_WEB_CRDT=1 here to
-# publish it. It is a page that joins a hub, so it needs a desktop `crdt_pair --hub` to talk to.
+# publish it. It is a page that joins a hub, so it needs the desktop `crdt_hub` to talk to.
 set -euo pipefail
 
 builddir="${1:-builddir-wasm}"
@@ -11,7 +11,7 @@ outdir="${2:-_site}"
 examples=(widget_gallery:widget_gallery model_notes:model_notes model_system_monitor:system_monitor perf_lab:perf_lab model_lab_bench:lab_bench model_synth_rack:synth_rack model_data_studio:data_studio model_task_runner:task_runner)
 if [ "${PRISM_WEB_CRDT:-0}" = 1 ]; then
     examples+=(crdt_pair:)
-    crdt_card='<a class="card" href="crdt_pair.html"><div><h2>Browser peer</h2><span>One window whose model is a crdt::Doc synced over a WebSocket. Start the desktop crdt_pair with --hub 8000 --static DIR, open this page from that hub, and edit either side.</span></div></a>'
+    crdt_card='<a class="card" href="crdt_pair.html"><div><h2>Browser peer</h2><span>One window whose model is a crdt::Doc synced over a WebSocket. Start the desktop crdt_hub (it serves ./web), open this page from that hub, and edit either side.</span></div></a>'
 fi
 
 coi_version=0.1.7

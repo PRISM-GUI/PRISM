@@ -68,10 +68,12 @@ board's `esp_https_server`, a socket library of your own — drive a `Room` your
 thread.
 
 A hub serves one `Doc` on one port: a WebSocket route at `/<room>`, and, when `static_dir` is set,
-the directory the page that joins it was built into.
+the directory the page that joins it was built into. That directory is relative to the working
+directory, so a desktop run serves `./web`: copy or symlink the browser build there (a board's hub
+ignores it and serves its embedded page).
 
 ```cpp
-crdt::Hub hub(experiment.doc, {.port = 8000, .static_dir = "builddir-wasm/examples/crdt_pair"});
+crdt::Hub hub(experiment.doc, {.port = 8000, .static_dir = "web"});
 std::printf("ws://127.0.0.1:%d/room\n", hub.port());   // port 0 picks a free one
 ```
 
@@ -91,9 +93,10 @@ client.set_waker([poster = ctx.poster(), drain] { poster(drain); });
 ctx.post_deferred(drain);   // covers what arrived before the waker existed
 ```
 
-`examples/crdt_pair/model.hpp` has exactly that as `drain_on_logic_thread()`, used by both of its
-mains. A `Hub` works the same way: `hub.drain()` applies what clients sent and relays it, and a
-hub's own edits leave from that same call.
+`examples/crdt_pair/model.hpp` has exactly that as `drain_on_logic_thread()`, used by every main
+that owns a peer: the in-process pair (`examples/crdt_pair`), a hub (`examples/crdt_hub`), and the
+browser page. A `Hub` works the same way: `hub.drain()` applies what clients sent and relays it, and
+a hub's own edits leave from that same call.
 
 The other end does not have to be PRISM. `examples/crdt_pair/agent.py` is a short pycrdt program
 that joins a room, prints the document as one line of JSON, and can edit one key:
@@ -137,16 +140,21 @@ $ PRISM_WEB_CRDT=1 scripts/build_web_site.sh builddir-wasm _site
 `auto` does not turn crdt on for emscripten: yffi there is a wasm cross build whose std has to be
 rebuilt with atomics, so it needs a nightly `cargo` with the `rust-src` component
 (`subprojects/packagefiles/yffi/`). `-Dcrdt=enabled` says you have one. `examples/crdt_pair` then
-builds its page instead of its desktop window, and `scripts/build_web_site.sh` publishes that page
-only with `PRISM_WEB_CRDT=1`: a page that joins a hub is only useful next to one.
+builds its page instead of its two desktop windows, and `scripts/build_web_site.sh` publishes that
+page only with `PRISM_WEB_CRDT=1`: a page that joins a hub is only useful next to one.
+
+The desktop peer is `examples/crdt_hub`: one window, its `Doc` served on port 8000, and `./web` as
+the static directory -- copy or symlink the site there:
 
 ```console
-$ builddir/examples/crdt_pair/crdt_pair --hub 8000 --static _site
+$ ln -s _site web        # or: cp -r _site web
+$ builddir/examples/crdt_hub/crdt_hub
 $ $BROWSER http://127.0.0.1:8000/
 ```
 
 The page joins `ws://<page host>/room`, so open it from the hub that served it, and both sides edit
-the same `Mixer`. `--listen ADDR` moves the hub off loopback when another machine has to reach it.
+the same `Mixer`. `Hub::Options::host` is the one-word opt-in to listening beyond loopback, when
+another machine has to reach it (`.host = "0.0.0.0"` in `crdt_hub`'s `main.cpp`).
 
 ## What syncs
 
@@ -212,5 +220,5 @@ button itself is a `core::Field` and never bound, while the count it increments 
 control driving a shared value. That is the point of the flavor — what is shared, and what is not,
 is written in the type. Two claps at once on two peers count once, since the count is a register.
 
-With `--hub 8000` it is one window instead, and its `Doc` is the room a hub serves: a browser peer
-built from the same sources joins it (see [Over the network](#over-the-network)).
+With `examples/crdt_hub/` it is one window instead, its `Doc` the room a hub serves: a browser peer
+built from the same model joins it (see [Over the network](#over-the-network)).

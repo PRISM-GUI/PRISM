@@ -14,7 +14,18 @@ subdir('model_synth_rack')       # real audio through SDL3
 subdir('model_data_studio')      # SQLite, from WrapDB
 subdir('model_task_runner')
 subdir('crdt_pair')              # two windows, two Doc replicas, one model
+subdir('crdt_hub')               # one window, its Doc served to the browser peer
 subdir('tour')                   # five short programs, one idea each
 if not is_wasm
   subdir('showcase')             # headless SVG capture tools, not apps
 endif
+
+# The board's widget demo (examples/embedded/widgets_app.hpp) as the desktop app it already is: the
+# same model and view, one main() that calls app::run.
+executable('widgets', 'embedded/widgets_main.cpp',
+  include_directories : include_directories('.'),
+  dependencies : [prism_dep],
+  name_suffix : example_suffix,
+  link_args : example_link_args,
+  link_depends : example_shell,
+)

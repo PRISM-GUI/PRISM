@@ -1,5 +1,5 @@
 // crdt_pair, browser: one window whose Doc joins the hub that served the page, at
-// ws://<page host>/room. The desktop tool of the same name is the other peer.
+// ws://<page host>/room. The other peer is examples/crdt_hub, the desktop hub this page came from.
 #include "model.hpp"
 
 #include <prism/crdt/hub.hpp>

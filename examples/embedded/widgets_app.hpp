@@ -51,7 +51,9 @@ struct WidgetsModel {
     }
 };
 
-// The widget demo has no loop work: only the timing line, into its label.
+// The widget demo has no loop work: only the timing line, into its label. Only a direct frame_app
+// caller has a FrameContext to register it on; an app (app::run, widgets_main.cpp) sees none, and
+// the label then keeps its initial text.
 inline void attach_widgets(prism::platform::FrameContext &ctx, WidgetsModel &model)
 {
     ctx.on_stats([&model](std::string_view line) {
