@@ -193,8 +193,8 @@ int main()
     }
     {
         prism_examples::WidgetsModel model;
-        run_scene("widgets: the timing line changes every frame", model, fonts, kFrames, [&](int f) {
-            model.stats.mutate([f](prism::ui::Label<>& l) { l.value = "frame " + std::to_string(f); });
+        run_scene("widgets: a checkbox toggles every frame", model, fonts, kFrames, [&](int f) {
+            model.enabled.mutate([f](prism::ui::Checkbox& box) { box.checked = f % 2 == 0; });
         });
     }
     {

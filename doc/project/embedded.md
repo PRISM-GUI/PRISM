@@ -104,9 +104,10 @@ repository targets:
 | Audio | ES8389 codec: two microphones and a speaker output |
 | Toolchain | ESP-IDF at a pinned commit (the repository's Docker image), GCC 16 |
 
-On the ESP32, the panel and touch are PRISM's `BandSink` and `TouchSource`, the speaker is a
-PRISM audio device, and Bluetooth is the port's `prism_bt` component. On the STM32, the same
-split holds, with the panel driver and the audio codec in the board component.
+On the ESP32, the panel and touch are PRISM's `BandSink` and `TouchSource`, the speaker an
+`audio::Output` sink and the microphones an `audio::Input` capture backend, and Bluetooth the
+port's `prism_bt` component. On the STM32, the same split holds, with the panel driver and the
+audio codec in the board component.
 
 Neither port's flash and RAM figures are quoted here: they move with the compiler and the
 options. Measure your own build with `idf.py size-components` (ESP32-IDF) or
@@ -178,9 +179,13 @@ prism::platform::set_port({
 which is where a port sets its thread priorities and core pinning. `FrameContext::quit()` stops
 the loop, and the run returns after that. Those are the port's own pieces; an app never sees them.
 
-`examples/embedded/` holds the apps both boards run (the widgets demo and the audio scope),
-built on every target and exported as `prism_embedded_apps_dep`. A port links it and passes its
-own sample source: the STM32 an ADC, the ESP32 its microphones.
+`examples/embedded/` holds the apps both boards run, one `main()` each
+(`examples/embedded/*_main.cpp`: `widgets_main.cpp`, `scope_main.cpp`, `tone_main.cpp`). They are
+built on every target and on the desktop, and exported as `prism_embedded_apps_dep`. Sound comes
+in through `prism::audio::Input`: a port registers a `CaptureBackend` for its microphones or ADC
+(the STM32 its ADC, the ESP32 its microphones) and the scope records from it, falling back to its
+generated sweep when nothing opened. Sound out goes through `audio::Output`, which a port backs
+with its codec the same way.
 
 `tests/cross/none-cortex-m7.ini` is the cross file to start from, and `ports/freertos/` (the
 POSIX layer, profile clock, system counters and `sbrk`) is what a `none` target gets unless

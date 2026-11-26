@@ -10,10 +10,11 @@
 #include <string_view>
 #include <vector>
 
-// The seam between an Output and a platform's sound hardware. Each platform registers one
+// The seam between an app and a platform's sound hardware. Each platform registers one
 // DeviceBackend (SDL on the desktop, the board's codec and Bluetooth stack in prism-esp32), and an
 // Output opens a DeviceStream through it. Devices outlive the Outputs that play on them, which is
-// what lets a board open its codec once at boot.
+// what lets a board open its codec once at boot. A CaptureBackend is the same seam for sound in,
+// with an Input on the app side.
 namespace prism::audio {
 
 // One device a backend offers. A stream opened on it receives blocks of `native` samples.
@@ -52,6 +53,11 @@ public:
 // device's thread, so it must not block or allocate.
 using PullFn = std::function<void(std::span<std::byte> native_block, int frames)>;
 
+// What a capture stream calls with what the device recorded: `frames` frames (at most the
+// format's `block_frames`) of its native samples. It runs on the device's thread, so it must not
+// block or allocate.
+using PushFn = std::function<void(std::span<const std::byte> native_block, int frames)>;
+
 class DeviceBackend {
 public:
     virtual ~DeviceBackend() = default;
@@ -75,5 +81,29 @@ std::vector<DeviceInfo> devices();
 // of the block before any pull can arrive.
 std::unique_ptr<DeviceStream> open_device(std::string_view id, const Format& format, PullFn pull,
                                           std::string& error);
+
+// The capture side of the same seam: the family a port registers for sound in (a microphone, an
+// ADC, Bluetooth). An Input opens a capture device and receives blocks from it.
+class CaptureBackend {
+public:
+    virtual ~CaptureBackend() = default;
+
+    [[nodiscard]] virtual std::vector<DeviceInfo> devices() = 0;
+
+    // Opens `id` at `format`; on failure returns null. A stream it returns calls `push` with what
+    // the device recorded.
+    [[nodiscard]] virtual std::unique_ptr<DeviceStream> open(std::string_view id, const Format& format,
+                                                             PushFn push) = 0;
+};
+
+void register_capture_backend(CaptureBackend& backend);
+void unregister_capture_backend(CaptureBackend& backend);
+
+// Every capture device of every registered capture backend, the default device first.
+std::vector<DeviceInfo> capture_devices();
+
+// Opens `id` through the capture backend that lists it; nothing and an `error` when none does.
+std::unique_ptr<DeviceStream> open_capture_device(std::string_view id, const Format& format, PushFn push,
+                                                  std::string& error);
 
 } // namespace prism::audio

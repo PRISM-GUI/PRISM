@@ -20,9 +20,25 @@ if not is_wasm
   subdir('showcase')             # headless SVG capture tools, not apps
 endif
 
-# The board's widget demo (examples/embedded/widgets_app.hpp) as the desktop app it already is: the
-# same model and view, one main() that calls app::run.
+# The board apps as the desktop apps they already are: the same models and views, one main() each
+# that calls app::run. Nothing in them knows it may be a board; a port supplies the rest.
 executable('widgets', 'embedded/widgets_main.cpp',
+  include_directories : include_directories('.'),
+  dependencies : [prism_dep],
+  name_suffix : example_suffix,
+  link_args : example_link_args,
+  link_depends : example_shell,
+)
+
+executable('scope', 'embedded/scope_main.cpp',
+  include_directories : include_directories('.'),
+  dependencies : [prism_dep, prism_embedded_apps_dep],
+  name_suffix : example_suffix,
+  link_args : example_link_args,
+  link_depends : example_shell,
+)
+
+executable('tone', 'embedded/tone_main.cpp',
   include_directories : include_directories('.'),
   dependencies : [prism_dep],
   name_suffix : example_suffix,

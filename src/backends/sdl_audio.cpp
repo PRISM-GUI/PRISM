@@ -7,12 +7,14 @@
 #include <algorithm>
 #include <atomic>
 #include <charconv>
+#include <chrono>
 #include <cstddef>
 #include <memory>
 #include <span>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -164,12 +166,134 @@ public:
     }
 };
 
+// SDL's recording stream, drained by a thread of ours. A recording stream's callback fires from
+// inside SDL with its device lock held, so nothing here calls SDL from it: the thread polls what
+// SDL buffered and pushes it on, which keeps an Input's callback on one thread of its own.
+class SdlCaptureStream final : public DeviceStream {
+public:
+    SdlCaptureStream(const Format& format, PushFn push)
+        : format(format), push(std::move(push)),
+          block(static_cast<std::size_t>(block_frames()) * std::size_t(channels()))
+    {
+    }
+
+    ~SdlCaptureStream() override
+    {
+        if (thread.joinable()) {
+            thread.request_stop();
+            thread.join();
+        }
+        if (stream != nullptr) SDL_DestroyAudioStream(stream);
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    }
+
+    [[nodiscard]] bool lost() const override { return gone.load(std::memory_order_relaxed); }
+
+    // Owned from here on; started once recording resumed.
+    void attach(SDL_AudioStream* opened) { stream = opened; }
+
+    void start() { thread = std::jthread([this](std::stop_token stop) { drain(stop); }); }
+
+private:
+    int channels() const { return format.channels > 0 ? format.channels : 1; }
+    int block_frames() const { return format.block_frames > 0 ? format.block_frames : 1; }
+
+    void drain(std::stop_token stop)
+    {
+        const auto frame_bytes = static_cast<int>(sizeof(float)) * channels();
+        while (!stop.stop_requested() && !gone.load(std::memory_order_relaxed)) {
+            // One block at a time, so what an Input receives is the block size it asked for even
+            // when SDL has more waiting.
+            const int available = SDL_GetAudioStreamAvailable(stream);
+            const int take = std::min(available, static_cast<int>(block.size() * sizeof(float)));
+            if (take < frame_bytes) {
+                std::this_thread::sleep_for(std::chrono::milliseconds{2});
+                continue;
+            }
+            const int frames = take / frame_bytes;
+            const int got = SDL_GetAudioStreamData(stream, block.data(), frames * frame_bytes);
+            if (got <= 0) {
+                if (got < 0) gone.store(true, std::memory_order_relaxed);
+                std::this_thread::sleep_for(std::chrono::milliseconds{2});
+                continue;
+            }
+            const auto samples = std::size_t(got / int(sizeof(float)));
+            push(std::as_bytes(std::span<const float>{block.data(), samples}), int(samples / std::size_t(channels())));
+        }
+    }
+
+    Format format;
+    PushFn push;
+    std::vector<float> block;
+    std::atomic<bool> gone{false};
+    SDL_AudioStream* stream = nullptr;
+    std::jthread thread;
+};
+
+// The recording devices, listed and opened the way SdlBackend does playback.
+class SdlCaptureBackend final : public CaptureBackend {
+public:
+    [[nodiscard]] std::vector<DeviceInfo> devices() override
+    {
+        std::vector<DeviceInfo> out;
+        out.push_back({.id = kDefaultId,
+                       .name = "Default",
+                       .rates = {},
+                       .max_channels = 2,
+                       .native = SampleType::f32,
+                       .is_default = true});
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) return out;
+        int count = 0;
+        SDL_AudioDeviceID* ids = SDL_GetAudioRecordingDevices(&count);
+        if (ids == nullptr) {
+            SDL_QuitSubSystem(SDL_INIT_AUDIO);
+            return out;
+        }
+        for (int i = 0; i < count; ++i) {
+            const char* name = SDL_GetAudioDeviceName(ids[i]);
+            out.push_back({.id = device_id(ids[i]),
+                           .name = name != nullptr ? name : "SDL device",
+                           .rates = {},
+                           .max_channels = 2,
+                           .native = SampleType::f32,
+                           .is_default = false});
+        }
+        SDL_free(ids);
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        return out;
+    }
+
+    [[nodiscard]] std::unique_ptr<DeviceStream> open(std::string_view id, const Format& format,
+                                                     PushFn push) override
+    {
+        SDL_AudioDeviceID device = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
+        if (id != kDefaultId && !parse_id(id, device)) return nullptr;
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) return nullptr;
+        auto opened = std::make_unique<SdlCaptureStream>(format, std::move(push));
+        const SDL_AudioSpec spec{.format = SDL_AUDIO_F32,
+                                 .channels = format.channels > 0 ? format.channels : 1,
+                                 .freq = format.sample_rate};
+        SDL_AudioStream* stream = SDL_OpenAudioDeviceStream(device, &spec, nullptr, opened.get());
+        if (stream == nullptr) return nullptr;
+        opened->attach(stream);
+        if (!SDL_ResumeAudioStreamDevice(stream)) return nullptr; // `opened` destroys the stream
+        opened->start();
+        return opened;
+    }
+};
+
 } // namespace
 
 // One backend for the process, made on first use: audio/registry.cpp starts with it.
 DeviceBackend& sdl_audio_backend()
 {
     static SdlBackend backend;
+    return backend;
+}
+
+CaptureBackend& sdl_capture_backend()
+{
+    static SdlCaptureBackend backend;
     return backend;
 }
 

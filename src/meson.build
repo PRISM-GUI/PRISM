@@ -101,7 +101,7 @@ prism_lib_sources = [
 # desktop in the SDL backend's library, so a program that makes an Output links SDL's devices too
 # (a registration in a library nothing references would be dropped by --as-needed); without SDL
 # (bare metal, ESP-IDF) in libprism, where the board registers its own devices.
-prism_audio_sources = ['audio/manual_device.cpp', 'audio/output.cpp', 'audio/registry.cpp']
+prism_audio_sources = ['audio/input.cpp', 'audio/manual_device.cpp', 'audio/output.cpp', 'audio/registry.cpp']
 if not sdl_enabled
   prism_lib_sources += prism_audio_sources
 endif

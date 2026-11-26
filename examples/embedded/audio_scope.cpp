@@ -1,10 +1,14 @@
 #include <embedded/audio_scope.hpp>
 
+#include <prism/app/model_app.hpp>
+
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <fmt/format.h>
 #include <numeric>
 #include <string>
+#include <utility>
 
 namespace prism_examples {
 namespace {
@@ -82,7 +86,6 @@ void ScopeModel::view(prism::app::WidgetTree::ViewBuilder &vb)
                     .depends_on(plot->cursor)
                     .depends_on(plot->revision);
         });
-        vb.widget(stats);
     });
 }
 
@@ -214,11 +217,72 @@ void ScopeState::show_level(ScopeModel &model)
     sum_since_report_ = 0.0;
 }
 
-void attach_scope(prism::platform::FrameContext &ctx, ScopeModel &model, ScopeState &state)
+Scope::Scope()
+    : input_{{.sample_rate = 16000, .channels = 1, .block_frames = 256}, {},
+             [this] { samples_arrived(); }},
+      input_source_(input_), sweep_source_(sweep_.sample_rate()),
+      state(input_.ok() ? static_cast<SampleSource &>(input_source_)
+                        : static_cast<SampleSource &>(sweep_source_))
 {
+}
+
+Scope::~Scope()
+{
+    // Stops feeding before the state these threads wake goes away: the input's own thread is
+    // joined by its stream, and samples_arrived() then returns early.
+    started_.store(false, std::memory_order_release);
+    if (sweep_thread_.joinable()) {
+        sweep_thread_.request_stop();
+        sweep_thread_.join();
+    }
+}
+
+void Scope::attach(prism::app::AppContext &ctx)
+{
+    poster_ = ctx.poster();
     scope_bind(model, state);
-    ctx.on_loop([&model, &state] { scope_tick(model, state); });
-    ctx.on_stats([&model, &state](std::string_view line) { scope_show_stats(model, state, line); });
+    last_report_ = std::chrono::steady_clock::now();
+    started_.store(true, std::memory_order_release);
+    if (!input_.ok())
+        sweep_thread_ = std::jthread([this](std::stop_token stop) { run_sweep(stop); });
+}
+
+// A burst of blocks costs one tick: the first sets the flag, the rest find it set.
+void Scope::samples_arrived()
+{
+    if (!started_.load(std::memory_order_acquire)) return;
+    if (pending_.exchange(true, std::memory_order_acq_rel)) return;
+    poster_([this] {
+        pending_.store(false, std::memory_order_release);
+        tick();
+    });
+}
+
+void Scope::tick()
+{
+    scope_tick(model, state);
+    // The level readout is the app's now: a time slice of its own, not the frames it happened to
+    // get, and no dependence on the port's timing line (which the console shows, not the app).
+    const auto now = std::chrono::steady_clock::now();
+    if (now - last_report_ < std::chrono::seconds{1}) return;
+    last_report_ = now;
+    state.show_level(model);
+}
+
+// No device thread for the sweep, so the scope gives it one: the same block size the input would
+// deliver, at the same pace, into the same push-then-post path.
+void Scope::run_sweep(std::stop_token stop)
+{
+    constexpr std::size_t kBlock = 256;
+    std::array<float, kBlock> block{};
+    const auto period = std::chrono::duration<double>(double(kBlock) / double(sweep_.sample_rate()));
+    while (!stop.stop_requested()) {
+        if (const auto n = sweep_.read(block)) {
+            sweep_source_.push(std::span<const float>(block).first(n));
+            samples_arrived();
+        }
+        std::this_thread::sleep_for(period);
+    }
 }
 
 } // namespace prism_examples

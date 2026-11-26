@@ -267,14 +267,19 @@ in `prism::dev`, built for the host.
 
 | Family | Emulated by |
 |---|---|
-| Sample source | a generator (the scope's sweep), a WAV file, the PC's microphone (SDL) |
+| Sample source | a generator (the scope's sweep), a WAV file, the PC's microphone (SDL, through `audio::Input`) |
 | Sample sink | the PC's speakers (SDL, through `audio::Output`), a WAV file |
-
-*Our call:* `audio::Output` keeps its API (it calls a render function on its own thread). Its
-emulated sink is a `Ring`: the app commits into it, the render function acquires from it.
 | Bus device | a scripted device model (registers in a map), or a recorded trace replayed |
 | Lines | a PRISM panel: LEDs and buttons drawn as widgets |
 | Framebuffer, touch | an SDL window and the mouse, at the board's size and pixel format |
+
+*Our call:* `audio::Output` keeps its API (it calls a render function on its own thread). Its
+emulated sink is a `Ring`: the app commits into it, the render function acquires from it.
+
+*Our call:* `audio::Input` is the capture side of the same seam. A port registers a
+`CaptureBackend` -- the mirror of `DeviceBackend`, with `open()` taking a push callback instead of
+a pull one -- and `prism::audio::Input` opens a device through it and reads floats. SDL registers
+its microphone backend on the desktop, so an app that records runs there unchanged.
 
 The whole board firmware (its `main` aside) then runs on the desktop at the board's resolution,
 with its pixel format and band size, before any hardware exists.

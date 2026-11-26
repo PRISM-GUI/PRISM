@@ -87,7 +87,7 @@ TEST_CASE("widgets demo: damage redraw gives the pixels of a full redraw") {
     prism_examples::WidgetsModel model;
     check_damage_matches_full_redraw(model, 12, [&](int f) {
         switch (f % 4) {
-        case 0: model.stats.mutate([f](prism::ui::Label<>& l) { l.value = "frame " + std::to_string(f); }); break;
+        case 0: model.enabled.mutate([f](prism::ui::Checkbox& box) { box.checked = f % 2 == 0; }); break;
         case 1: model.volume.mutate([f](prism::ui::Slider<>& s) { s.value = (f % 20) / 20.0; }); break;
         case 2: model.counter.set(f); break;
         default: break;
@@ -101,7 +101,7 @@ TEST_CASE("widgets demo at a UI scale of 1.5: damage redraw gives the pixels of 
         model, 12,
         [&](int f) {
             switch (f % 3) {
-            case 0: model.stats.mutate([f](prism::ui::Label<>& l) { l.value = "frame " + std::to_string(f); }); break;
+            case 0: model.enabled.mutate([f](prism::ui::Checkbox& box) { box.checked = f % 2 == 0; }); break;
             case 1: model.volume.mutate([f](prism::ui::Slider<>& s) { s.value = (f % 20) / 20.0; }); break;
             default: break;
             }

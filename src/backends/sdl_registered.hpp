@@ -6,8 +6,10 @@
 // the registry stays empty.
 
 namespace prism::audio {
+class CaptureBackend;
 class DeviceBackend;
 DeviceBackend& sdl_audio_backend();
+CaptureBackend& sdl_capture_backend();
 } // namespace prism::audio
 
 namespace prism::render {

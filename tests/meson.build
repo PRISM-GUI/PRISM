@@ -192,6 +192,17 @@ foreach name, src : headless_tests
   test(name, exe)
 endforeach
 
+# Input opens a device through its registry, which lives with SDL's backend on the desktop and in
+# libprism without it (src/meson.build), so this test links whichever carries it. It is apart from
+# the loop above for that reason.
+audio_input_deps = [prism_core_dep, prism_raster_dep, doctest_dep]
+if sdl_enabled
+  audio_input_deps += prism_software_backend_dep
+endif
+test('audio_input', executable('test_audio_input', files('test_audio_input.cpp'),
+  dependencies : audio_input_deps,
+))
+
 # The Orbit solver sweep flies thousands of probe paths: unoptimised it took 11 s natively and over
 # the 30 s timeout in node on a loaded CI runner. Pure arithmetic, so -O2 loses nothing a debug
 # build checks; asserts stay on unless the build sets NDEBUG.
@@ -262,9 +273,11 @@ foreach name, src : {
     dependencies : [prism_embedded_apps_dep, prism_raster_dep, doctest_dep]))
 endforeach
 
-# attach_widgets and attach_scope under the frame runtime (platform library); the test defines
-# the two hooks the runtime reads (allocation_count, system_counters) itself. A hang must fail
-# the test, not stall the suite.
+# The board apps as apps (app::run -> platform::run), not as FrameContext hooks: the scope's model
+# through the frame runtime with a test port, and the two apps' freedom from hooks. The test
+# defines the two hooks the runtime reads (allocation_count, system_counters) itself. A hang must
+# fail the test, not stall the suite. The scope owns an audio::Input, whose registry
+# prism_embedded_apps_dep already carries (examples/embedded/meson.build).
 test('embedded_apps_frame_hooks', executable('test_embedded_apps_frame_hooks',
   files('test_embedded_apps_frame_hooks.cpp'),
   dependencies : [prism_embedded_apps_dep, prism_platform_dep, doctest_dep],
