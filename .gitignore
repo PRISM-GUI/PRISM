@@ -6,6 +6,7 @@ compile_commands.json
 *.swp
 *~
 .pytest_cache/
+node_modules/
 __pycache__/
 python/prism/*.so
 python/prism/__pycache__/

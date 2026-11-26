@@ -52,6 +52,8 @@ core::Connection ba = b.on_update().connect(
 
 Catching up on a session you were not part of: send your `state_vector()` to the peer, get back `encode_since(that)`, apply it. `to_json()` shows the document as a flat JSON object, dotted keys included, which is what another language sees of it.
 
+Handing updates to `apply_update` is the short way; a network peer does more. `crdt::SyncSession` is one Doc's half of the y-protocols sync: `start()` asks the peer for its state vector, `receive()` handles one message, and a local edit leaves through the `send` you gave it as an update. Give each Doc a session, point each session's `send` at the other's `receive()`, and a transport has nothing left to do but carry the bytes. `examples/crdt_twins` wires a pair that way -- two Mixers in one window, side by side, each its own `Doc` -- and `tests/web/crdt_twins.mjs` drives both halves of it in a browser.
+
 Bytes from a network thread are applied on the logic thread, like every other model change.
 
 ## Over the network
@@ -140,7 +142,8 @@ $ PRISM_WEB_CRDT=1 scripts/build_web_site.sh builddir-wasm _site
 
 `examples/crdt_pair` builds a page instead of its two desktop windows in the browser, and
 `scripts/build_web_site.sh` publishes that page only with `PRISM_WEB_CRDT=1`: a page that joins a
-hub is only useful next to one.
+hub is only useful next to one. `examples/crdt_twins` needs no hub, so its page is published
+whenever it was built.
 
 The desktop peer is `examples/crdt_hub`: one window, its `Doc` served on port 8000, and `./web` as
 the static directory -- copy or symlink the site there:
