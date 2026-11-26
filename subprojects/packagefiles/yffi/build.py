@@ -14,7 +14,8 @@ yrs 0.28.2 does not compile for emscripten as published: it gates `impl Default 
 on `target_family = "wasm"`, while the clock that impl needs is gated on
 `not(all(target_family = "wasm", target_os = "unknown"))`. On emscripten target_family is wasm and
 target_os is emscripten, so the clock exists and Default does not; upstream should use the narrower
-condition in both places (see y-crdt/y-crdt). A `[patch.crates-io]` entry cannot be added to a
+condition in both places (https://github.com/y-crdt/y-crdt/pull/791; drop this patch once a
+release carries it). A `[patch.crates-io]` entry cannot be added to a
 crates.io dependency from Meson's packagefiles, and a patched yrs tree in the repository would be a
 vendored copy to keep in step by hand, so this script copies the registry's yrs-0.28.2 into the
 target dir, applies that one fix, and points cargo at the copy. The copy lives beside cargo's own
