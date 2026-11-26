@@ -170,6 +170,18 @@ public:
     // reach a finished run_loop, whichever thread calls it.
     void post_deferred(std::function<void()> fn) { wake_gate_->post(std::move(fn)); }
 
+    // A runtime whose loop is not a stdexec run_loop (a board's frame loop, platform/run.hpp)
+    // drains the queue itself each turn, so nothing may be scheduled on the never-run scheduler.
+    void set_loop_drains_posts(bool on) { loop_drains_posts_ = on; }
+
+    // Runs what other threads posted so far. The logic thread only, once per turn.
+    void drain_posted()
+    {
+        if (queue_->empty())
+            return;
+        drain_queue();
+    }
+
     // A callable any thread may invoke to wake the logic thread for a drain + publish; hand it
     // to Shared<T>/Channel<T>::set_waker(). Becomes a no-op once close_waker() ran, so it may
     // safely outlive the app (worker threads often do).
@@ -261,6 +273,7 @@ private:
     std::shared_ptr<std::atomic<bool>> closed_;
     std::shared_ptr<std::function<void()>> drain_publish_;
     std::shared_ptr<std::function<void(std::function<void()>)>> logic_wrapper_;
+    bool loop_drains_posts_ = false;
     std::function<void()> main_window_close_;
     std::shared_ptr<WakeGate> wake_gate_ = std::make_shared<WakeGate>(*this);
 };

@@ -1,12 +1,16 @@
 #pragma once
 
-// frame_app(sink, touch, model): runs a model on a framebuffer target, as model_app runs one in
-// an SDL window. Two threads: a logic thread that owns the model and its WidgetTree, polls the
-// touch at ~60 Hz and routes it through the tree's input path, and a render thread that draws
-// each new snapshot into the sink and presents it. Each frame is timed and summarized once a
-// second (platform/frame_stats.hpp) to the app's on_stats hooks. Returns after quit().
+// The frame runtime: a logic thread and a render thread for a framebuffer target. A board's port
+// wraps this (platform/port.hpp) and an app calls platform::run (platform/run.hpp), the same call
+// it makes on the desktop; the functions below are what the port itself builds its run with.
+//
+// Two threads: a logic thread that owns the model and its WidgetTree, polls the touch at ~60 Hz
+// and routes it through the tree's input path, and a render thread that draws each new snapshot
+// into the sink and presents it. Each frame is timed and summarized once a second
+// (platform/frame_stats.hpp) to the app's on_stats hooks. Returns after quit().
 
 #include <prism/app/widget_tree.hpp>
+#include <prism/core/types.hpp>
 #include <prism/platform/frame_target.hpp>
 
 #include <cstdio>
@@ -32,10 +36,14 @@ inline void require_not_started(bool started)
 }
 } // namespace platform_detail
 
-// The app's handle on the runtime, given to setup on the logic thread.
+// The runtime's handle, given to setup on the logic thread: what a port sees of a run.
 class FrameContext {
 public:
-    explicit FrameContext(std::stop_source stop) : stop_(std::move(stop)) {}
+    explicit FrameContext(std::stop_source stop, core::Size size = {})
+        : stop_(std::move(stop)), size_(size) {}
+
+    // The panel's size in logical units: what a runtime builds its one window at (platform/run.hpp).
+    [[nodiscard]] core::Size size() const { return size_; }
 
     // Runs each logic loop, after input and before the dirty check (e.g. drain a sample source).
     // Register from setup: registering later aborts, as the hooks are being called.
@@ -56,6 +64,7 @@ public:
 private:
     friend struct platform_detail::ContextAccess;
     std::stop_source stop_;
+    core::Size size_;
     bool started_ = false; // set once setup has returned: the hook lists are then fixed
     std::vector<std::function<void()>> loop_;
     std::vector<std::function<void(std::string_view)>> stats_;
@@ -93,8 +102,11 @@ void run_frames(BandSink<raster::Rgb565>& sink, TouchSource& touch, TreeFactory 
 void run_frames(BandSink<raster::Argb8888>& sink, TouchSource& touch, TreeFactory make_tree,
                 std::function<void(FrameContext&)> setup, const FrameOptions& options = {});
 
-// model_app runs a model's attach(AppContext&); this runtime has no AppContext, so it would skip
-// it without a word (a crdt model would never bind its Doc). Do that work before frame_app.
+// The port-level entry: a board's displayed app calls platform::run (platform/run.hpp), which
+// runs the model's attach(AppContext&) before its first frame. frame_app is what a port's own
+// code builds its run with, and runs no attach: a model that has one wants platform::run.
+//
+// A model whose attach() frame_app would skip without a word (a crdt model would never bind).
 template <class Model>
 concept attaches_to_app = requires(Model& model, app::AppContext& ctx) { model.attach(ctx); };
 
@@ -104,7 +116,7 @@ void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
                std::function<void(FrameContext&)> setup, const FrameOptions& options)
 {
     static_assert(!attaches_to_app<Model>,
-                  "frame_app never calls attach(AppContext&): do that work before frame_app");
+                  "frame_app runs no attach(AppContext&): an app calls app::run instead");
     run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
                std::move(setup), options);
 }
@@ -121,7 +133,7 @@ void frame_app(BandSink<P>& sink, TouchSource& touch, Model& model,
                std::function<void(FrameContext&)> setup = {}, const FrameOptions& options = {})
 {
     static_assert(!attaches_to_app<Model>,
-                  "frame_app never calls attach(AppContext&): do that work before frame_app");
+                  "frame_app runs no attach(AppContext&): an app calls app::run instead");
     run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
                std::move(setup), options);
 }

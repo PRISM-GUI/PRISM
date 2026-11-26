@@ -231,6 +231,14 @@ test('frame_app', executable('test_frame_app', files('test_frame_app.cpp'),
   dependencies : [prism_platform_dep, doctest_dep],
 ), timeout : 30)
 
+# platform::run (include/prism/platform/run.hpp + port.hpp): one entry point on a board, the frame
+# runtime under a real app::AppContext. The test registers a Port whose run_frames drives a memory
+# sink, and defines the platform hooks itself. A stats line comes once a second, so the run the
+# timing-line case waits for is about that long; a hang must fail the test.
+test('platform_run', executable('test_platform_run', files('test_platform_run.cpp'),
+  dependencies : [prism_platform_dep, doctest_dep],
+), timeout : 30)
+
 # The shared board apps (examples/embedded/), moved from prism-stm32: their doctest tests, on
 # prism_embedded_apps_dep (which carries the examples/ include directory, PRISM's core and
 # CMSIS-DSP, the scope's FFT).

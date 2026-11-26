@@ -131,6 +131,8 @@ void AppContext::enqueue(std::function<void()> fn) {
 }
 
 void AppContext::schedule_drain() {
+    if (loop_drains_posts_)   // the runtime's own loop calls drain_posted() each turn
+        return;
     bool expected = false;
     if (scheduled_->compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
         exec::start_detached(stdexec::schedule(sched_)

@@ -187,10 +187,15 @@ prism_raster_dep = declare_dependency(
 
 # The frame runtime (platform/frame_app.hpp): a model on a framebuffer target, drawn by the
 # rasterizer. Static: it calls allocation_count() and system_counters(), which whoever links it
-# defines (a port, a test program).
+# defines (a port, a test program). port.cpp and run.cpp are the board-facing half: a port
+# registers how the runtime runs on its display (platform/port.hpp), an app calls platform::run
+# (platform/run.hpp) exactly as it calls app::run on the desktop.
 prism_platform_lib = static_library('prism-platform',
+  'platform/frame_backend.cpp',
   'platform/frame_runtime.cpp',
   'platform/frame_stats.cpp',
+  'platform/port.cpp',
+  'platform/run.cpp',
   dependencies : [prism_core_dep, prism_raster_dep],
   install : false,
 )

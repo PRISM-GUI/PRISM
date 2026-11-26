@@ -68,8 +68,8 @@ port, links that library for its audio, so the registration cannot be dropped.
 
 Read it top to bottom. The heap, the PSRAM and the drivers come before anything
 allocates. Static constructors allocate nothing and touch no hardware. `app_main` (or
-`main`) registers the board's own devices and decoders, then starts the tasks and
-`frame_app`.
+`main`) registers the board's own devices and decoders, installs its port
+(`platform::set_port`), then starts the tasks and runs the app.
 
 ## Flash and RAM
 
@@ -115,7 +115,8 @@ options. Measure your own build with `idf.py size-components` (ESP32-IDF) or
 ## Starting a board port
 
 A port writes only what its board owns. `include/prism/platform/frame_target.hpp` is the
-contract, and `frame_app.hpp` is the entry point.
+display and touch contract, `platform/port.hpp` is what the port hands PRISM once at startup,
+and `platform/frame_app.hpp` (the frame runtime itself) is what its `run_frames` calls.
 
 Four pieces, in the order they are needed:
 
@@ -140,21 +141,42 @@ Four pieces, in the order they are needed:
 `BandSink<P>` is the same idea for a panel fed band by band: `band_height()`, `band(index)`,
 `flush(index, first_row, rows)`, `present()`, `size()`, `frame_age()`.
 
-The app starts with one call, from `app_main` or `main`:
+The app starts with one call, from `app_main` or `main`, as it does on the desktop:
 
 ```cpp
-#include <prism/platform/frame_app.hpp>
+int main()
+{
+    Mixer mixer;
+    return prism::app::run(mixer, {.title = "Mixer"});   // the same call as on the desktop
+}
+```
 
-prism::platform::frame_app(sink, touch, model, [](prism::platform::FrameContext& ctx) {
-    ctx.on_loop([] { /* once per loop iteration */ });
-    ctx.on_stats([](std::string_view line) { /* print the frame budget */ });
+On a target built as a board (`PRISM_FRAME_PORT`, set when the system is `none`), `app::run`
+forwards to `prism::platform::run`: the port's frame runtime, a real `app::AppContext` (the
+model's `attach(AppContext&)`, cross-thread posts, `open_window`), and the panel as the app's one
+window. The title, the window size and the settings are the desktop's and are ignored there, and
+so is a timed quit: the run ends when the app closes its window.
+
+What the board supplies, once, before `main` -- from `app_main`, from its startup code, or from a
+static initializer:
+
+```cpp
+#include <prism/platform/port.hpp>
+
+prism::platform::set_port({
+    // The board's own run: its sink, its touch source, its thread attributes, its scale.
+    .run_frames = [&sink, &touch](prism::platform::TreeFactory make_tree,
+                                  std::function<void(prism::platform::FrameContext&)> setup) {
+        prism::platform::run_frames(sink, touch, std::move(make_tree), std::move(setup),
+                                    {.ui_scale = 1.5f});
+    },
+    .on_stats = [](std::string_view line) { /* the console, or a Wi-Fi log */ },
 });
 ```
 
-`frame_app` takes the model by reference; it must outlive the call.
-`platform::FrameOptions` sets `ui_scale` (1.5 for a fingertip) and `before_thread_start`,
-which is where a port sets its thread priorities and core pinning.
-`FrameContext::quit()` stops the loop, and `frame_app` returns after that.
+`platform::FrameOptions` still sets `ui_scale` (1.5 for a fingertip) and `before_thread_start`,
+which is where a port sets its thread priorities and core pinning. `FrameContext::quit()` stops
+the loop, and the run returns after that. Those are the port's own pieces; an app never sees them.
 
 `examples/embedded/` holds the apps both boards run (the widgets demo and the audio scope),
 built on every target and exported as `prism_embedded_apps_dep`. A port links it and passes its

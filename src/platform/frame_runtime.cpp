@@ -292,7 +292,7 @@ void logic_main(const RunArgs& a)
     {
         std::unique_ptr<WidgetTree> tree = (*a.make_tree)();
         tree->set_text_measurer(a.fonts); // layout measures with the fonts the rasterizer draws with
-        FrameContext ctx{a.stop};
+        FrameContext ctx{a.stop, a.size};
         if (*a.setup)
             (*a.setup)(ctx);
         ContextAccess::start(ctx);

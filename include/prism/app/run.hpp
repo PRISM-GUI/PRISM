@@ -1,25 +1,43 @@
 #pragma once
 
 #include <prism/app/model_app.hpp>
+#ifdef PRISM_FRAME_PORT
+#include <prism/platform/run.hpp>   // where app::run forwards on a board
+#else
 #include <prism/app/window_geometry.hpp>
 #include <prism/backends/settings_dir.hpp>
 
 #include <cctype>
 #include <charconv>
-#include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <functional>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <string>
-#include <string_view>
 #include <thread>
+#endif
+
+#include <chrono>
+#include <functional>
+#include <optional>
+#include <string_view>
 
 // app::run: a whole main() in one call -- the window, the model, and the settings that survive
-// a restart.
+// a restart. On a board (PRISM_FRAME_PORT) the same call runs the model on the port's frame
+// runtime (platform/run.hpp): one entry point, every target.
 namespace prism::app {
+
+// A board has no files and no window to place: the app's saved settings are the desktop's, and the
+// stub below keeps the same source building there.
+#ifdef PRISM_FRAME_PORT
+
+struct SavedSettings {
+    SavedSettings() = default;
+    template <typename S>
+    SavedSettings(S*) {}   // `.settings = &my_settings` compiles, and means nothing on a board
+};
+
+#else
 
 // What survives a restart: a struct of fields, saved to <config dir>/<organization>/<name>/
 // settings.toml whenever one changes, and loaded back at the next start. Give it with
@@ -54,6 +72,10 @@ private:
     }
 };
 
+#endif   // PRISM_FRAME_PORT
+
+// A board ignores what it cannot honour -- there is no title bar, no window size to ask for and no
+// settings file, and the run ends when the app closes its window (platform/run.hpp).
 struct AppConfig {
     std::string_view title = "PRISM";
     int width = 800;
@@ -66,6 +88,8 @@ struct AppConfig {
     // main window (for CI and headless runs). When not set, run() reads PRISM_QUIT_AFTER_MS.
     std::optional<std::chrono::milliseconds> quit_after{};
 };
+
+#ifndef PRISM_FRAME_PORT
 
 namespace run_detail {
 
@@ -117,10 +141,17 @@ inline void schedule_quit(AppContext& ctx, std::chrono::milliseconds after) {
 
 } // namespace run_detail
 
+#endif   // PRISM_FRAME_PORT
+
 // Opens the window, runs `model` until it closes, and saves `cfg.settings` as it changes.
 // `setup` runs once on the logic thread, as model_app's does.
 template <typename Model>
 int run(Model& model, const AppConfig& cfg, std::function<void(AppContext&)> setup = {}) {
+#ifdef PRISM_FRAME_PORT
+    // A board: the same call, on the port's frame runtime. The window it opens is the panel, so
+    // there is no title, size or settings to apply -- platform::run says why in one line.
+    return platform::run(model, cfg, std::move(setup));
+#else
     const auto saved = run_detail::open_settings(cfg);   // loaded before the window opens
     const std::string title{cfg.title};   // WindowConfig wants a C string; a view may not end in one
     WindowConfig window{.title = title.c_str(), .width = cfg.width, .height = cfg.height,
@@ -136,6 +167,7 @@ int run(Model& model, const AppConfig& cfg, std::function<void(AppContext&)> set
         if (quit_after) run_detail::schedule_quit(ctx, *quit_after);   // that long after setup
     });
     return 0;
+#endif
 }
 
 } // namespace prism::app

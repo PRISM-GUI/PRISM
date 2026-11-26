@@ -85,6 +85,12 @@ if profiling_enabled
                         '-DPRISM_PROFILING_EVENTS=@0@'.format(get_option('profiling_events')),
                         '-DPRISM_PROFILING_THREADS=@0@'.format(get_option('profiling_threads'))]
 endif
+
+# One entry point (platform/run.hpp): on a board app::run forwards to platform::run, so the same
+# main() builds for the desktop and for a board. It changes app/run.hpp's body only.
+if host_machine.system() == 'none'
+  prism_header_args += ['-DPRISM_FRAME_PORT=1']
+endif
 add_project_arguments(prism_header_args, language : 'cpp')
 
 # No sockets, no filesystem on bare metal: the optional libraries are off unless asked for.

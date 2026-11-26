@@ -54,12 +54,9 @@ struct Mixer {
         clap.observe([this](const ui::Button&) { ++claps; });
     }
 
-    // Every window's model gets this once, before its first frame.
-    void attach(app::AppContext&) { bind(); }
-
-    // Ties each shared field to its key in the Doc. A runtime with no attach (the board's
-    // frame_app) calls it itself, once, before its first frame.
-    void bind() {
+    // Every window's model gets this once, before its first frame: it ties each shared field to
+    // its key in the Doc, so the replica is live before anything draws.
+    void attach(app::AppContext&) {
 #if __cpp_impl_reflection
         model::bind(doc, *this);   // every crdt::Field member, by its name
 #else

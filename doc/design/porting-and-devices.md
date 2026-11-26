@@ -160,12 +160,16 @@ writes no runtime. *Our call:* the desktop's `model_app` stays as it is (level 3
 desktop emulation of a board uses the frame runtime with an SDL window as its framebuffer.
 Merging the two runtimes is later work, if ever.
 
-**Apps are written as on the desktop (decided).** A board app is a model struct and its view,
-exactly what `model_app` runs, so the same app source builds for the desktop and for a board.
-The board runtime takes the model where `model_app` does; prism-stm32's `Example` base class
-(`tree()`, `tick()`, `show_stats()`) goes. An app that polls devices each loop (the scope
-draining its sample source) registers a per-loop hook on the runtime; the timing line is a
-field the runtime offers to show, not a method every app implements.
+**Apps are written as on the desktop (decided, built).** A board app is a model struct and its
+view, exactly what `model_app` runs, so the same app source builds for the desktop and for a
+board: `app::run(model, cfg)` forwards to `platform::run` (`platform/run.hpp`) where the target
+is a board, and the app gets a real `AppContext` there -- its `attach`, cross-thread posts, one
+window (the panel). What differs is the port: it registers once, before `main`, how the runtime
+runs on its display (`platform/port.hpp`: a `run_frames` over its sink and touch source, plus
+where the timing line goes), and owns everything board-shaped -- the panel driver, the touch
+controller, the thread attributes. prism-stm32's `Example` base class (`tree()`, `tick()`,
+`show_stats()`) goes. A per-loop hook stays the port's own surface (`FrameContext::on_loop`, for
+the code that polls devices); an app's periodic work arrives through its `AppContext`'s posts.
 
 ### 3. Device families
 
