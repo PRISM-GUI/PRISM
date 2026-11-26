@@ -93,11 +93,18 @@ void run_frames(BandSink<raster::Rgb565>& sink, TouchSource& touch, TreeFactory 
 void run_frames(BandSink<raster::Argb8888>& sink, TouchSource& touch, TreeFactory make_tree,
                 std::function<void(FrameContext&)> setup, const FrameOptions& options = {});
 
+// model_app runs a model's attach(AppContext&); this runtime has no AppContext, so it would skip
+// it without a word (a crdt model would never bind its Doc). Do that work before frame_app.
+template <class Model>
+concept attaches_to_app = requires(Model& model, app::AppContext& ctx) { model.attach(ctx); };
+
 // The model must outlive the call; while it runs, only the logic thread may change it.
 template <class Model>
 void frame_app(FrameSink& sink, TouchSource& touch, Model& model,
                std::function<void(FrameContext&)> setup, const FrameOptions& options)
 {
+    static_assert(!attaches_to_app<Model>,
+                  "frame_app never calls attach(AppContext&): do that work before frame_app");
     run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
                std::move(setup), options);
 }
@@ -113,6 +120,8 @@ template <class P, class Model>
 void frame_app(BandSink<P>& sink, TouchSource& touch, Model& model,
                std::function<void(FrameContext&)> setup = {}, const FrameOptions& options = {})
 {
+    static_assert(!attaches_to_app<Model>,
+                  "frame_app never calls attach(AppContext&): do that work before frame_app");
     run_frames(sink, touch, [&model] { return std::make_unique<app::WidgetTree>(model); },
                std::move(setup), options);
 }
