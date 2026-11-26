@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdio>
 #include <exception>
 #include <functional>
-#include <iostream>
 #include <mutex>
 
 namespace prism::core {
@@ -15,13 +15,15 @@ namespace error_hub_detail {
 extern std::mutex error_handler_mutex;
 extern ErrorHandler error_handler;
 
+// stdio, not iostream: every app links this, and on a board std::cerr drags in iostreams and the
+// whole locale machinery (~170 KB, more than a small MCU's flash can spare).
 inline void default_error_handler(std::exception_ptr e) {
     try {
         std::rethrow_exception(e);
     } catch (const std::exception& ex) {
-        std::cerr << "[prism] unhandled exception in posted callback: " << ex.what() << '\n';
+        std::fprintf(stderr, "[prism] unhandled exception in posted callback: %s\n", ex.what());
     } catch (...) {
-        std::cerr << "[prism] unhandled exception in posted callback: <non-std exception>\n";
+        std::fputs("[prism] unhandled exception in posted callback: <non-std exception>\n", stderr);
     }
 }
 } // namespace error_hub_detail
