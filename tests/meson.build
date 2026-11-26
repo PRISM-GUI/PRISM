@@ -511,7 +511,10 @@ test_run = executable('test_run', files('test_run.cpp'),
 # app::run opens a real SDL window for its quit_after test: the offscreen video driver, and
 # SDL's software renderer, so no graphics driver is loaded (it leaks, and the CI ASan lane
 # checks leaks) -- this test only needs the window to open and close.
-run_env = environment({'SDL_VIDEODRIVER' : 'offscreen', 'SDL_RENDER_DRIVER' : 'software'})
+# The window's own surface picks its renderer from SDL_FRAMEBUFFER_ACCELERATION, not
+# SDL_RENDER_DRIVER: without it that path still loaded the GL driver, and its leak failed ASan.
+run_env = environment({'SDL_VIDEODRIVER' : 'offscreen', 'SDL_RENDER_DRIVER' : 'software',
+                       'SDL_FRAMEBUFFER_ACCELERATION' : '0'})
 test('run', test_run, env : run_env)
 
 test_sdl_font_set = executable('test_sdl_font_set',

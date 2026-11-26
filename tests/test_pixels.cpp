@@ -498,7 +498,7 @@ struct GradientModel {
     void view(WidgetTree::ViewBuilder& vb) { vb.widget(box); }
 };
 
-bool near(const std::uint8_t* px, prism::Color want, int tol) {
+bool close_to(const std::uint8_t* px, prism::Color want, int tol) {
     for (int k = 0; k < 3; ++k) {
         const int got = k == 0 ? px[0] : (k == 1 ? px[1] : px[2]);
         const int expected = k == 0 ? want.r : (k == 1 ? want.g : want.b);
@@ -520,9 +520,9 @@ TEST_CASE("a gradient renders from its start colour to its end colour") {
     const prism::Color middle = prism::Color::rgba(51, 145, 212);
     const int y = frame.h / 2;
 
-    CHECK(near(frame.at(4, y), from, 24));
-    CHECK(near(frame.at(frame.w / 2, y), middle, 24));
-    CHECK(near(frame.at(frame.w - 5, y), to, 24));
+    CHECK(close_to(frame.at(4, y), from, 24));
+    CHECK(close_to(frame.at(frame.w / 2, y), middle, 24));
+    CHECK(close_to(frame.at(frame.w - 5, y), to, 24));
     CHECK(std::abs(frame.at(4, y)[2] - frame.at(frame.w - 5, y)[2]) > 20);   // it really runs
 
     const auto* top = frame.at(frame.w / 2, y);

@@ -72,11 +72,15 @@ std::vector<DeviceInfo> devices()
         auto listed = backend->devices();
         std::ranges::move(listed, std::back_inserter(all));
     }
-    // The default device first: that is the one a bare Output plays on.
-    std::ranges::stable_sort(all, [](const DeviceInfo& a, const DeviceInfo& b) {
-        return a.is_default && !b.is_default;
-    });
-    return all;
+    // The default device first: that is the one a bare Output plays on. Two passes rather than
+    // stable_sort, whose temporary buffer libstdc++ 14 frees with the wrong call (ASan's
+    // alloc-dealloc-mismatch; fixed in GCC 15 by the PR 105258 rework).
+    std::vector<DeviceInfo> ordered;
+    ordered.reserve(all.size());
+    for (const bool is_default : {true, false})
+        for (auto& device : all)
+            if (device.is_default == is_default) ordered.push_back(std::move(device));
+    return ordered;
 }
 
 std::unique_ptr<DeviceStream> open_device(std::string_view id, const Format& format, PullFn pull,
