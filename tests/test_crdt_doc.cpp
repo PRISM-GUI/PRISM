@@ -5,6 +5,7 @@
 
 #include <prism/crdt/doc.hpp>
 #include <prism/crdt/field.hpp>
+#include <prism/ui/delegate.hpp>
 
 #include <cstdint>
 #include <span>
@@ -322,4 +323,76 @@ TEST_CASE("an integer travels as a Yjs number") {
     CHECK(count == 7);
     CHECK_FALSE(value_detail::from_value(Value{1e300}, count));
     CHECK(count == 7);
+}
+
+TEST_CASE("a widget shares its value and keeps its own settings") {
+    // A type with a `value` member of a shared scalar travels through that member alone: two
+    // replicas of one slider may be laid out differently and still show the same number.
+    Doc a;
+    Doc b;
+    Field<ui::Slider<double>> gain_a{
+        ui::Slider<double>{.value = 0.5, .min = 0.0, .max = 1.0, .step = 0.01, .label = "Gain"}};
+    Field<ui::Slider<double>> gain_b{
+        ui::Slider<double>{.value = 0.5, .min = 0.0, .max = 10.0, .step = 0.5, .label = "Volume"}};
+    a.bind("gain", gain_a);
+    b.bind("gain", gain_b);
+    Wired wired = wire(a, b);
+
+    gain_a.update([](ui::Slider<double>& s) { s.value = 0.8; });
+
+    CHECK(gain_b.get().value == 0.8);
+    CHECK(gain_b.get().min == 0.0);
+    CHECK(gain_b.get().max == 10.0);
+    CHECK(gain_b.get().step == 0.5);
+    CHECK(gain_b.get().label == "Volume");
+    CHECK(gain_a.get().label == "Gain");
+}
+
+TEST_CASE("a plain number from a peer reaches a widget's value") {
+    // What pycrdt writes into the key is a number, not this replica's widget: the widget reads it
+    // through its value member and keeps its own local range.
+    Doc widgets;
+    Field<ui::Slider<double>> gain{
+        ui::Slider<double>{.value = 0.0, .min = 0.0, .max = 1.0, .label = "Gain"}};
+    widgets.bind("gain", gain);
+
+    Doc peer;
+    Field<double> plain;
+    peer.bind("gain", plain);
+    plain = 0.75;
+
+    widgets.apply_update(peer.encode_since(widgets.state_vector()));
+
+    CHECK(gain.get().value == 0.75);
+    CHECK(gain.get().label == "Gain");
+}
+
+TEST_CASE("a dropdown's enum travels by name") {
+    Doc a;
+    Doc b;
+    Field<ui::Dropdown<Mode>> mode_a{ui::Dropdown<Mode>{.labels = {"idle", "run"}}};
+    Field<ui::Dropdown<Mode>> mode_b;
+    a.bind("mode", mode_a);
+    b.bind("mode", mode_b);
+    Wired wired = wire(a, b);
+
+    mode_a.update([](ui::Dropdown<Mode>& d) { d.value = Mode::run; });
+
+    CHECK(mode_b.get().value == Mode::run);
+    CHECK(mode_b.get().labels.empty());   // the labels are this replica's own
+    CHECK(a.to_json().find("\"run\"") != std::string::npos);
+}
+
+TEST_CASE("a widget reaches a peer as a plain number") {
+    Doc doc;
+    Field<ui::Slider<double>> gain{
+        ui::Slider<double>{.value = 0.0, .min = 0.0, .max = 1.0, .step = 0.01, .label = "Gain"}};
+    doc.bind("gain", gain);
+
+    gain.update([](ui::Slider<double>& s) { s.value = 0.8; });
+
+    const std::string json = doc.to_json();
+    CHECK(json.find("\"gain\":0.8") != std::string::npos);
+    CHECK(json.find("\"min\"") == std::string::npos);
+    CHECK(json.find("\"label\"") == std::string::npos);
 }

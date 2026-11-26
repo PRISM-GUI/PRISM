@@ -3,6 +3,7 @@
 
 #include <prism/crdt/bind.hpp>
 #include <prism/crdt/flavor.hpp>
+#include <prism/ui/delegate.hpp>
 
 #include <cstddef>
 #include <span>
@@ -32,6 +33,7 @@ TEST_CASE("bind walks the struct") {
     struct S {
         prism::crdt::Field<int> a;
         prism::core::Field<int> local;
+        prism::crdt::Field<prism::ui::Slider<double>> gain;
         struct In {
             prism::crdt::Field<bool> on;
         } in;
@@ -52,9 +54,12 @@ TEST_CASE("bind walks the struct") {
     model_a.a = 7;
     model_a.local = 1;
     model_a.in.on = true;
+    model_a.gain.update([](prism::ui::Slider<double>& s) { s.value = 0.8; });
 
     CHECK(model_b.a.get() == 7);
     CHECK(model_b.in.on.get() == true);
+    CHECK(model_b.gain.get().value == 0.8);   // a widget shares its value, not its range
+    CHECK(model_b.gain.get().max == 1.0);
     CHECK(model_b.local.get() == 0);   // a core::Field stays where it was set
 }
 #endif

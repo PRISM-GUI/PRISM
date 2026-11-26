@@ -4,6 +4,9 @@
 struct M {
     model::Field<double> gain;
     model::Field<int> count;
+    // A widget value: shared through `.value`, its range and label stay local to each replica.
+    model::Field<prism::ui::Slider<double>> level{
+        prism::ui::Slider<double>{.value = 0.5, .min = 0.0, .max = 1.0, .step = 0.01}};
     model::Derived<double> doubled{[this] { return gain.get() * 2.0; }, gain};
 };
 
@@ -21,6 +24,10 @@ void check(M& m) {
 
     m.count = 4;
     CHECK(m.count.get() == 4);
+
+    m.level.update([](prism::ui::Slider<double>& s) { s.value = 0.8; });
+    CHECK(m.level.get().value == 0.8);
+    CHECK(m.level.get().max == 1.0);
 
     m.gain = 1.5;   // the same value again: nothing fires
     CHECK(changes == 1);

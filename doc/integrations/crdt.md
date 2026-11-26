@@ -19,7 +19,7 @@ struct Experiment {
 
 `crdt` re-exports the model vocabulary (`State`, `Derived`, `Shared`, `Channel`, `List`, `Latest`) and replaces `Field`. A `crdt::Field<T>` is a `core::Field<T>` with a marker: same storage, same operators, same deferred notifications, so every widget and every `view()` works unchanged. A `crdt::Field` that no `Doc` binds behaves exactly like a local field.
 
-What a `crdt::Field` holds is a plain value: an integer, a floating point number, a `bool`, a `std::string`, or a scoped enum. Anything else is a compile error naming the supported ones.
+What a `crdt::Field` holds is a plain value: an integer, a floating point number, a `bool`, a `std::string`, or a scoped enum. It also takes a widget type: one with a public `value` member of one of those shares that member only, so a slider's number travels while its range and caption stay local. Anything else is a compile error naming the supported ones.
 
 ## A Doc is one replica
 
@@ -32,7 +32,7 @@ model::bind(doc, experiment);            // reflection tier: every crdt::Field m
 
 The manual tier is one line per field, and `doc.map("in").bind("on", on)` binds under a prefix. The reflection tier walks the struct; a nested struct contributes a dotted prefix (`in.on`, `in.deeper.x`), and a `core::Field` member is skipped and stays local.
 
-What binds is the model field, not the widget, so the field has to hold a value the `Doc` understands. A view that edits a value through a widget-typed field (a slider, a text field) copies the two across, as the example does. A window whose UI comes from reflection (no `view()`) can annotate a number with `[[=core::range<min, max, step>]]` instead, and get a slider bound straight to the shared field.
+A widget-typed field binds like any other: its `value` member is what the map holds, and the rest of the widget never enters the document. A window whose UI comes from reflection (no `view()`) can annotate a number with `[[=core::range<min, max, step>]]` instead, and get a slider bound straight to the shared field.
 
 Binding never writes. A key the map already holds replaces the field's value, so joining a session loads its state. An absent one leaves the field alone: defaults live in the code, every peer starts from the same ones, and a peer that binds before catching up can never push its default over a value somebody edited.
 
@@ -187,12 +187,15 @@ namespace model = prism::crdt;
 enum class Mode { idle, run, hold };
 
 struct Mixer {
-    model::Field<double> gain{0.5};
-    model::Field<Mode> mode{Mode::idle};
-    model::Field<std::string> name{"lead"};
+    model::Field<ui::Slider<double>> gain{
+        {.value = 0.5, .min = 0.0, .max = 1.0, .step = 0.01, .label = "Gain"}};
+    // ch1..ch4: model::Field<ui::Slider<int, ui::Orientation::Vertical>>, 0..100
+    model::Field<ui::Dropdown<Mode>> mode{{.value = Mode::idle}};
     model::Field<bool> armed{false};
+    model::Field<int> claps{0};
 
-    core::Field<int> local_clicks{0};   // never bound: this window alone
+    core::Field<ui::Button> clap{{.text = "Clap"}};   // never bound: this window alone
+    core::Field<ui::Label<>> ch1_label{{.value = "1"}};
 
     model::Doc doc;
 
@@ -204,9 +207,10 @@ struct Mixer {
 };
 ```
 
-Type in the gain's spin box in one window and the other follows; click in both and the two counters
-differ, because a `core::Field` is not bound. That difference is the point of the flavor: what is
-shared, and what is not, is written in the type.
+Drag the gain in one window and the other follows, still labelled with its own range. The Clap
+button itself is a `core::Field` and never bound, while the count it increments is shared: a local
+control driving a shared value. That is the point of the flavor — what is shared, and what is not,
+is written in the type. Two claps at once on two peers count once, since the count is a register.
 
 With `--hub 8000` it is one window instead, and its `Doc` is the room a hub serves: a browser peer
 built from the same sources joins it (see [Over the network](#over-the-network)).

@@ -68,8 +68,9 @@ becomes a peer.
   reflection walk that takes a `core::Field<T>&` works unchanged.
 - It is a marker: the type says "this field is shared". A `crdt::Field` that no `Doc` binds
   behaves exactly as a local field (tests, no-reflection builds).
-- `T` in step 1: integers, floating point, `bool`, `std::string`, scoped enums. Anything else is a
-  compile error naming the supported types.
+- `T` in step 1: integers, floating point, `bool`, `std::string`, scoped enums, or a widget type
+  whose public `value` member is one of those (only that member travels; the widget's own settings
+  stay local). Anything else is a compile error naming the supported types.
 
 ### `crdt::Doc`
 

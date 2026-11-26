@@ -24,7 +24,7 @@ std::string room_url() {
 int main() {
     crdt_pair::Mixer model;
     crdt::Client client(model.doc, room_url());
-    return app::run(model, {.title = "Browser peer", .width = 340, .height = 220},
+    return app::run(model, {.title = "Browser peer", .width = 800, .height = 480},
                     [&client](app::AppContext& ctx) {
                         crdt_pair::drain_on_logic_thread(ctx, client);
                     });

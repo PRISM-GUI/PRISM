@@ -8,7 +8,6 @@
 
 #include <cstddef>
 #include <span>
-#include <string>
 
 namespace crdt_pair {
 
@@ -18,23 +17,41 @@ namespace model = prism::crdt;   // the whole swap: prism::core would be the loc
 
 enum class Mode { idle, run, hold };
 
+// A mixer laid out for a touch screen. Every widget shares its `.value`; the ranges, captions and
+// option names stay local, so each replica can size its own controls.
 struct Mixer {
-    // What travels: plain values, the only kind a crdt::Field holds. A plain double is a spin box
-    // and a plain std::string a text field, so each window edits the shared values themselves.
-    model::Field<double> gain{0.5};
-    model::Field<Mode> mode{Mode::idle};
-    model::Field<std::string> name{"lead"};
+    model::Field<ui::Slider<double>> gain{
+        {.value = 0.5, .min = 0.0, .max = 1.0, .step = 0.01, .label = "Gain"}};
+
+    // Four channel faders. A vertical slider draws no caption, hence the fixed labels below them.
+    model::Field<ui::Slider<int, ui::Orientation::Vertical>> ch1{
+        {.value = 70, .min = 0, .max = 100, .step = 1}};
+    model::Field<ui::Slider<int, ui::Orientation::Vertical>> ch2{
+        {.value = 55, .min = 0, .max = 100, .step = 1}};
+    model::Field<ui::Slider<int, ui::Orientation::Vertical>> ch3{
+        {.value = 40, .min = 0, .max = 100, .step = 1}};
+    model::Field<ui::Slider<int, ui::Orientation::Vertical>> ch4{
+        {.value = 85, .min = 0, .max = 100, .step = 1}};
+
+    model::Field<ui::Dropdown<Mode>> mode{{.value = Mode::idle}};
     model::Field<bool> armed{false};
 
-    // What does not: a core::Field is never bound, so it lives in this window alone.
-    core::Field<int> local_clicks{0};
+    // Shared, shown read-only: the Clap button bumps it on this replica.
+    model::Field<int> claps{0};
 
-    core::Field<ui::Button> nudge{{.text = "Click"}};
+    // What does not: a core::Field is never bound, so it lives in this window alone.
+    core::Field<ui::Label<>> ch1_label{{.value = "1"}};
+    core::Field<ui::Label<>> ch2_label{{.value = "2"}};
+    core::Field<ui::Label<>> ch3_label{{.value = "3"}};
+    core::Field<ui::Label<>> ch4_label{{.value = "4"}};
+    core::Field<ui::Label<>> armed_label{{.value = "Armed"}};
+    core::Field<ui::Button> clap{{.text = "Clap"}};
 
     model::Doc doc;   // this replica
 
     Mixer() {
-        nudge.observe([this](const ui::Button&) { ++local_clicks; });
+        // simplify: a register, not a counter: two peers clapping at once count once.
+        clap.observe([this](const ui::Button&) { ++claps; });
     }
 
     // Every window's model gets this once, before its first frame.
@@ -47,23 +64,38 @@ struct Mixer {
         model::bind(doc, *this);   // every crdt::Field member, by its name
 #else
         doc.bind("gain", gain);    // the manual tier: one line per field, no reflection needed
+        doc.bind("ch1", ch1);
+        doc.bind("ch2", ch2);
+        doc.bind("ch3", ch3);
+        doc.bind("ch4", ch4);
         doc.bind("mode", mode);
-        doc.bind("name", name);
         doc.bind("armed", armed);
+        doc.bind("claps", claps);
 #endif
     }
 
     void view(app::ViewBuilder& vb) {
         vb.vstack([&] {
-            vb.widget(gain).tooltip("A double in the model, a spin box here");
+            vb.widget(gain);
+            vb.hstack([&] {   // spacers spread the faders over the width, for fingers
+                vb.spacer();
+                vb.vstack([&] { vb.widget(ch1); vb.widget(ch1_label); });
+                vb.spacer();
+                vb.vstack([&] { vb.widget(ch2); vb.widget(ch2_label); });
+                vb.spacer();
+                vb.vstack([&] { vb.widget(ch3); vb.widget(ch3_label); });
+                vb.spacer();
+                vb.vstack([&] { vb.widget(ch4); vb.widget(ch4_label); });
+                vb.spacer();
+            });
             vb.hstack([&] {
                 vb.widget(mode).tooltip("An enum travels by name");
+                vb.gap(24.f);
                 vb.widget(armed).tooltip("A bool is its own checkbox");
-            });
-            vb.widget(name).tooltip("A std::string in the model, a text field here");
-            vb.hstack([&] {
-                vb.widget(nudge);
-                vb.widget_readonly(local_clicks).tooltip("This window only: a core::Field is not bound");
+                vb.widget(armed_label);
+                vb.spacer();
+                vb.widget(clap).tooltip("A local button driving a shared count");
+                vb.widget_readonly(claps);
             });
         });
     }

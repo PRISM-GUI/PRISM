@@ -34,6 +34,13 @@ template <typename T>
 concept shared_scalar = std::integral<T> || std::floating_point<T> ||
                         std::same_as<T, std::string> || std::is_scoped_enum_v<T>;
 
+// A widget shares one member: a slider's number, a dropdown's choice. Everything else it carries
+// (a range, a caption, the option names) is drawn locally and never enters the document.
+template <typename T>
+concept shared_through_value = requires(const T& t) {
+    requires shared_scalar<std::remove_cvref_t<decltype((t.value))>>;
+};
+
 // A whole number a double holds exactly travels as a Yjs number, which a JS peer reads as a plain
 // Number. A wider one travels as decimal text: every peer sees a Yrs number as an IEEE 754 double
 // and would round it.
@@ -160,6 +167,19 @@ bool from_value(const Value& value, T& out) {
     }
 }
 
+// What a T contributes to the map: the value itself, or the member a widget shares.
+template <typename T>
+Value to_shared_value(const T& value) {
+    if constexpr (shared_through_value<T>) return to_value(value.value);
+    else return to_value(value);
+}
+
+template <typename T>
+bool from_shared_value(const Value& value, T& out) {
+    if constexpr (shared_through_value<T>) return from_value(value, out.value);
+    else return from_value(value, out);
+}
+
 // The key a field is bound to, with the token that says the field is still there. The field's own
 // hub holds this, so the token dies with the field; the Doc keeps the weak side.
 struct Tracked_key {
@@ -187,7 +207,8 @@ public:
     // over the field's value, and an absent one leaves the field alone. The defaults come from the
     // code, so every peer starts from the same ones and nobody pushes a default over a value. What
     // travels is a real local edit. Takes a crdt::Field too: it is-a core::Field, and binding does
-    // not care which.
+    // not care which. A widget-typed field (a slider, a dropdown) shares its `.value` member; its
+    // own settings stay local to this replica.
     template <typename T>
     void bind(std::string_view key, core::Field<T>& field) {
         bind_under({}, key, field);
@@ -214,24 +235,27 @@ private:
     // edits, because a SenderHub<const T&> cannot be named without T.
     template <typename T>
     void bind_under(std::string_view map_path, std::string_view key, core::Field<T>& field) {
-        static_assert(value_detail::shared_scalar<T>,
+        static_assert(value_detail::shared_scalar<T> || value_detail::shared_through_value<T>,
                       "a crdt field holds an integer, a floating point number, a bool, a "
-                      "std::string or a scoped enum, and nothing else");
+                      "std::string or a scoped enum, or a widget whose value is one, and nothing "
+                      "else");
         // The token below is owned by the lambda watching the field, and held weakly by the lambda
         // writing to it: a Doc outliving its field stops hearing from it, and never calls into the
         // field again.
         auto alive = std::make_shared<const bool>(true);
         auto write = [&field, token = std::weak_ptr<const bool>(alive)](const Value& value) {
             if (token.expired()) return false;
-            T next{};
-            if (!value_detail::from_value(value, next)) return false;
+            // Starts from what the field holds, so a widget keeps its own range or option names
+            // and only its shared member changes.
+            T next = field.get();
+            if (!value_detail::from_shared_value(value, next)) return false;
             field.set(std::move(next));
             return true;
         };
         core::Connection changed = field.on_change().connect(
             [this, bound = value_detail::Tracked_key{std::string(map_path), std::string(key),
                                                      std::move(alive)}](const T& next) {
-                field_changed(bound.map_path, bound.key, value_detail::to_value(next));
+                field_changed(bound.map_path, bound.key, value_detail::to_shared_value(next));
             });
         bind_value(map_path, key, std::move(write), std::move(changed));
     }

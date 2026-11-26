@@ -71,9 +71,9 @@ int run_pair() {
     const auto b_to_a =
         b.doc.on_update().connect([&a](std::span<const std::byte> update) { a.doc.apply_update(update); });
 
-    return app::run(a, {.title = "Peer A", .width = 340, .height = 220},
+    return app::run(a, {.title = "Peer A", .width = 800, .height = 480},
                     [&b](app::AppContext& ctx) {
-                        ctx.open_window(b, {.title = "Peer B", .width = 340, .height = 220});
+                        ctx.open_window(b, {.title = "Peer B", .width = 800, .height = 480});
                     });
 }
 
@@ -88,7 +88,7 @@ int run_hub(const Args& args) {
                 static_cast<int>(hub.port()));
     std::fflush(stdout);
 
-    return app::run(a, {.title = "Peer A (hub)", .width = 340, .height = 220},
+    return app::run(a, {.title = "Peer A (hub)", .width = 800, .height = 480},
                     [&hub](app::AppContext& ctx) { crdt_pair::drain_on_logic_thread(ctx, hub); });
 }
 
