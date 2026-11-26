@@ -1,7 +1,7 @@
 [wrap-git]
 directory = ycpp
 url = https://github.com/PRISM-GUI/ycpp.git
-revision = 6f0cf58e056ef4f7b9506cc709c49dc4a3e0378c
+revision = 178b1d77550fed6af8909ad748ed11a4bfa31b42
 depth = 1
 
 [provide]
