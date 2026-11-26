@@ -502,7 +502,7 @@ int channel8(Color c, int k) { return k == 0 ? c.r : (k == 1 ? c.g : c.b); }
 
 // Every channel of `got` within `tol` of `want`'s.
 bool close_to(std::uint32_t got, Color want, int tol) {
-    if (channel(got, 3) != 255) return false;
+    if ((got >> 24) != 0xFFu) return false;   // opaque
     for (int k = 0; k < 3; ++k)
         if (std::abs(channel(got, k) - channel8(want, k)) > tol) return false;
     return true;
