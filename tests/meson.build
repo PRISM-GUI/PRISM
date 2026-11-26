@@ -395,12 +395,6 @@ if prism_markdown_dep.found()
     dependencies : [prism_markdown_dep, doctest_dep]))
 endif
 
-# yffi's C ABI through prism-crdt: one scalar round-trips through Yrs.
-if prism_crdt_dep.found()
-  test('crdt_smoke', executable('test_crdt_smoke', files('test_crdt_smoke.cpp'),
-    dependencies : [prism_yrs_internal_dep, doctest_dep]))
-endif
-
 # crdt::Doc: model fields shared between replicas (doc/design/sync.md).
 if prism_crdt_dep.found()
   test('crdt_doc', executable('test_crdt_doc', files('test_crdt_doc.cpp'),

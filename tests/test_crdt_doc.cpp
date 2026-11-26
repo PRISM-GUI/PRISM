@@ -1,4 +1,4 @@
-// crdt::Doc: model fields travel between replicas through Yrs (doc/design/sync.md). Each test
+// crdt::Doc: model fields travel between replicas through ycpp (doc/design/sync.md). Each test
 // stands up two Docs and asks what a peer sees; the values are the plan's (Task 2, Step 1).
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
@@ -280,7 +280,7 @@ TEST_CASE("an unbound crdt::Field behaves as core::Field") {
 }
 
 TEST_CASE("two replicas can each write a different member of one nested struct") {
-    // Unwired, each replica writes a different member of the same nested struct. Under a nested Yrs
+    // Unwired, each replica writes a different member of the same nested struct. Under a nested
     // map each replica would create its own map for "in" and one of the two would lose the merge.
     // A dotted key is a plain key of the root map, so both writes survive it.
     Doc a;
@@ -309,7 +309,7 @@ TEST_CASE("two replicas can each write a different member of one nested struct")
 }
 
 TEST_CASE("an integer travels as a Yjs number") {
-    // A Yjs number is a double, and a JS peer reads a Yrs long as a BigInt: so a whole number a
+    // A Yjs number is a double, and a JS peer reads a 64-bit long as a BigInt: so a whole number a
     // double holds exactly leaves as a number, and a wider one as decimal text.
     CHECK(std::get<double>(value_detail::to_value(7)) == 7.0);
     CHECK(std::get<std::string>(value_detail::to_value(std::int64_t{1} << 60)) ==

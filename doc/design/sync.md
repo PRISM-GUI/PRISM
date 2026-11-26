@@ -40,25 +40,25 @@ struct Experiment {
 - What syncs is decided by type: `Field`, `List`, `Document` are durable shared state.
   `Shared`/`Channel` are fast local streams. `Derived` is recomputed on each peer.
 
-## Engine: Yrs
+## Engine: ycpp
 
-[Yrs](https://github.com/y-crdt/y-crdt) is the Rust port of Yjs, used through its C interface
-`yffi` (`libyrs.h`). Its update format is the Yjs one, so a JavaScript (`yjs`) or Python
-(`pycrdt`) program joins a PRISM model with an off-the-shelf library: that is how an agent
-becomes a peer.
+[ycpp](https://github.com/PRISM-GUI/ycpp) is a Yjs-compatible CRDT engine in plain C++23, following
+the Yjs sources. Its update format is the Yjs one, so a JavaScript (`yjs`) or Python (`pycrdt`)
+program joins a PRISM model with an off-the-shelf library: that is how an agent becomes a peer.
+Plain C++ is what lets it run on every target — no Rust toolchain per target, a small flash
+footprint, and allocation the caller controls, which a microcontroller needs.
 
 ## Approaches considered
 
 | | Choice | Why |
 |---|---|---|
-| Engine | **Yrs** over our own C++ CRDTs | Peers in Python and JS for free; we do not own a hard algorithm. Cost: Rust in the build, one toolchain per target. |
+| Engine | **ycpp** over our own C++ CRDTs | Peers in Python and JS for free; we do not own a hard algorithm. Plain C++: no toolchain per target, small on flash, allocation under control. |
 | | Own C++ CRDTs | Runs everywhere, embedded too; but a protocol nobody else speaks, and the algorithms are ours to get right. Rejected for now. |
 | First cut | **Fields only** | Smallest thing proving the flavor swap and echo handling. |
 | | Fields + lists | List identity (stable ids, moves) is the hardest mapping; it would slow the first proof. Step 3. |
-| | Text first | `Document` positions are `{block, byte}`; mapping them onto Yrs is its own project. Step 4. |
-| Build | **`cargo` called by Meson**, building `yffi` as a static library | Works with any cargo; one pinned `Cargo.lock`. |
-| | Meson's built-in Cargo support | Still experimental; wants `Cargo.toml` at the project root. |
-| | A system `libyrs` | Nobody packages it; breaks "dependencies come from wraps". |
+| | Text first | `Document` positions are `{block, byte}`; mapping them onto the engine is its own project. Step 4. |
+| Build | **A `wrap-git` of ycpp**, built by Meson like any other dependency | Plain C++ sources, no cargo step, the same build on every target. |
+| | A system `ycpp` | Nobody packages it; breaks "dependencies come from wraps". |
 
 ## Step 1 (this design): shared fields
 
@@ -74,7 +74,7 @@ becomes a peer.
 
 ### `crdt::Doc`
 
-Owns one Yrs document and binds fields to keys of one root map.
+Owns one ycpp document and binds fields to keys of one root map.
 
 ```cpp
 crdt::Doc doc;                          // one replica
@@ -87,13 +87,13 @@ auto state = doc.state_vector();  auto missing = doc.encode_since(peer_state);  
 ```
 
 - The `Doc` keeps the connections, not the field. A local `set()` reaches it through the field's
-  `on_change`; it writes the key in a Yrs transaction and emits the encoded update.
+  `on_change`; it writes the key in a ycpp transaction and emits the encoded update.
 - A remote update sets the field with `set()`, so views and `Derived` follow as for a local edit.
   While the `Doc` applies it, its own change handler ignores the field: no echo back out.
 - Nested structs (reflection tier) become dotted keys in the root map, `in.on`, `in.deeper.x`, not
   nested maps: two replicas each creating the same nested map keep one of the two, and lose the
   other's edits with it, while a dotted key merges like any other key.
-- Binding never writes. A key the Yrs map already holds takes the map's value, so joining a session
+- Binding never writes. A key the map already holds takes the map's value, so joining a session
   loads its state; an absent one leaves the field alone. Defaults live in the code, so every peer
   starts from the same ones, and a peer that binds before catching up can never push its default
   over a value somebody edited. Only a real local change reaches the map.
@@ -105,11 +105,10 @@ auto state = doc.state_vector();  auto missing = doc.encode_since(peer_state);  
 
 ### Build
 
-- `option('crdt', type: 'feature', value: 'auto')`: on when `cargo` is found. Off on
-  bare-metal targets and, in step 1, in the browser build.
-- `subprojects/yffi/`: a pinned `yffi` version with its `Cargo.lock`. Meson calls
-  `cargo build --release` through a `custom_target` and links the static library into
-  a new `prism-crdt` library. Rust types never appear in PRISM headers.
+- `option('crdt', type: 'feature', value: 'auto')`: on everywhere — desktop, browser and bare
+  metal alike — because ycpp is plain C++ and needs no toolchain of its own.
+- `subprojects/ycpp.wrap` pins the engine; Meson builds it like any other dependency and links it
+  into a new `prism-crdt` library. ycpp's types never appear in PRISM headers.
 - `include/prism/crdt/` (`field.hpp`, `doc.hpp`, `flavor.hpp`), `src/crdt/doc.cpp`.
 
 ### Tests
@@ -133,10 +132,10 @@ passing updates. A value typed in one window shows in the other.
 2. **Network and an agent peer.** Designed below, in "Step 2".
 3. **On the board.** Designed below, in "Step 3": the same pieces on a microcontroller, reached
    over its own access point.
-4. **`crdt::List<T>`.** A Yrs array with stable ids inside; the index API stays.
-5. **`crdt::Document`.** Yrs text with Peritext-style formatting; `{block, byte}` positions
+4. **`crdt::List<T>`.** A ycpp array with stable ids inside; the index API stays.
+5. **`crdt::Document`.** ycpp text with Peritext-style formatting; `{block, byte}` positions
    converted at the edge.
-6. **Undo per peer** (Yrs undo manager with tracked origins: undo reverts *my* edits only),
+6. **Undo per peer** (an undo manager with tracked origins: undo reverts *my* edits only),
    **presence** (carets, selections: Yjs awareness, not the document), **agent forks** (review an
    agent's edits before merging them).
 
@@ -176,9 +175,8 @@ On connect each side sends SyncStep1; a SyncStep1 is answered with SyncStep2
 
 ### crdt in the browser build
 
-yffi built by cargo for `wasm32-unknown-emscripten`. PRISM's web build uses threads, so the Rust
-objects must be compiled with `+atomics,+bulk-memory` (nightly `-Zbuild-std`), or the link fails
-on shared memory. Risky enough to spike first (Task 1).
+Nothing extra: ycpp is plain C++, so the wasm toolchain builds it with the rest of PRISM, threads
+and shared memory included.
 
 ### The agent
 
@@ -204,13 +202,8 @@ and edits the same model from its touchscreen. Nothing in the protocol changes, 
   network.
 - **The page ships in the app image, gzipped.** There is no filesystem to mount a bundle from, so
   the build embeds it and the server answers with it already compressed.
-- **Yrs comes from the same wrap, cross-built.** The ESP-IDF cross file names `rust_target`
-  (`riscv32imafc-esp-espidf`) and `rust_toolchain=esp`, the toolchain `espup install` puts in
-  rustup, and cargo rebuilds std with `-Zbuild-std`. Upstream nightly cannot: its std pins a libc
-  whose newlib-4 `stat` layout its own espidf code no longer matches
-  (`.superpowers/spike-yrs-s31.md`, sections 3-4).
-- **`realpath` is stubbed in the app.** ESP-IDF's newlib does not have it and Rust's `canonicalize`
-  references it; the board's app returns NULL from a three-line stub.
+- **ycpp comes from the same wrap, cross-built.** ESP-IDF builds the same plain C++ sources as
+  the desktop: same engine, same version, no extra step.
 
 ## Restrictions users must know
 
@@ -228,5 +221,5 @@ and edits the same model from its touchscreen. Nothing in the protocol changes, 
 
 ## Left to the builder
 
-The exact `yffi` version and cargo invocation; how the echo guard is held (a flag on the `Doc`
-or Yrs transaction origins); Yjs number encoding details; the re-export list for `crdt`.
+The exact ycpp revision (`subprojects/ycpp.wrap`); how the echo guard is held (a flag on the `Doc`
+or a transaction origin); Yjs number encoding details; the re-export list for `crdt`.

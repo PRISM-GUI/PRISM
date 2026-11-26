@@ -357,18 +357,17 @@ if host_machine.system() != 'emscripten' and io_on
   endif
 endif
 
-# CRDT (doc/design/sync.md, include/prism/crdt/): model fields shared between replicas, through Yrs
-# and its C ABI, yffi, which cargo builds — the one part of PRISM that needs a Rust compiler.
-# Static, like markdown: libyrs.h's types stay inside this directory, and a wheel needs no extra
-# shared library.
+# CRDT (doc/design/sync.md, include/prism/crdt/): model fields shared between replicas, through
+# ycpp, a Yjs-compatible CRDT in plain C++ that subprojects/ycpp.wrap pins. Static, like markdown,
+# and a wheel needs no extra shared library. ycpp's types stay inside src/crdt/: the public API
+# carries plain values and bytes only.
 prism_crdt_dep = dependency('', required : false)
 if crdt_on
-  # Internal: only prism-crdt and its test see libyrs.h, whose types never reach our headers.
-  prism_yrs_internal_dep = dependency('yffi')
+  ycpp_dep = dependency('ycpp')
   # Room is the relay on its own, so a transport that is not cpp-httplib (the board's server) keeps
   # it: no sockets, no threads, no prism-net.
   crdt_sources = ['crdt/doc.cpp', 'crdt/sync.cpp', 'crdt/room.cpp']
-  crdt_deps = [prism_core_dep, prism_yrs_internal_dep]
+  crdt_deps = [prism_core_dep, ycpp_dep]
   # Hub and Client are transports over cpp-httplib's WebSocket server and client, the dependency
   # prism-net already brings. Without it prism-crdt still builds, with no way to reach a peer.
   if prism_net_dep.found()
@@ -388,7 +387,7 @@ if crdt_on
   )
   prism_crdt_dep = declare_dependency(link_with : prism_crdt_lib,
     link_args : crdt_link_args,
-    dependencies : [prism_core_dep, prism_yrs_internal_dep.partial_dependency(links : true)])
+    dependencies : [prism_core_dep, ycpp_dep.partial_dependency(links : true)])
 endif
 
 if sdl_enabled

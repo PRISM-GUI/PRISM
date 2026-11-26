@@ -2,7 +2,7 @@
 
 `prism::crdt` is a second flavor of the model types. Two peers hold the same struct, edit their own copy, and merge. The names and the API are the ones you already know: that is the whole trick.
 
-It is opt-in, it needs `cargo` at build time, and nothing in `prism::core` changes for apps that do not use it. The design and its trade-offs are in `doc/design/sync.md` in the repository.
+It is opt-in, and nothing in `prism::core` changes for apps that do not use it. The engine is [ycpp](https://github.com/PRISM-GUI/ycpp), a Yjs-compatible CRDT in plain C++, so the build needs no extra toolchain. The design and its trade-offs are in `doc/design/sync.md` in the repository.
 
 ## The one-line swap
 
@@ -130,18 +130,17 @@ no PRISM code in it.
 
 ### The browser
 
-The browser build can host the same model, but it is an opt-in:
+The browser build hosts the same model with nothing to install: ycpp is plain C++ and builds with
+the rest of the wasm target. Publishing the page is the opt-in:
 
 ```console
-$ meson setup builddir-wasm --cross-file <wasm cross file> -Dcrdt=enabled
+$ meson setup builddir-wasm --cross-file <wasm cross file>
 $ PRISM_WEB_CRDT=1 scripts/build_web_site.sh builddir-wasm _site
 ```
 
-`auto` does not turn crdt on for emscripten: yffi there is a wasm cross build whose std has to be
-rebuilt with atomics, so it needs a nightly `cargo` with the `rust-src` component
-(`subprojects/packagefiles/yffi/`). `-Dcrdt=enabled` says you have one. `examples/crdt_pair` then
-builds its page instead of its two desktop windows, and `scripts/build_web_site.sh` publishes that
-page only with `PRISM_WEB_CRDT=1`: a page that joins a hub is only useful next to one.
+`examples/crdt_pair` builds a page instead of its two desktop windows in the browser, and
+`scripts/build_web_site.sh` publishes that page only with `PRISM_WEB_CRDT=1`: a page that joins a
+hub is only useful next to one.
 
 The desktop peer is `examples/crdt_hub`: one window, its `Doc` served on port 8000, and `./web` as
 the static directory -- copy or symlink the site there:
@@ -178,13 +177,13 @@ another machine has to reach it (`.host = "0.0.0.0"` in `crdt_hub`'s `main.cpp`)
 
 | Part | Meson option | Link with |
 |---|---|---|
-| The flavor | `-Dcrdt=auto` (the browser: `-Dcrdt=enabled`) | `prism_crdt_dep` |
-| The engine | (with the flavor) | built by `cargo` from the pinned `yffi` wrap |
+| The flavor | `-Dcrdt=auto` (the default; `-Dcrdt=disabled` turns it off) | `prism_crdt_dep` |
+| The engine | (with the flavor) | ycpp, from the pinned `subprojects/ycpp.wrap` |
 
-`auto` builds it when `cargo` is found and the target is hosted, and it is off on bare metal. A
-browser build opts in with `-Dcrdt=enabled`, because `yffi` there needs a nightly toolchain with
-`rust-src` (see [The browser](#the-browser)). Everything is behind `prism_crdt_dep`: a program that
-does not link it never sees Yrs, and no Rust type appears in a PRISM header.
+`auto` builds it on every target: desktop, browser and bare metal. The engine is ycpp, a
+Yjs-compatible CRDT in plain C++, so no Rust toolchain enters the build. Everything is behind
+`prism_crdt_dep`: a program that does not link it never sees the engine, and no engine type appears
+in a PRISM header.
 
 ## A complete example
 

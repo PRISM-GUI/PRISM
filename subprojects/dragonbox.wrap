@@ -1,0 +1,13 @@
+# ycpp's floating point formatting, fetched through wrapdb. ycpp is a wrap-git subproject, and
+# Meson keeps one flat list of subprojects: wraps a subproject needs live here, in the top level.
+[wrap-file]
+directory = dragonbox-1.1.2
+source_url = https://github.com/jk-jeon/dragonbox/archive/refs/tags/1.1.2.tar.gz
+source_filename = dragonbox-1.1.2.tar.gz
+source_hash = 60938a42c1013dd214c976a019fcde893c603379f059881cb86ed0c2637e2f19
+patch_filename = dragonbox_1.1.2-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/dragonbox_1.1.2-1/get_patch
+patch_hash = 1a9431b41dcbca8032c297d187afb4c937d41ddad1c82c85b38ffcee79a09486
+
+[provide]
+dragonbox = dragonbox_dep

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Assemble the GitHub Pages site from an emscripten build of the examples.
 # Usage: scripts/build_web_site.sh [wasm-builddir] [outdir]
-# A crdt build (meson -Dcrdt=enabled) also has the browser peer: set PRISM_WEB_CRDT=1 here to
-# publish it. It is a page that joins a hub, so it needs the desktop `crdt_hub` to talk to.
+# An emscripten build also has the browser peer (crdt is on by default): set PRISM_WEB_CRDT=1 here
+# to publish it. It is a page that joins a hub, so it needs the desktop `crdt_hub` to talk to.
 set -euo pipefail
 
 builddir="${1:-builddir-wasm}"

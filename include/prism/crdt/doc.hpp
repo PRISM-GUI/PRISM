@@ -20,14 +20,14 @@
 
 namespace prism::crdt {
 
-// What one shared key holds: the scalars a Yrs map carries, in the shape a peer in another
-// language reads back. bind() converts to and from T, so libyrs.h stays in src/crdt/.
+// What one shared key holds: the scalars a Yjs map carries, in the shape a peer in another
+// language reads back. bind() converts to and from T, so ycpp stays in src/crdt/.
 using Value = std::variant<std::monostate, std::int64_t, double, bool, std::string>;
 
 namespace value_detail {
 
 // A double holds integers exactly up to this magnitude. A wider one travels as decimal text,
-// because a peer sees Yrs numbers as IEEE 754 doubles (a JS Number).
+// because a peer sees Yjs numbers as IEEE 754 doubles (a JS Number).
 inline constexpr std::int64_t largest_exact_integer = std::int64_t{1} << 53;
 
 template <typename T>
@@ -42,7 +42,7 @@ concept shared_through_value = requires(const T& t) {
 };
 
 // A whole number a double holds exactly travels as a Yjs number, which a JS peer reads as a plain
-// Number. A wider one travels as decimal text: every peer sees a Yrs number as an IEEE 754 double
+// Number. A wider one travels as decimal text: every peer sees a Yjs number as an IEEE 754 double
 // and would round it.
 inline Value integral_value(std::int64_t value) {
     if (value > largest_exact_integer || value < -largest_exact_integer)
@@ -86,8 +86,8 @@ bool enum_from_name(std::string_view name, T& out) {
     return false;
 }
 
-// A field value on its way to a Doc. The order matters: bool is an integer, and every case that a
-// Yrs key can hold must be matched before the numeric ones.
+// A field value on its way to a Doc. The order matters: bool is an integer, and every case a map
+// key can hold must be matched before the numeric ones.
 template <typename T>
 Value to_value(const T& value) {
     if constexpr (std::is_scoped_enum_v<T>) {
@@ -180,6 +180,20 @@ bool from_shared_value(const Value& value, T& out) {
     else return from_value(value, out);
 }
 
+// Two values for one key. A whole number reads back as a long or as a Yjs number depending on how
+// the peer encoded it, so numbers compare numerically and everything else exactly.
+inline bool same_value(const Value& lhs, const Value& rhs) {
+    const auto* left_integer = std::get_if<std::int64_t>(&lhs);
+    const auto* left_number = std::get_if<double>(&lhs);
+    const auto* right_integer = std::get_if<std::int64_t>(&rhs);
+    const auto* right_number = std::get_if<double>(&rhs);
+    if (left_integer && right_integer) return *left_integer == *right_integer;
+    if (left_number && right_number) return *left_number == *right_number;
+    if (left_integer && right_number) return static_cast<double>(*left_integer) == *right_number;
+    if (left_number && right_integer) return *left_number == static_cast<double>(*right_integer);
+    return lhs == rhs;
+}
+
 // The key a field is bound to, with the token that says the field is still there. The field's own
 // hub holds this, so the token dies with the field; the Doc keeps the weak side.
 struct Tracked_key {
@@ -190,10 +204,10 @@ struct Tracked_key {
 
 } // namespace value_detail
 
-// One Yrs document, and the fields bound to keys of its root map: a local edit goes out as an
+// One ycpp document, and the fields bound to keys of its root map: a local edit goes out as an
 // update (Yjs v1, which a JS or Python peer reads), an applied update lands in the field through
 // set(), so views and Derived follow it like any other edit. Logic thread only, like every model
-// value. Field<T> values are converted here; libyrs.h never reaches this header.
+// value. Field<T> values are converted here; ycpp never reaches this header.
 class Doc {
 public:
     class Map;
@@ -215,7 +229,7 @@ public:
     }
 
     // A prefix for the keys of a nested struct: binding "on" under map("in") binds "in.on" in the
-    // root map. A dotted key, not a nested Yrs map: two replicas creating the same nested map each
+    // root map. A dotted key, not a nested map: two replicas creating the same nested map each
     // would keep only one of them, and the other's edits with it.
     Map map(std::string_view key);
 
