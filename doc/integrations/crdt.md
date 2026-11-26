@@ -61,6 +61,12 @@ Step 2 turns a `Doc` into something a network carries (`doc/design/sync.md`). Th
 any Yjs implementation. `Hub` comes with `prism-net`; `Client` exists both natively and in the
 browser.
 
+`crdt::Room` is the relay underneath both: a `Doc`, and peers that are each an id and a
+`send(bytes)` function. `join` makes the room speak first, `receive` applies the sender's message
+and relays it to the other peers, `leave` forgets one. When your transport is not cpp-httplib — a
+board's `esp_https_server`, a socket library of your own — drive a `Room` yourself, on the logic
+thread.
+
 A hub serves one `Doc` on one port: a WebSocket route at `/<room>`, and, when `static_dir` is set,
 the directory the page that joins it was built into.
 

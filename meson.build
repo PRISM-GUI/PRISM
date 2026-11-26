@@ -94,14 +94,17 @@ foreach o : ['http', 'io', 'markdown']
 endforeach
 
 # CRDT (doc/design/sync.md): model fields shared between replicas through Yrs, whose C ABI cargo
-# builds (src/meson.build). Rust's runtime wants threads, so bare metal is always off. A browser
-# can host it, but yffi there needs a nightly cargo with the rust-src component
-# (subprojects/packagefiles/yffi/build.py), which a plain `meson setup` cannot assume: that build
-# opts in with -Dcrdt=enabled. auto otherwise means "on when cargo is here", and asking for it
-# where cargo is missing is an error rather than a silent downgrade to prism::core.
+# builds (src/meson.build). A browser can host it, but yffi there needs a nightly cargo with the
+# rust-src component (subprojects/packagefiles/yffi/build.py), which a plain `meson setup` cannot
+# assume: that build opts in with -Dcrdt=enabled. auto otherwise means "on when cargo is here", and
+# asking for it where cargo is missing is an error rather than a silent downgrade to prism::core.
+# Bare metal is off too, unless the cross file says which Rust target to build for: the board arms
+# -Dcrdt=enabled and `rust_target` (plus `rust_toolchain`, the espup one) together. Hub and Client
+# stay off there, since prism-net is: prism-crdt is then Doc, sync and Room.
+rust_target = meson.get_external_property('rust_target', '')
 crdt_opt = get_option('crdt')
-if crdt_opt.enabled() and host_machine.system() == 'none'
-  error('crdt=enabled needs a hosted target: yffi is not built for bare metal')
+if crdt_opt.enabled() and host_machine.system() == 'none' and rust_target == ''
+  error('crdt=enabled on bare metal needs a Rust target: set `rust_target` in the cross file')
 endif
 cargo = find_program('cargo', required : crdt_opt.enabled())
 crdt_auto = host_machine.system() != 'none' and host_machine.system() != 'emscripten'

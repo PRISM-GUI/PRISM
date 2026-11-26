@@ -51,7 +51,7 @@ becomes a peer.
 
 | | Choice | Why |
 |---|---|---|
-| Engine | **Yrs** over our own C++ CRDTs | Peers in Python and JS for free; we do not own a hard algorithm. Cost: Rust in the build, no embedded. |
+| Engine | **Yrs** over our own C++ CRDTs | Peers in Python and JS for free; we do not own a hard algorithm. Cost: Rust in the build, one toolchain per target. |
 | | Own C++ CRDTs | Runs everywhere, embedded too; but a protocol nobody else speaks, and the algorithms are ours to get right. Rejected for now. |
 | First cut | **Fields only** | Smallest thing proving the flavor swap and echo handling. |
 | | Fields + lists | List identity (stable ids, moves) is the hardest mapping; it would slow the first proof. Step 3. |
@@ -130,10 +130,12 @@ passing updates. A value typed in one window shows in the other.
 ## Later steps
 
 2. **Network and an agent peer.** Designed below, in "Step 2".
-3. **`crdt::List<T>`.** A Yrs array with stable ids inside; the index API stays.
-4. **`crdt::Document`.** Yrs text with Peritext-style formatting; `{block, byte}` positions
+3. **On the board.** Designed below, in "Step 3": the same pieces on a microcontroller, reached
+   over its own access point.
+4. **`crdt::List<T>`.** A Yrs array with stable ids inside; the index API stays.
+5. **`crdt::Document`.** Yrs text with Peritext-style formatting; `{block, byte}` positions
    converted at the edge.
-5. **Undo per peer** (Yrs undo manager with tracked origins: undo reverts *my* edits only),
+6. **Undo per peer** (Yrs undo manager with tracked origins: undo reverts *my* edits only),
    **presence** (carets, selections: Yjs awareness, not the document), **agent forks** (review an
    agent's edits before merging them).
 
@@ -182,6 +184,33 @@ on shared memory. Risky enough to spike first (Task 1).
 `examples/crdt_pair/agent.py`: `pycrdt` + `pycrdt-websocket` join the hub's room, print the map,
 and set `gain` every second. A test runs it against a hub when `pycrdt` is installed.
 
+## Step 3: on the board
+
+The board is a hub with a screen: it runs its own access point, serves the page, relays the room,
+and edits the same model from its touchscreen. Nothing in the protocol changes, only the transports.
+
+- **`crdt::Room` is the relay without sockets.** A `Doc` and a map of peer ids to `send(bytes)`
+  functions; `join` makes the room speak first (a SyncStep1), `receive` applies the sender's
+  message and passes a SyncStep2 or Update on to the other peers, never back to the sender, and
+  `leave` forgets a peer so a browser that dropped mid-message costs no further sends. Desktop
+  `Hub` drives one over cpp-httplib; the board's server drives one over ESP-IDF's
+  `esp_https_server`. The logic-thread rule is unchanged: socket tasks only queue bytes.
+- **Its own access point, at 192.168.4.1.** SoftAP, not station mode: a phone or laptop joins the
+  board's network and loads the page from the board, with no router in between.
+- **HTTPS, with a certificate made at build time.** The page needs threads, and a browser hands the
+  threaded WASM build its shared memory only in a secure context; `http://192.168.4.1` is not one.
+  The self-signed certificate costs a one-time browser warning, which is fine on the board's own
+  network.
+- **The page ships in the app image, gzipped.** There is no filesystem to mount a bundle from, so
+  the build embeds it and the server answers with it already compressed.
+- **Yrs comes from the same wrap, cross-built.** The ESP-IDF cross file names `rust_target`
+  (`riscv32imafc-esp-espidf`) and `rust_toolchain=esp`, the toolchain `espup install` puts in
+  rustup, and cargo rebuilds std with `-Zbuild-std`. Upstream nightly cannot: its std pins a libc
+  whose newlib-4 `stat` layout its own espidf code no longer matches
+  (`.superpowers/spike-yrs-s31.md`, sections 3-4).
+- **`realpath` is stubbed in the app.** ESP-IDF's newlib does not have it and Rust's `canonicalize`
+  references it; the board's app returns NULL from a three-line stub.
+
 ## Restrictions users must know
 
 - An invariant across two fields (`min <= max`) can break after a merge. Keep such pairs in one
@@ -194,7 +223,6 @@ and set `gain` every second. A test runs it against a hub when `pycrdt` is insta
 ## Non-goals
 
 - Making `core` types CRDT-aware, or any cost for apps that do not use `crdt`.
-- Embedded targets.
 - A server: peers exchange updates; relaying them is the transport's job.
 
 ## Left to the builder

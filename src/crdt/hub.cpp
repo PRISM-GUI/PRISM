@@ -2,6 +2,7 @@
 
 #include <prism/core/channel.hpp>
 #include <prism/crdt/doc.hpp>
+#include <prism/crdt/room.hpp>
 #include <prism/crdt/sync.hpp>
 
 #include <httplib.h>
@@ -224,7 +225,7 @@ bool origin_allowed(std::string_view origin, std::string_view host,
 
 struct Hub::Impl {
     Impl(Doc& document, Hub::Options hub_options)
-        : doc(&document), options(std::move(hub_options)) {
+        : options(std::move(hub_options)), room(document) {
         events.observe([this](const ServerEvent& event) { handle(event); });
         serve_files();
         // The browser page needs both to use shared memory for the wasm build.
@@ -249,7 +250,7 @@ struct Hub::Impl {
         serve = std::jthread([this] { server.listen_after_bind(); });
     }
 
-    // Socket threads only queue what arrived; every Doc and SyncSession stays on the logic thread.
+    // Socket threads only queue what arrived; every Doc and Room call stays on the logic thread.
     void serve_client(httplib::ws::WebSocket& socket) {
         const auto outbox = std::make_shared<ServerOutbox>(socket);
         const auto client = next_client.fetch_add(1);
@@ -274,41 +275,31 @@ struct Hub::Impl {
     void handle(const ServerEvent& event) {
         switch (event.kind) {
         case ServerEvent::Kind::connected: adopt(event.client, event.outbox); break;
-        case ServerEvent::Kind::message: receive(event.client, event.message); break;
-        case ServerEvent::Kind::disconnected: sessions.erase(event.client); break;
+        case ServerEvent::Kind::message: room.receive(event.client, event.message); break;
+        case ServerEvent::Kind::disconnected: forget(event.client); break;
         }
     }
 
     // The hub speaks first, so a client answers with what it already has: that is how an edit made
     // before its session existed still reaches this Doc.
     void adopt(std::uint64_t client, const std::shared_ptr<ServerOutbox>& outbox) {
-        const auto send = [outbox](std::span<const std::byte> message) { outbox->push(message); };
-        auto session = std::make_unique<SyncSession>(*doc, send);
-        session->start();
-        sessions.emplace(client, Session{outbox, std::move(session)});
-    }
-
-    // The sender's own session applies its message to the hub's Doc (answering a step1, applying a
-    // step2 or update); a step2/update then goes on to the peers unchanged, because applying it
-    // here emits nothing on Doc::on_update(). A step1 is answered only, never passed on.
-    void receive(std::uint64_t client, std::span<const std::byte> message) {
-        const auto session = sessions.find(client);
-        if (session == sessions.end()) return;   // it disconnected before this was drained
-        session->second.sync->receive(message);
-        relay(client, message);
-    }
-
-    void relay(std::uint64_t sender, std::span<const std::byte> message) {
-        const auto decoded = decode_sync(message);
-        if (!decoded || decoded->kind == SyncKind::step1) return;
-        for (const auto& [client, session] : sessions)
-            if (client != sender) session.outbox->push(message);
+        outboxes.emplace(client, outbox);
+        room.join(client, [outbox](std::span<const std::byte> message) { outbox->push(message); });
     }
 
     // A session whose peer was dropped has had its queue cleared already; forgetting it here stops
     // the relay and drops its Doc subscription.
+    void forget(std::uint64_t client) {
+        room.leave(client);
+        outboxes.erase(client);
+    }
+
     void sweep_dropped() {
-        std::erase_if(sessions, [](const auto& entry) { return entry.second.outbox->closed(); });
+        std::erase_if(outboxes, [this](const auto& entry) {
+            if (!entry.second->closed()) return false;
+            room.leave(entry.first);
+            return true;
+        });
     }
 
     std::uint16_t bind() {
@@ -325,19 +316,14 @@ struct Hub::Impl {
         if (!options.static_dir.empty()) server.set_mount_point("/", options.static_dir);
     }
 
-    struct Session {
-        std::shared_ptr<ServerOutbox> outbox;
-        std::unique_ptr<SyncSession> sync;
-    };
-
-    Doc* doc;
     Hub::Options options;
     httplib::Server server;
     std::uint16_t port = 0;
     std::atomic<std::uint64_t> next_client{0};
     std::atomic<bool> stopping{false};
     core::Channel<ServerEvent> events;
-    std::map<std::uint64_t, Session> sessions;
+    std::map<std::uint64_t, std::shared_ptr<ServerOutbox>> outboxes;
+    Room room;
     std::jthread serve;
 };
 
@@ -347,7 +333,7 @@ Hub::Hub(Doc& doc, Options options) : impl_(std::make_unique<Impl>(doc, std::mov
 // whose pool then joins every socket thread before this returns.
 Hub::~Hub() {
     impl_->stopping = true;
-    for (const auto& entry : impl_->sessions) entry.second.outbox->stop();
+    for (const auto& entry : impl_->outboxes) entry.second->stop();
     impl_->server.stop();
     impl_->serve = std::jthread{};
 }

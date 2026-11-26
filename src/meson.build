@@ -360,7 +360,9 @@ prism_crdt_dep = dependency('', required : false)
 if crdt_on
   # Internal: only prism-crdt and its test see libyrs.h, whose types never reach our headers.
   prism_yrs_internal_dep = dependency('yffi')
-  crdt_sources = ['crdt/doc.cpp', 'crdt/sync.cpp']
+  # Room is the relay on its own, so a transport that is not cpp-httplib (the board's server) keeps
+  # it: no sockets, no threads, no prism-net.
+  crdt_sources = ['crdt/doc.cpp', 'crdt/sync.cpp', 'crdt/room.cpp']
   crdt_deps = [prism_core_dep, prism_yrs_internal_dep]
   # Hub and Client are transports over cpp-httplib's WebSocket server and client, the dependency
   # prism-net already brings. Without it prism-crdt still builds, with no way to reach a peer.

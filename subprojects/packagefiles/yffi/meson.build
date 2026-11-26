@@ -6,12 +6,26 @@ cargo = find_program('cargo')
 
 # A browser build is a cross build for cargo too: wasm with shared memory needs atomics, and its
 # std has to be rebuilt (build.py runs -Zbuild-std), which only a nightly toolchain with rust-src
-# can do. Meson has no toolchain knob for cargo, so the environment carries it.
+# can do. Meson has no toolchain knob for cargo, so the cross file carries it: rust_target names
+# the Rust target (empty: the native or browser default), rust_toolchain the rustup toolchain that
+# has it (empty: the default one).
+rust_target = meson.get_external_property('rust_target', '')
+rust_toolchain = meson.get_external_property('rust_toolchain', '')
+
+wasm_rustflags = '-C target-feature=+atomics,+bulk-memory,+mutable-globals'
 yrs_args = []
 yrs_env = {'CARGO' : cargo.full_path()}
-if host_machine.system() == 'emscripten'
-  yrs_args = ['--target', 'wasm32-unknown-emscripten',
-              '--rustflags', '-C target-feature=+atomics,+bulk-memory,+mutable-globals']
+if rust_target != ''
+  yrs_args = ['--target', rust_target]
+  # The atomics RUSTFLAGS are the browser's alone: a board's std needs -Zbuild-std and nothing else.
+  if host_machine.system() == 'emscripten'
+    yrs_args += ['--rustflags', wasm_rustflags]
+  endif
+  if rust_toolchain != ''
+    yrs_env += {'RUSTUP_TOOLCHAIN' : rust_toolchain}
+  endif
+elif host_machine.system() == 'emscripten'
+  yrs_args = ['--target', 'wasm32-unknown-emscripten', '--rustflags', wasm_rustflags]
   yrs_env = {'CARGO' : cargo.full_path(), 'RUSTUP_TOOLCHAIN' : 'nightly'}
 endif
 

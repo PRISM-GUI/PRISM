@@ -7,20 +7,27 @@ Usage:
 Called by a Meson custom_target that is always stale, because cargo, not Meson, knows what changed
 in the Rust tree. `CARGO` names another cargo executable (a cross build's, or a wrapper).
 
-A target makes this a cross build, and for the browser (wasm32-unknown-emscripten) it changes two
-things. Rust's std has to be rebuilt with threads (atomics), which only a nightly cargo with the
-rust-src component can do, hence -Zbuild-std and RUSTUP_TOOLCHAIN=nightly from the Meson side. And
-yrs 0.28.2 does not compile for emscripten as published: it gates `impl Default for undo::Options`
-on `target_family = "wasm"`, while the clock that impl needs is gated on
-`not(all(target_family = "wasm", target_os = "unknown"))`. On emscripten target_family is wasm and
-target_os is emscripten, so the clock exists and Default does not; upstream should use the narrower
-condition in both places (https://github.com/y-crdt/y-crdt/pull/791; drop this patch once a
-release carries it). A `[patch.crates-io]` entry cannot be added to a
-crates.io dependency from Meson's packagefiles, and a patched yrs tree in the repository would be a
-vendored copy to keep in step by hand, so this script copies the registry's yrs-0.28.2 into the
-target dir, applies that one fix, and points cargo at the copy. The copy lives beside cargo's own
-output, so once fetched it is patched offline; for this target --locked has to go, because a patch
-makes cargo re-resolve the lock.
+A target makes this a cross build, and std has to be rebuilt for it (-Zbuild-std), which only a
+nightly cargo with the rust-src component can do. For the browser (wasm32-unknown-emscripten) it
+changes two more things. Its std is rebuilt with threads (atomics), hence -Zbuild-std and
+RUSTUP_TOOLCHAIN=nightly from the Meson side. And yrs 0.28.2 does not compile for emscripten as
+published: it gates `impl Default for undo::Options` on `target_family = "wasm"`, while the clock
+that impl needs is gated on `not(all(target_family = "wasm", target_os = "unknown"))`. On
+emscripten target_family is wasm and target_os is emscripten, so the clock exists and Default does
+not; upstream should use the narrower condition in both places
+(https://github.com/y-crdt/y-crdt/pull/791; drop this patch once a release carries it). A
+`[patch.crates-io]` entry cannot be added to a crates.io dependency from Meson's packagefiles, and
+a patched yrs tree in the repository would be a vendored copy to keep in step by hand, so this
+script copies the registry's yrs-0.28.2 into the target dir, applies that one fix, and points cargo
+at the copy. The copy lives beside cargo's own output, so once fetched it is patched offline; for
+an emscripten build --locked has to go, because a patch makes cargo re-resolve the lock.
+
+A board (riscv32imafc-esp-espidf) needs neither the patch nor RUSTFLAGS: it is a plain std build.
+Its cargo is the esp-rs toolchain `espup install` puts in rustup, selected with
+RUSTUP_TOOLCHAIN=esp from the Meson cross file, not upstream nightly. Nightly's std pins libc
+0.2.191, whose newlib-4 `struct stat` its own espidf filesystem code still reads as the old field
+layout, so std does not compile; the esp-rs toolchain pins an older libc whose layout matches. ESP-IDF's newlib has no realpath(), and Rust's
+canonicalize references it, so the app supplies a stub.
 """
 
 import argparse
@@ -77,18 +84,33 @@ def cross_arguments(manifest, target_dir, target, rustflags):
         "--target",
         target,
     )
-    patched = patched_yrs(target_dir)
-    return [
+    arguments = [
         "--target",
         target,
-        # std rebuilt with atomics and without unwinding: the page runs it on pthreads.
+        # std rebuilt for the target's libc: the browser adds atomics, a board needs nothing else.
         "-Zbuild-std=std,panic_abort",
-        "--config",
-        f'patch.crates-io.yrs.path="{patched}"',
     ]
+    if "emscripten" in target:
+        arguments += [
+            "--config",
+            f'patch.crates-io.yrs.path="{patched_yrs(target_dir)}"',
+        ]
+    return arguments
+
+
+def private_crate(manifest, target_dir):
+    """A copy of the crate to build from. The yrs patch makes cargo rewrite Cargo.lock, and the
+    crate's own lock is shared with a native build of the same checkout, which reads it --locked."""
+    source = os.path.dirname(manifest)
+    copy = os.path.join(target_dir, "yffi")
+    shutil.rmtree(copy, ignore_errors=True)
+    shutil.copytree(source, copy, ignore=shutil.ignore_patterns("target"))
+    return os.path.join(copy, "Cargo.toml")
 
 
 def build(manifest, target_dir, output, target=None, rustflags=None):
+    if target is not None and "emscripten" in target:
+        manifest = private_crate(manifest, target_dir)
     arguments = [
         "build",
         "--release",
